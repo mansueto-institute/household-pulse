@@ -1,0 +1,92 @@
+---
+title: "pulse_puf_exploration"
+author: "Ryan Webb"
+date: "1/11/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(pollster)
+```
+
+Get the data and put it in a dataframe
+```{r, echo=FALSE}
+df_list = list()
+for (i in c(13:21)){
+  temp <- tempfile()
+  file_str <- str_glue("pulse2020_puf_{i}.csv")
+  url_str <- str_glue("https://www2.census.gov/programs-surveys/demo/datasets/hhp/2020/wk{i}/HPS_Week{i}_PUF_CSV.zip")
+  download.file(url_str,temp)
+  data <- read_csv(unz(temp, file_str),col_names=TRUE)
+  unlink(temp)
+  df_list[[i]] <- data
+}
+phase_3 <- do.call(rbind, df_list)
+```
+
+
+```{r}
+labeled_df <- phase_3 %>%
+  mutate(hispanic = ifelse(RHISPANIC==1,"Not Hispanic","Hispanic"),
+         race = case_when(RRACE==1 ~ "White",
+                          RRACE==2 ~ "Black",
+                          RRACE==3 ~ "Asian",
+                          TRUE ~ "Multiple"),
+         education = case_when(EEDUC==1 ~ "< hs",
+                               EEDUC==2 ~ "some hs",
+                               EEDUC==3 ~ "hs grad",
+                               EEDUC==4 ~ "some college",
+                               EEDUC==5 ~ "associates",
+                               EEDUC==6 ~ "bachelors",
+                               EEDUC==7 ~ "graduate"),
+         age_bracket = case_when(2020 - TBIRTH_YEAR <= 24 ~ "18-24",
+                                 2020 - TBIRTH_YEAR <= 29 ~ "25-29",
+                                 2020 - TBIRTH_YEAR <= 34 ~ "30-34",
+                                 2020 - TBIRTH_YEAR <= 39 ~ "35-39",
+                                 2020 - TBIRTH_YEAR <= 44 ~ "40-44",
+                                 2020 - TBIRTH_YEAR <= 49 ~ "45-49",
+                                 2020 - TBIRTH_YEAR <= 54 ~ "50-54",
+                                 2020 - TBIRTH_YEAR <= 59 ~ "55-59",
+                                 2020 - TBIRTH_YEAR <= 64 ~ "60-64",
+                                 TRUE ~ "65+"),
+         msa = case_when(EST_MSA == 35620 ~ 'New York',
+                         EST_MSA == 31080 ~ 'Los Angeles',
+                         EST_MSA == 16980 ~ 'Chicago',
+                         EST_MSA == 19100 ~ 'Dallas',
+                         EST_MSA == 26420 ~ 'Houston',
+                         EST_MSA == 47900 ~ 'Washington, DC',
+                         EST_MSA == 33100 ~ 'Miami',
+                         EST_MSA == 37980 ~ 'Philadelphia',
+                         EST_MSA == 12060 ~ 'Atlanta',
+                         EST_MSA == 38060 ~ 'Phoenix',
+                         EST_MSA == 14460 ~ 'Boston',
+                         EST_MSA == 41860 ~ 'San Francisco',
+                         EST_MSA == 40140 ~ 'Riverside',
+                         EST_MSA == 19820 ~ 'Detroit',
+                         EST_MSA == 42660 ~ 'Seattle',
+                         TRUE ~ 'No Metro'),
+         gender = ifelse(EGENDER==1,"Male","Female"))
+```
+
+
+I haven't checked the crosstabs with MOE yet
+```{r}
+msa_friendly_df <- labeled_df %>%
+  filter(msa != "No Metro",WEEK==21) #choose week, get rid of no MSA
+moe_crosstab(msa_friendly_df,
+             race,msa,
+             PWEIGHT,
+             pct_type="cell",
+             unwt_n = TRUE) %>%
+  mutate(freq = pct/100*n)
+moe_crosstab_3way(msa_friendly_df,
+                  race,msa,gender,
+                  PWEIGHT,
+                  pct_type="cell",
+                  unwt_n = TRUE)  %>%
+  mutate(freq = pct/100*n)
+
+```
+
