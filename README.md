@@ -2,11 +2,11 @@
 
 * [Project workplan](https://docs.google.com/document/d/1w9o-pM68D3nr9rKDgwtDZqzrRjwVasWdZGQk5tnHXYE/edit): scope of work and check in notes
 * [Household Pulse Data Dictionary](https://docs.google.com/spreadsheets/d/1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo/edit#gid=974836931)
-  * `question_labels` join to PUF on `variable`
+  * `question_labels` joins to PUF on `variable`
     * `description_recode` is a cleaned label for questions    
     * `universe_recode`	defines the universe that the question applies to
     * `type_of_variable` describes the type of question (ID, TIME, BUCKETIZE, FLAG, GEOCODE, WEIGHT, QUESTION).
-  * `response_labels` join to PUF on `variable` and `value`
+  * `response_labels` joins to PUF on `variable` and `value`
     * `variable_group` groups 'select all that apply questions'
     * `variable_recode` is the new variable that corresponds to cleaned label
     * `label_recode` is a cleaned label for question responses
