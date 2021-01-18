@@ -11,6 +11,6 @@
     * `variable_recode` is the new variable that uniquely identifies `label_recode`
     * `label_recode` is a cleaned label for question responses
     * `do_not_join` is a flag for variables that do not have a categorical response label
-  * Question and response labels are based on Phase 3 December 9-21 dictionary and should be consistent with Week 13 onwards. Note, `-99` is "Question seen but category not selected" and `-88` is "Missing / Did not report".
+  * Question and response labels are based on Phase 3 December 9-21 dictionary and should be consistent with Week 13 onwards. Note responses that contain `-99` means "Question seen but category not selected" and `-88` means "Missing / Did not report".
   * `county_metro_state` contains a county to metro or state crosswalk
 * [Household Pulse Survey Public Use Files](https://www.census.gov/programs-surveys/household-pulse-survey/datasets.html)
