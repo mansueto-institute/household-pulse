@@ -5,7 +5,7 @@
   * `question_labels` joins to PUF on `variable`
     * `description_recode` is a cleaned label for questions    
     * `universe_recode`	defines the universe that the question applies to
-    * `type_of_variable` describes the type of question (ID, TIME, BUCKETIZE, FLAG, GEOCODE, WEIGHT, QUESTION).
+    * `type_of_variable` describes the type of question (ID, TIME, FLAG, GEOCODE, WEIGHT, NUMERIC, QUESTION).
   * `response_labels` joins to PUF on `variable` and `value`
     * `variable_group` groups 'select all that apply questions' (useful for subsetting question groups)
     * `variable_recode` is the new variable that uniquely identifies `label_recode`
