@@ -1,6 +1,6 @@
 ## Eviction Defense Map
 
-* [Project workplan](https://docs.google.com/document/d/1w9o-pM68D3nr9rKDgwtDZqzrRjwVasWdZGQk5tnHXYE/edit): scope of work and check in notes
+* [Project workplan](https://docs.google.com/document/d/1w9o-pM68D3nr9rKDgwtDZqzrRjwVasWdZGQk5tnHXYE/edit): scope of work and check-in notes
 * [Household Pulse Data Dictionary](https://docs.google.com/spreadsheets/d/1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo/edit#gid=974836931)
   * `question_labels` joins to PUF on `variable`
     * `description_recode` is a cleaned label for questions    
