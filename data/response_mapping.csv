@@ -1,0 +1,340 @@
+﻿variable,value,label,variable_group,variable_recode,label_recode,do_not_join
+TBIRTH_YEAR,VALUE,1932-2002,TBIRTH_YEAR,TBIRTH_YEAR_BUCKET,,1
+THHLD_NUMPER,VALUE,(1-40) number of people (whole number),THHLD_NUMPER,THHLD_NUMPER_BUCKET,,1
+THHLD_NUMKID,VALUE,(0-40) number of people under 18 (whole number),THHLD_NUMKID,THHLD_NUMKID_BUCKET,,1
+THHLD_NUMADLT,VALUE,1-40) number of people (whole number),THHLD_NUMADLT,THHLD_NUMADLT_BUCKET,,1
+TUI_NUMPER,VALUE,(1-40) number of people (whole number),TUI_NUMPER,TUI_NUMPER_BUCKET,,1
+TSPNDFOOD,VALUE,$0-$900,TSPNDFOOD,TSPNDFOOD_BUCKET,,1
+TSPNDPRPD,VALUE,$0-$500,TSPNDPRPD,TSPNDPRPD_BUCKET,,1
+TBEDROOMS,VALUE,0-25,TBEDROOMS,TBEDROOMS_BUCKET,,1
+TSTDY_HRS,VALUE,0-40,TSTDY_HRS,TSTDY_HRS_BUCKET,,1
+TNUM_PS,VALUE,0-40,TNUM_PS,TNUM_PS_BUCKET,,1
+EST_ST,VALUE,,EST_ST,EST_ST_2,,1
+EST_MSA,VALUE,,EST_MSA,EST_MSA_2,,1
+PWEIGHT,VALUE,,PWEIGHT,PWEIGHT_2,,1
+HWEIGHT,VALUE,,HWEIGHT,HWEIGHT_2,,1
+SCRAM,VALUE,,SCRAM,SCRAM_2,,1
+WEEK,VALUE,,WEEK,WEEK_2,,1
+EGENDER,1,Male,EGENDER,EGENDER_2,1 - Men,0
+EGENDER,2,Female,EGENDER,EGENDER_2,2 - Women,0
+RHISPANIC,1,"No, not of Hispanic, Latino, or Spanish origin",RHISPANIC,RHISPANIC_2,1 - Not Latino,0
+RHISPANIC,2,"Yes, of Hispanic, Latino, or Spanish origin",RHISPANIC,RHISPANIC_2,2 - Latino,0
+RRACE,1,"White, Alone",RRACE,RRACE_2,1 - White,0
+RRACE,2,"Black, Alone",RRACE,RRACE_2,2 - Black,0
+RRACE,3,"Asian, Alone",RRACE,RRACE_2,3 - Asian,0
+RRACE,4,"Any other race alone, or race in combination",RRACE,RRACE_2,4 - Other,0
+EEDUC,1,Less than high school,EEDUC,EEDUC_2,1 - Less than a Bachelor's degree,0
+EEDUC,2,Some high school,EEDUC,EEDUC_2,1 - Less than a Bachelor's degree,0
+EEDUC,3,High school graduate or equivalent (for example GED),EEDUC,EEDUC_2,1 - Less than a Bachelor's degree,0
+EEDUC,4,"Some college, but degree not received or is in progress",EEDUC,EEDUC_2,1 - Less than a Bachelor's degree,0
+EEDUC,5,"Associate’s degree (for example AA, AS)",EEDUC,EEDUC_2,1 - Less than a Bachelor's degree,0
+EEDUC,6,"Bachelor's degree (for example BA, BS, AB)",EEDUC,EEDUC_2,2 - Bachelor's degree or higher,0
+EEDUC,7,"Graduate degree (for example master's, professional, doctorate)",EEDUC,EEDUC_2,2 - Bachelor's degree or higher,0
+MS,1,Now married,MS,MS_2,1 - Married,0
+MS,2,Widowed,MS,MS_2,2 - Unmarried or alone,0
+MS,3,Divorced,MS,MS_2,2 - Unmarried or alone,0
+MS,4,Separated,MS,MS_2,2 - Unmarried or alone,0
+MS,5,Never married,MS,MS_2,2 - Unmarried or alone,0
+WRKLOSS,1,Yes,WRKLOSS,WRKLOSS_2,1 - Recent household job loss,0
+WRKLOSS,2,No,WRKLOSS,WRKLOSS_2,2 - No recent household job loss,0
+EXPCTLOSS,1,Yes,EXPCTLOSS,EXPCTLOSS_2,1 - Expected household job loss,0
+EXPCTLOSS,2,No,EXPCTLOSS,EXPCTLOSS_2,2 - No expected household job loss,0
+ANYWORK,1,Yes,ANYWORK,ANYWORK_2,1 - Earned wages or salary,0
+ANYWORK,2,No,ANYWORK,ANYWORK_2,2 - No wages or salary,0
+KINDWORK,1,Government,KINDWORK,KINDWORK_2,1 - Public sector,0
+KINDWORK,2,Private company,KINDWORK,KINDWORK_2,2 - Private sector,0
+KINDWORK,3,Non-profit organization including tax exempt and charitable organizations,KINDWORK,KINDWORK_2,3 - Non-profit,0
+KINDWORK,4,Self-employed,KINDWORK,KINDWORK_2,4 - Family business / self-employed,0
+KINDWORK,5,Working in a family business,KINDWORK,KINDWORK_2,4 - Family business / self-employed,0
+RSNNOWRK,1,I did not want to be employed at this time,RSNNOWRK,RSNNOWRK_2,1 - Not employed,0
+RSNNOWRK,2,I am/was sick with coronavirus symptoms,RSNNOWRK,RSNNOWRK_2,2 - COVID-related illness,0
+RSNNOWRK,3,I am/was caring for someone with coronavirus symptoms,RSNNOWRK,RSNNOWRK_2,2 - COVID-related illness,0
+RSNNOWRK,4,I am/was caring for children not in school or daycare,RSNNOWRK,RSNNOWRK_2,3 - Caring for child or elder,0
+RSNNOWRK,5,I am/was caring for an elderly person,RSNNOWRK,RSNNOWRK_2,3 - Caring for child or elder,0
+RSNNOWRK,6,I am/was sick (not coronavirus related) or disabled,RSNNOWRK,RSNNOWRK_2,4 - Non-COVID illness,0
+RSNNOWRK,7,I am retired,RSNNOWRK,RSNNOWRK_2,5 - Retired,0
+RSNNOWRK,8,My employer experienced a reduction in business (including furlough) due to coronavirus pandemic,RSNNOWRK,RSNNOWRK_2,"6 - Furlough, layoff, or closure",0
+RSNNOWRK,9,I am/was laid off due to coronavirus pandemic,RSNNOWRK,RSNNOWRK_2,"6 - Furlough, layoff, or closure",0
+RSNNOWRK,10,My employer closed temporarily due to the coronavirus pandemic,RSNNOWRK,RSNNOWRK_2,"6 - Furlough, layoff, or closure",0
+RSNNOWRK,11,My employer went out of business due to the coronavirus pandemic,RSNNOWRK,RSNNOWRK_2,"6 - Furlough, layoff, or closure",0
+RSNNOWRK,12,"Other reason, please specify",RSNNOWRK,RSNNOWRK_2,7 - Other reason,0
+RSNNOWRK,13,I was concerned about getting or spreading the coronavirus,RSNNOWRK,RSNNOWRK_2,2 - COVID-related illness,0
+TW_START,1,"Yes, at least one adult substituted some or all of their typical in-person work for telework",TW_START,TW_START_2,1 - Working remote,0
+TW_START,3,"No, there has been no change in telework",TW_START,TW_START_2,1 - Working remote,0
+TW_START,2,"No, no adults substituted their typical in-person work for telework",TW_START,TW_START_2,2 - No telework available,0
+UNEMPPAY,1,"Yes, I use paid leave",UNEMPPAY,UNEMPPAY_2,1 - Paid leave or full pay for not working,0
+UNEMPPAY,2,"Yes, I receive full pay but do not have to take leave",UNEMPPAY,UNEMPPAY_2,1 - Paid leave or full pay for not working,0
+UNEMPPAY,3,"Yes, I receive partial pay",UNEMPPAY,UNEMPPAY_2,2 - Partial pay for not working,0
+UNEMPPAY,4,"No, I receive no pay",UNEMPPAY,UNEMPPAY_2,3 - No paid leave for not working,0
+UI_APPLY,1,Yes,UI_APPLY,UI_APPLY_2,1 - Applied for UI,0
+UI_APPLY,2,No,UI_APPLY,UI_APPLY_2,2 - Did not apply for UI,0
+UI_RECV,1,Yes,UI_RECV,UI_RECV_2,1 - Applied and received UI,0
+UI_RECV,2,No,UI_RECV,UI_RECV_2,"2 - Applied for UI, but did not receive",0
+SSA_RECV,1,Yes,SSA_RECV,SSA_RECV_2,1 - Receives social security,0
+SSA_RECV,2,No,SSA_RECV,SSA_RECV_2,2 - Does not receive social security,0
+SSA_APPLY,1,"Yes, applied or attempted to apply",SSA_APPLY,SSA_APPLY_2,1 - Applied for social security,0
+SSA_APPLY,2,No,SSA_APPLY,SSA_APPLY_2,2 - Did not apply for social security,0
+SSAPGM1,1,Social Security Retirement,SSAPGM,SSAPGM1_2,1 - Social Security Retirement,0
+SSAPGM2,1,Social Security Disability,SSAPGM,SSAPGM2_2,2 - Social Security Disability,0
+SSAPGM3,1,Social Security Survivors,SSAPGM,SSAPGM3_2,3 - Social Security Survivors,0
+SSAPGM4,1,Supplemental Security Income (SSI),SSAPGM,SSAPGM4_2,4 - Supplemental Security Income (SSI),0
+SSAPGM5,1,Medicare,SSAPGM,SSAPGM5_2,5 - Medicare,0
+SSALIKELY,1,Extremely likely,SSALIKELY,SSALIKELY_2,1 - Somewhat to very likely,0
+SSALIKELY,2,Very likely,SSALIKELY,SSALIKELY_2,1 - Somewhat to very likely,0
+SSALIKELY,3,Somewhat likely,SSALIKELY,SSALIKELY_2,1 - Somewhat to very likely,0
+SSALIKELY,4,Not at all likely,SSALIKELY,SSALIKELY_2,2 - Not likely,0
+SSAEXPCT1,1,Social Security Retirement,SSAEXPCT,SSAEXPCT1_2,1 - Social Security Retirement,0
+SSAEXPCT2,1,Social Security Disability,SSAEXPCT,SSAEXPCT2_2,2 - Social Security Disability,0
+SSAEXPCT3,1,Social Security Survivors,SSAEXPCT,SSAEXPCT3_2,3 - Social Security Survivors,0
+SSAEXPCT4,1,Supplemental Security Income (SSI),SSAEXPCT,SSAEXPCT4_2,4 - Supplemental Security Income (SSI),0
+SSAEXPCT5,1,Medicare,SSAEXPCT,SSAEXPCT5_2,5 - Medicare,0
+SSADECISN,1,The coronavirus pandemic has not affected my decision about applying for benefits,SSADECISN,SSADECISN_2,1 - Pandemic did not affect decision to apply for benefits,0
+SSADECISN,2,I have decided not to apply,SSADECISN,SSADECISN_2,2 - Decided not to apply,0
+SSADECISN,3,I applied or decided to apply earlier than expected,SSADECISN,SSADECISN_2,3 - Applied or decided to apply earlier than expected,0
+SSADECISN,4,I applied or decided to apply later than expected,SSADECISN,SSADECISN_2,4 - Applied or decided to apply later than expected,0
+EXPNS_DIF,1,Not at all difficult,EXPNS_DIF,EXPNS_DIF_2,1 - A little or not difficult to pay household expenses,0
+EXPNS_DIF,2,A little difficult,EXPNS_DIF,EXPNS_DIF_2,1 - A little or not difficult to pay household expenses,0
+EXPNS_DIF,3,Somewhat difficult,EXPNS_DIF,EXPNS_DIF_2,2 - Somewhat or very difficult to pay household expenses,0
+EXPNS_DIF,4,Very difficult,EXPNS_DIF,EXPNS_DIF_2,2 - Somewhat or very difficult to pay household expenses,0
+CHNGHOW1,1,Made more purchases online (as opposed to in store),CHNGHOW,CHNGHOW1_2,1 - Shopping more online,0
+CHNGHOW2,1,Made more purchases by curbside pick-up (as opposed to in store),CHNGHOW,CHNGHOW2_2,2 - Shopping more with curbside pickups,0
+CHNGHOW3,1,More purchases in-store (as opposed to purchases online or curbside pickup),CHNGHOW,CHNGHOW3_2,3 - Shopping more in-store,0
+CHNGHOW4,1,"Increased use of credit cards or smartphone apps for purchases, instead of using cash",CHNGHOW,CHNGHOW4_2,4 - Pay more with credit cards and apps,0
+CHNGHOW5,1,Increased use of cash instead of using credit cards or smartphone apps for purchases,CHNGHOW,CHNGHOW5_2,5 - Pay more with cash,0
+CHNGHOW6,1,Avoided eating at restaurants,CHNGHOW,CHNGHOW6_2,6 - Avoided restaurant dining,0
+CHNGHOW7,1,Resumed eating at restaurants,CHNGHOW,CHNGHOW7_2,7 - Resumed restaurant dining,0
+CHNGHOW8,1,Canceled or postponed in-person medical or dental appointments,CHNGHOW,CHNGHOW8_2,8 - Canceled in-person healthcare,0
+CHNGHOW9,1,Attended in-person medical or dental appointments,CHNGHOW,CHNGHOW9_2,9 - Attended in-person healthcare,0
+CHNGHOW10,1,Canceled or postponed housekeeping or caregiving services,CHNGHOW,CHNGHOW10_2,10 - Canceled housekeeping,0
+CHNGHOW11,1,Resumed or started new housekeeping or caregiving services,CHNGHOW,CHNGHOW11_2,11 - Resumed housekeeping,0
+CHNGHOW12,1,Did not make any changes to spending or shopping behavior,CHNGHOW,CHNGHOW12_2,12 - No change in habits,0
+WHYCHNGD1,1,"Usual shopping places were closed or had limited hours (e.g., restaurant, doctor/dentist office, health club, hair salon, child care center, etc.)",WHYCHNGD,WHYCHNGD1_2,1 - Usual shopping places were closed or had limited hours,0
+WHYCHNGD2,1,Usual shopping places re-opened or increased hours,WHYCHNGD,WHYCHNGD2_2,2 - Usual shopping places re-opened or increased hours,0
+WHYCHNGD3,1,Concerned about going to public or crowded places or having contact with high-risk people,WHYCHNGD,WHYCHNGD3_2,3 - Concerned about having contact with high-risk people,0
+WHYCHNGD4,1,No longer concerned about going to public or crowded places or having contact with high-risk people,WHYCHNGD,WHYCHNGD4_2,4 - No longer concerned about having contact with high-risk people,0
+WHYCHNGD5,1,Loss of income,WHYCHNGD,WHYCHNGD5_2,5 - Loss of income,0
+WHYCHNGD6,1,Increased income,WHYCHNGD,WHYCHNGD6_2,6 - Increased income,0
+WHYCHNGD7,1,Concerns about bening laid off or having hours reduced,WHYCHNGD,WHYCHNGD7_2,7 - Concerns about bening laid off or having hours reduced,0
+WHYCHNGD8,1,No longer concerned about being laid off or having hours reduced,WHYCHNGD,WHYCHNGD8_2,8 - No longer concerned about being laid off or having hours reduced,0
+WHYCHNGD9,1,Working from home/teleworking,WHYCHNGD,WHYCHNGD9_2,9 - Working from home/teleworking,0
+WHYCHNGD10,1,Resumed working onsite at workplace,WHYCHNGD,WHYCHNGD10_2,10 - Resumed working onsite at workplace,0
+WHYCHNGD11,1,Concerns about the economy,WHYCHNGD,WHYCHNGD11_2,11 - Concerns about the economy,0
+WHYCHNGD12,1,No longer concerned about the economy,WHYCHNGD,WHYCHNGD12_2,12 - No longer concerned about the economy,0
+WHYCHNGD13,1,"Other, specify:",WHYCHNGD,WHYCHNGD13_2,13 - Other,0
+SPNDSRC1,1,Regular income sources like those received before the pandemic,SPNDSRC,SPNDSRC1_2,1 - Regular income sources,0
+SPNDSRC2,1,Credit cards or loans,SPNDSRC,SPNDSRC2_2,2 - Credit cards or loans,0
+SPNDSRC3,1,Money from savings or selling assets,SPNDSRC,SPNDSRC3_2,3 - Money from savings,0
+SPNDSRC4,1,Borrowing from friends or family,SPNDSRC,SPNDSRC4_2,4 - Borrowing from family/friends,0
+SPNDSRC5,1,Unemployment insurance (UI) benefit payments,SPNDSRC,SPNDSRC5_2,5 - Unemployment benefits,0
+SPNDSRC6,1,Stimulus (economic impact) payment,SPNDSRC,SPNDSRC6_2,6 - Stimulus/relief payments,0
+SPNDSRC7,1,Money saved from deferred or forgiven payments (to meet your spending needs),SPNDSRC,SPNDSRC7_2,7 - Money from deferred payments,0
+SPNDSRC8,1,Supplemental Nutrition Assistance Program (SNAP),SPNDSRC,SPNDSRC8_2,8 - SNAP benefits,0
+FEWRTRIPS,1,Yes,FEWRTRIPS,FEWRTRIPS_2,1 - Fewer trips to stores,0
+FEWRTRIPS,2,No,FEWRTRIPS,FEWRTRIPS_2,2 - Usual number of trips to stores,0
+FEWRTRANS,1,Yes,FEWRTRANS,FEWRTRANS_2,"1 - Fewer trips by bus, rail, or ride-share",0
+FEWRTRANS,2,No,FEWRTRANS,FEWRTRANS_2,"2 - Usual number of trips by bus, rail, or ride-share",0
+FEWRTRANS,3,Did not use before,FEWRTRANS,FEWRTRANS_2,"2 - Usual number of trips by bus, rail, or ride-share",0
+PLNDTRIPS,1,Yes,PLNDTRIPS,PLNDTRIPS_2,1 - Planned to take trips before COVID,0
+PLNDTRIPS,2,No,PLNDTRIPS,PLNDTRIPS_2,2 - Had no trips planned,0
+CNCLDTRPS,1,Yes,CNCLDTRPS,CNCLDTRPS_2,1 - Canceled planned trips,0
+CNCLDTRPS,2,No,CNCLDTRPS,CNCLDTRPS_2,2 - Did not cancel planned trips,0
+PRIFOODSUF,1,Enough of the kinds of food (I/we) wanted to eat,PRIFOODSUF,PRIFOODSUF_2,1 - Enough to eat prior to pandemic,0
+PRIFOODSUF,2,"Enough, but not always the kinds of food (I/we) wanted to eat",PRIFOODSUF,PRIFOODSUF_2,1 - Enough to eat prior to pandemic,0
+PRIFOODSUF,3,Sometimes not enough to eat,PRIFOODSUF,PRIFOODSUF_2,2 - Not enough to eat prior to pandemic,0
+PRIFOODSUF,4,Often not enough to eat,PRIFOODSUF,PRIFOODSUF_2,2 - Not enough to eat prior to pandemic,0
+CURFOODSUF,1,Enough of the kinds of food (I/we) wanted to eat,CURFOODSUF,CURFOODSUF_2,1 - Enough to eat,0
+CURFOODSUF,2,"Enough, but not always the kinds of food (I/we) wanted to eat",CURFOODSUF,CURFOODSUF_2,1 - Enough to eat,0
+CURFOODSUF,3,Sometimes not enough to eat,CURFOODSUF,CURFOODSUF_2,2 - Not enough to eat,0
+CURFOODSUF,4,Often not enough to eat,CURFOODSUF,CURFOODSUF_2,2 - Not enough to eat,0
+CHILDFOOD,1,Often true,CHILDFOOD,CHILDFOOD_2,1 - Children not eating enough,0
+CHILDFOOD,2,Sometimes true,CHILDFOOD,CHILDFOOD_2,1 - Children not eating enough,0
+CHILDFOOD,3,Never true,CHILDFOOD,CHILDFOOD_2,2 - Children eating enough,0
+FOODSUFRSN1,1,Category marked-Couldn't afford to buy more food,FOODSUFRSN,FOODSUFRSN1_2,1 - Couldn't afford food,0
+FOODSUFRSN2,1,"Category marked- Couldn’t get out to buy food (for example, didn’t have transportation, or had mobility or health problems that prevented you from getting out)",FOODSUFRSN,FOODSUFRSN2_2,2 - Couldn't get out to buy food or get it delivered,0
+FOODSUFRSN3,1,Category marked-Afraid to go or didn’t want to go out to buy food,FOODSUFRSN,FOODSUFRSN3_2,3 - Didn't want to go out or stores didn't have it,0
+FOODSUFRSN4,1,Category marked- Couldn’t get groceries or meals delivered to me,FOODSUFRSN,FOODSUFRSN4_2,2 - Couldn't get out to buy food or get it delivered,0
+FOODSUFRSN5,1,Category marked- The stores didn’t have the food I wanted,FOODSUFRSN,FOODSUFRSN5_2,3 - Didn't want to go out or stores didn't have it,0
+FREEFOOD,1,Yes,FREEFOOD,FREEFOOD_2,1 - Received free groceries or meal,0
+FREEFOOD,2,No,FREEFOOD,FREEFOOD_2,2 - Did not receive free groceries or meal,0
+WHEREFREE1,1,Category marked,WHEREFREE,WHEREFREE1_2,1 - Free meals through a school program,0
+WHEREFREE2,1,Category marked,WHEREFREE,WHEREFREE2_2,2 - Food pantry,0
+WHEREFREE3,1,Category marked,WHEREFREE,WHEREFREE3_2,3 - Home-delivered service,0
+WHEREFREE4,1,Category marked,WHEREFREE,WHEREFREE4_2,4 - Religious organization,0
+WHEREFREE5,1,Category marked,WHEREFREE,WHEREFREE5_2,5 - Shelter or soup kitchen,0
+WHEREFREE6,1,Category marked,WHEREFREE,WHEREFREE6_2,6 - Other community program,0
+WHEREFREE7,1,Category marked,WHEREFREE,WHEREFREE7_2,"7 - Family, friends, or neighbors",0
+SNAP_YN,1,Yes,SNAP_YN,SNAP_YN_2,1 - Received SNAP benefits,0
+SNAP_YN,2,No,SNAP_YN,SNAP_YN_2,2 - Did not receive SNAP benefis,0
+SNAPMNTH1,1,January,SNAPMNTH,SNAPMNTH1_2,1 - Received SNAP in January,0
+SNAPMNTH2,1,February,SNAPMNTH,SNAPMNTH2_2,2 - Received SNAP in February,0
+SNAPMNTH3,1,March,SNAPMNTH,SNAPMNTH3_2,3 - Received SNAP in March,0
+SNAPMNTH4,1,April,SNAPMNTH,SNAPMNTH4_2,4 - Received SNAP in April,0
+SNAPMNTH5,1,May,SNAPMNTH,SNAPMNTH5_2,5 - Received SNAP in May,0
+SNAPMNTH6,1,June,SNAPMNTH,SNAPMNTH6_2,6 - Received SNAP in June,0
+SNAPMNTH7,1,July,SNAPMNTH,SNAPMNTH7_2,7 - Received SNAP in July,0
+SNAPMNTH8,1,August,SNAPMNTH,SNAPMNTH8_2,8 - Received SNAP in August,0
+SNAPMNTH9,1,September,SNAPMNTH,SNAPMNTH9_2,9 - Received SNAP in September,0
+SNAPMNTH10,1,October,SNAPMNTH,SNAPMNTH10_2,10 - Received SNAP in October,0
+SNAPMNTH11,1,November,SNAPMNTH,SNAPMNTH11_2,11 - Received SNAP in November,0
+SNAPMNTH12,1,December,SNAPMNTH,SNAPMNTH12_2,12 - Received SNAP in December,0
+FOODCONF,1,Not at all confident,FOODCONF,FOODCONF_2,1 - Not very confident that household will be able to afford food,0
+FOODCONF,2,Somewhat confident,FOODCONF,FOODCONF_2,1 - Not very confident that household will be able to afford food,0
+FOODCONF,3,Moderately confident,FOODCONF,FOODCONF_2,2 - Confident that household will be able to afford food,0
+FOODCONF,4,Very confident,FOODCONF,FOODCONF_2,2 - Confident that household will be able to afford food,0
+HLTHSTATUS,1,Excellent,HLTHSTATUS,HLTHSTATUS_2,1 - Health is good,0
+HLTHSTATUS,2,Very good,HLTHSTATUS,HLTHSTATUS_2,1 - Health is good,0
+HLTHSTATUS,3,Good,HLTHSTATUS,HLTHSTATUS_2,1 - Health is good,0
+HLTHSTATUS,4,Fair,HLTHSTATUS,HLTHSTATUS_2,2 - Health is fair or poor,0
+HLTHSTATUS,5,Poor,HLTHSTATUS,HLTHSTATUS_2,2 - Health is fair or poor,0
+ANXIOUS,1,Not at all,ANXIOUS,ANXIOUS_2,"1 - Not feeling nervous, anxious, or on edge",0
+ANXIOUS,2,Several days,ANXIOUS,ANXIOUS_2,"2 - Feeling nervous, anxious, or on edge",0
+ANXIOUS,3,More than half the days,ANXIOUS,ANXIOUS_2,"2 - Feeling nervous, anxious, or on edge",0
+ANXIOUS,4,Nearly every day,ANXIOUS,ANXIOUS_2,"2 - Feeling nervous, anxious, or on edge",0
+WORRY,1,Not at all,WORRY,WORRY_2,1 - Able to control worrying,0
+WORRY,2,Several days,WORRY,WORRY_2,2 - Not able to control worrying,0
+WORRY,3,More than half the days,WORRY,WORRY_2,2 - Not able to control worrying,0
+WORRY,4,Nearly every day,WORRY,WORRY_2,2 - Not able to control worrying,0
+INTEREST,1,Not at all,INTEREST,INTEREST_2,1 - Interest or pleasure in doing things,0
+INTEREST,2,Several days,INTEREST,INTEREST_2,2 - Little interest or pleasure in doing things,0
+INTEREST,3,More than half the days,INTEREST,INTEREST_2,2 - Little interest or pleasure in doing things,0
+INTEREST,4,Nearly every day,INTEREST,INTEREST_2,2 - Little interest or pleasure in doing things,0
+DOWN,1,Not at all,DOWN,DOWN_2,1 - Not feeling depressed,0
+DOWN,2,Several days,DOWN,DOWN_2,"2 - Feeling down, depressed, or hopeless",0
+DOWN,3,More than half the days,DOWN,DOWN_2,"2 - Feeling down, depressed, or hopeless",0
+DOWN,4,Nearly every day,DOWN,DOWN_2,"2 - Feeling down, depressed, or hopeless",0
+HLTHINS1,1,Category marked- Insurance through a current or former employer or union (through yourself or another family member),HLTHINS,HLTHINS1_2,1 - Employer-sponsored health insurance,0
+HLTHINS2,1,"Category marked-Insurance purchased directly from an insurance company, including marketplace coverage (through yourself or another family member)",HLTHINS,HLTHINS2_2,2 - Health insurance from marketplace,0
+HLTHINS3,1,"Category marked-Medicare, for people 65 and older, or people with certain disabilities",HLTHINS,HLTHINS3_2,3 - Medicare,0
+HLTHINS4,1,"Category marked-Medicaid, Medical Assistance, or any kind of government-assistance plan for those with low incomes or a disability",HLTHINS,HLTHINS4_2,4 - Medicaid,0
+HLTHINS5,1,Category marked-TRICARE or other military health care,HLTHINS,HLTHINS5_2,5 - TRICARE or VA health care,0
+HLTHINS6,1,Category marked-VA (including those who have ever used or enrolled for VA health care),HLTHINS,HLTHINS6_2,5 - TRICARE or VA health care,0
+HLTHINS7,1,Category marked-Indian Health Service,HLTHINS,HLTHINS7_2,6 - Indian Health Service,0
+HLTHINS8,1,Category marked- Other,HLTHINS,HLTHINS8_2,7 - Other health coverage,0
+DELAY,1,Yes,DELAY,DELAY_2,1 - Delayed medical care due to the pandemic,0
+DELAY,2,No,DELAY,DELAY_2,2 - No delay in medicare care,0
+NOTGET,1,Yes,NOTGET,NOTGET_2,1 - Delayed medical care for something not related to pandemic,0
+NOTGET,2,No,NOTGET,NOTGET_2,2 - No delay in medicare care,0
+PRESCRIPT,1,Yes,PRESCRIPT,PRESCRIPT_2,1 - Took prescription medication for mental health,0
+PRESCRIPT,2,No,PRESCRIPT,PRESCRIPT_2,2 - Did not take prescription medication for mental health,0
+MH_SVCS,1,Yes,MH_SVCS,MH_SVCS_2,1 - Received therapy from a mental health professional,0
+MH_SVCS,2,No,MH_SVCS,MH_SVCS_2,2 - Did not receive therapy from a mental health professional,0
+MH_NOTGET,1,Yes,MH_NOTGET,MH_NOTGET_2,"1 - Needed therapy for mental health, but did not get it",0
+MH_NOTGET,2,No,MH_NOTGET,MH_NOTGET_2,2 - Did not require or miss mental health care,0
+TENURE,1,Owned free and clear?,TENURE,TENURE_2,1 - Owned home free and clear,0
+TENURE,2,Owned with a mortgage or loan (including home equitly loans)?,TENURE,TENURE_2,2 - Owned home with a mortgage or loan,0
+TENURE,3,Rented?,TENURE,TENURE_2,3 - Rented home,0
+TENURE,4,Occupied without payment of rent?,TENURE,TENURE_2,4 - Occupied home without payment of rent,0
+LIVQTR,1,A mobile home,LIVQTR,LIVQTR_2,"1 - A mobile home, boat, RV, van, etc.",0
+LIVQTR,10,"Boat, RV, van, etc.",LIVQTR,LIVQTR_2,"1 - A mobile home, boat, RV, van, etc.",0
+LIVQTR,2,A one-family house detached from any other house,LIVQTR,LIVQTR_2,2 - Single detached home,0
+LIVQTR,3,A one-family house attached to one or more houses,LIVQTR,LIVQTR_2,"3 - Duplex, town home, or 2 apartment building",0
+LIVQTR,4,A building with 2 apartments,LIVQTR,LIVQTR_2,"3 - Duplex, town home, or 2 apartment building",0
+LIVQTR,5,A building with 3 or 4 apartment,LIVQTR,LIVQTR_2,4 - Building with 3 to 9 apartments,0
+LIVQTR,6,A building with 5 to 9 apartments,LIVQTR,LIVQTR_2,5 - Building with 10 to 49 apartments,0
+LIVQTR,7,A building with 10 to 19 apartments,LIVQTR,LIVQTR_2,5 - Building with 10 to 49 apartments,0
+LIVQTR,8,A building with 20 to 49 apartments,LIVQTR,LIVQTR_2,5 - Building with 10 to 49 apartments,0
+LIVQTR,9,A building with 50 or more apartments,LIVQTR,LIVQTR_2,6 - Building with 50+ apartments,0
+RENTCUR,1,Yes,RENTCUR,RENTCUR_2,1 - Household currently caught up on rent,0
+RENTCUR,2,No,RENTCUR,RENTCUR_2,2 - Not currently caught up on rent,0
+MORTCUR,1,Yes,MORTCUR,MORTCUR_2,1 - Household currently caught up on mortgage,0
+MORTCUR,2,No,MORTCUR,MORTCUR_2,2 - Not currently caught up on mortgage,0
+MORTCONF,1,No confidence,MORTCONF,MORTCONF_2,1 - Low or no confidence that household will be able to pay next rent or mortgage payment on time,0
+MORTCONF,2,Slight confidence,MORTCONF,MORTCONF_2,1 - Low or no confidence that household will be able to pay next rent or mortgage payment on time,0
+MORTCONF,3,Moderate confidence,MORTCONF,MORTCONF_2,2 - Moderate to high confidence that household will be able to pay next rent or mortgage payment on time,0
+MORTCONF,4,High confidence,MORTCONF,MORTCONF_2,2 - Moderate to high confidence that household will be able to pay next rent or mortgage payment on time,0
+MORTCONF,5,Payment is/will be deferred,MORTCONF,MORTCONF_2,3 - Rent or mortgage payment is/will be deferred,0
+EVICT,1,Very likely,EVICT,EVICT_2,1 - Somewhat to very likely to leave home within the next two months due to eviction,0
+EVICT,2,Somewhat likely,EVICT,EVICT_2,1 - Somewhat to very likely to leave home within the next two months due to eviction,0
+EVICT,3,Not very likely,EVICT,EVICT_2,2 - Not very or not at all likely to leave home within the next two months due to eviction,0
+EVICT,4,Not at all likely,EVICT,EVICT_2,2 - Not very or not at all likely to leave home within the next two months due to eviction,0
+FORCLOSE,1,Very likely,FORCLOSE,FORCLOSE_2,1 - Somewhat to very likely to leave this home within the next two months due to foreclosure,0
+FORCLOSE,2,Somewhat likely,FORCLOSE,FORCLOSE_2,1 - Somewhat to very likely to leave this home within the next two months due to foreclosure,0
+FORCLOSE,3,Not very likely,FORCLOSE,FORCLOSE_2,2 - Not very or not at all likely to leave this home within the next two months due to foreclosure,0
+FORCLOSE,4,Not at all likely,FORCLOSE,FORCLOSE_2,2 - Not very or not at all likely to leave this home within the next two months due to foreclosure,0
+ENROLL1,1,"Category marked- Yes, enrolled in a public or private school",ENROLL,ENROLL1_2,1 - Children enrolled in a public or private school,0
+ENROLL2,1,"Category marked- Yes, homeschooled",ENROLL,ENROLL2_2,2 - Children homeschooled,0
+ENROLL3,1,Category marked- No,ENROLL,ENROLL3_2,3 - No children enrolled in school,0
+TEACH1,1,Category marked-Classes normally taught in person at the school were canceled,TEACH,TEACH1_2,1 - Classes normally taught in person at the school were canceled,0
+TEACH2,1,"Category marked-Classes normally taught in person moved to a distance-learning format using online resources, either self-paced or in real time",TEACH,TEACH2_2,2 - Classes normally taught in person moved to a distance-learning using online materials,0
+TEACH3,1,Category marked-Classes normally taught in person moved to a distance-learning format using paper materials sent home to children,TEACH,TEACH3_2,3 - Classes normally taught in person moved to a distance-learning using paper materials,0
+TEACH4,1,Category marked-Classes normally taught in person changed in some other way -- Please specify:,TEACH,TEACH4_2,4 - Other change,0
+TEACH5,1,Category marked - The coronavirus pandemic did not affect how children in this household receive education,TEACH,TEACH5_2,5 - There was no change because schools did not close,0
+COMPAVAIL,1,Always available,COMPAVAIL,COMPAVAIL_2,1 - Always available to children for school,0
+COMPAVAIL,2,Usually available,COMPAVAIL,COMPAVAIL_2,2 - Usually available to children for school,0
+COMPAVAIL,3,Sometimes available,COMPAVAIL,COMPAVAIL_2,3 - Sometimes available to children for school,0
+COMPAVAIL,4,Rarely available,COMPAVAIL,COMPAVAIL_2,4 - Rarely available to children for school,0
+COMPAVAIL,5,Never available,COMPAVAIL,COMPAVAIL_2,5 - Never available to children for school,0
+COMP1,1,Category marked-Provided by the children’s school or school district to use outside of school,COMP,COMP1_2,1 - Provided by the children’s school,0
+COMP2,1,"Category marked-Provided by someone in the household or family, or it is the child’s",COMP,COMP2_2,2 - Provided by another source or family,0
+COMP3,1,Category marked-Provided by another source,COMP,COMP3_2,2 - Provided by another source or family,0
+INTRNTAVAIL,1,Always available,INTRNTAVAIL,INTRNTAVAIL_2,1 - Always or usually available,0
+INTRNTAVAIL,2,Usually available,INTRNTAVAIL,INTRNTAVAIL_2,1 - Always or usually available,0
+INTRNTAVAIL,3,Sometimes available,INTRNTAVAIL,INTRNTAVAIL_2,2 - Sometimes or rarely available,0
+INTRNTAVAIL,4,Rarely available,INTRNTAVAIL,INTRNTAVAIL_2,2 - Sometimes or rarely available,0
+INTRNTAVAIL,5,Never available,INTRNTAVAIL,INTRNTAVAIL_2,3 - Never available,0
+INTRNT1,1,Category marked-Paid for by the children’s school or school district,INTRNT,INTRNT1_2,1 - Paid for by school system,0
+INTRNT2,1,Category marked- Paid for by someone in the household or family,INTRNT,INTRNT2_2,2 - Paid for by someone in the household or another source,0
+INTRNT3,1,Category marked-Paid for by another source,INTRNT,INTRNT3_2,2 - Paid for by someone in the household or another source,0
+SCHLHRS,1,None,SCHLHRS,SCHLHRS_2,1 - No live virtual contact with teacher,0
+SCHLHRS,2,1 day,SCHLHRS,SCHLHRS_2,2 - 1 to 3 days of live virtual contact with teacher,0
+SCHLHRS,3,2-3 days,SCHLHRS,SCHLHRS_2,2 - 1 to 3 days of live virtual contact with teacher,0
+SCHLHRS,4,4 or more days,SCHLHRS,SCHLHRS_2,3 - 4+ days of live virtual contact with teacher,0
+TCH_HRS,1,Much less than a school day before the coronavirus pandemic,TCH_HRS,TCH_HRS_2,1 - Less time on school activities than before the pandemic,0
+TCH_HRS,2,A little bit less than a school day before the coronavirus pandemic,TCH_HRS,TCH_HRS_2,1 - Less time on school activities than before the pandemic,0
+TCH_HRS,3,As much as a school day before the coronavirus pandemic,TCH_HRS,TCH_HRS_2,2 - Same time on school activities than before the pandemic,0
+TCH_HRS,4,A little bit more than a school day before the coronavirus pandemic,TCH_HRS,TCH_HRS_2,3 - More time on school activities than before the pandemic,0
+TCH_HRS,5,Much more than a school day before the coronavirus pandemic,TCH_HRS,TCH_HRS_2,3 - More time on school activities than before the pandemic,0
+PSPLANS1,1,"Certificate or diploma program from a school that provides occupational training (usually a 2-year program, often leading to a license, such as cosmetology)",PSPLANS,PSPLANS1_2,1 - Other program,0
+PSPLANS2,1,Associate's degree program (usually a 2-year degree),PSPLANS,PSPLANS2_2,2 - Associate's degree program,0
+PSPLANS3,1,Bachelor's degree program (usually a 4-year degree),PSPLANS,PSPLANS3_2,3 - Bachelor's degree program,0
+PSPLANS4,1,"Graduate degree program (for example, Master's, PhD, MD)",PSPLANS,PSPLANS4_2,4 - Graduate degree progam,0
+PSPLANS5,1,Another credential program not listed above,PSPLANS,PSPLANS5_2,1 - Other program,0
+PSPLANS6,1,Classes that are not part of a credential program,PSPLANS,PSPLANS6_2,1 - Other program,0
+PSCHNG1,1,Plans to take classes this fall have not changed.,PSCHNG,PSCHNG1_2,1 - Same or more classes will be taken this fall,0
+PSCHNG2,1,All plans to take classes this fall have been canceled.,PSCHNG,PSCHNG2_2,2 - All plans to take classes this fall have been canceled,0
+PSCHNG3,1,"Classes will be in different formats in the fall (for example, change from in-person to online).",PSCHNG,PSCHNG3_2,3 - Classes will be in different formats in the fall,0
+PSCHNG4,1,Fewer classes will be taken this fall.,PSCHNG,PSCHNG4_2,4 - Fewer classes will be taken this fall,0
+PSCHNG5,1,More classes will be taken this fall.,PSCHNG,PSCHNG5_2,5 - Same or more classes will be taken this fall,0
+PSCHNG6,1,Classes will be taken from a different institution.,PSCHNG,PSCHNG6_2,6 - Classes will be taken from a different institution or program,0
+PSCHNG7,1,Classes will be taken for a different kind of certificate or degree.,PSCHNG,PSCHNG7_2,6 - Classes will be taken from a different institution or program,0
+PSWHYCHG1,1,Had coronavirus or concerns about getting coronavirus,PSWHYCHG,PSWHYCHG1_2,1 - Pandemic-related reason for change of plans,0
+PSWHYCHG2,1,Caring for someone with coronavirus,PSWHYCHG,PSWHYCHG2_2,1 - Pandemic-related reason for change of plans,0
+PSWHYCHG3,1,"Caring for others whose care arrangements are disrupted (e.g., loss of day care or adult care programs)",PSWHYCHG,PSWHYCHG3_2,1 - Pandemic-related reason for change of plans,0
+PSWHYCHG4,1,"Institution changed content or format of classes (e.g., from in-person to online)",PSWHYCHG,PSWHYCHG4_2,2 - Institution changed content or format of classes or campus life,0
+PSWHYCHG5,1,Changes to financial aid,PSWHYCHG,PSWHYCHG5_2,3 - Changes to financial aid or inability to pay due to changes in income,0
+PSWHYCHG6,1,Changes to campus life,PSWHYCHG,PSWHYCHG6_2,4 - Institution changed content or format of classes or campus life,0
+PSWHYCHG7,1,Uncertainty about how classes/program might change,PSWHYCHG,PSWHYCHG7_2,4 - Institution changed content or format of classes or campus life,0
+PSWHYCHG8,1,Not able to pay for classes/educational expenses because of changes to income from the pandemic,PSWHYCHG,PSWHYCHG8_2,3 - Changes to financial aid or inability to pay due to changes in income,0
+PSWHYCHG9,1,"Some other reason related to the pandemic, please specify",PSWHYCHG,PSWHYCHG9_2,1 - Pandemic-related reason for change of plans,0
+INCOME,1,"Less than $25,000",INCOME,INCOME_2,"1 - Less than $25,000",0
+INCOME,2,"$25,000 - $34,999",INCOME,INCOME_2,"2 - $25,000 - $34,999",0
+INCOME,3,"$35,000 - $49,999",INCOME,INCOME_2,"3 - $35,000 - $49,999",0
+INCOME,4,"$50,000 - $74,999",INCOME,INCOME_2,"4 - $50,000 - $74,999",0
+INCOME,5,"$75,000 - $99,999",INCOME,INCOME_2,"5 - $75,000 - $99,999",0
+INCOME,6,"$100,000 - $149,999",INCOME,INCOME_2,"6 - $100,000 - $149,999",0
+INCOME,7,"$150,000 - $199,9998) $200,000 and above",INCOME,INCOME_2,"7 - $150,000 - $199,999",0
+INCOME,8,"$200,000 and above",INCOME,INCOME_2,"8 - $200,000 and above",0
+ABIRTH_YEAR,1,Imputed,ABIRTH_YEAR,ABIRTH_YEAR_2,1 - Imputed,0
+ABIRTH_YEAR,2,Not imputed,ABIRTH_YEAR,ABIRTH_YEAR_2,2 - Not imputed,0
+AGENDER,1,Imputed,AGENDER,AGENDER_2,1 - Imputed,0
+AGENDER,2,Not imputed,AGENDER,AGENDER_2,2 - Not imputed,0
+AHISPANIC,1,Imputed,AHISPANIC,AHISPANIC_2,1 - Imputed,0
+AHISPANIC,2,Not imputed,AHISPANIC,AHISPANIC_2,2 - Not imputed,0
+ARACE,1,Imputed,ARACE,ARACE_2,1 - Imputed,0
+ARACE,2,Not imputed,ARACE,ARACE_2,2 - Not imputed,0
+AEDUC,1,Imputed,AEDUC,AEDUC_2,1 - Imputed,0
+AEDUC,2,Not imputed,AEDUC,AEDUC_2,2 - Not imputed,0
+AHHLD_NUMPER,1,Imputed,AHHLD_NUMPER,AHHLD_NUMPER_2,1 - Imputed,0
+AHHLD_NUMPER,2,Not imputed,AHHLD_NUMPER,AHHLD_NUMPER_2,2 - Not imputed,0
+AHHLD_NUMKID,1,Imputed,AHHLD_NUMKID,AHHLD_NUMKID_2,1 - Imputed,0
+AHHLD_NUMKID,2,Not imputed,AHHLD_NUMKID,AHHLD_NUMKID_2,2 - Not imputed,0
+PRIVHLTH,1,"Yes, Has Private Health Insurance",PRIVHLTH,PRIVHLTH_2,1 - Private health insurance,0
+PRIVHLTH,2,No Private Health Insurance,PRIVHLTH,PRIVHLTH_2,2 - No private health insurance,0
+PRIVHLTH,3,Missing,PRIVHLTH,PRIVHLTH_2,3 - Missing,0
+PUBHLTH,1,"Yes, Has Public Health Insurance",PUBHLTH,PUBHLTH_2,1 - Public health insurance,0
+PUBHLTH,2,No Public Health Insurance,PUBHLTH,PUBHLTH_2,2 - No public health insurance,0
+PUBHLTH,3,Missing,PUBHLTH,PUBHLTH_2,3 - Missing,0
+REGION,1,Northeast,REGION,REGION_2,1 - Northeast,0
+REGION,2,South,REGION,REGION_2,2 - South,0
+REGION,3,Midwest,REGION,REGION_2,3 - Midwest,0
+REGION,4,West,REGION,REGION_2,4 - West,0
