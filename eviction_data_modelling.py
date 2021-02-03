@@ -2,7 +2,7 @@ from pathlib import Path
 
 from etl import *
 
-root = Path("/Users/caitlinloftus/Projects/eviction-defense-map/")
+root = Path.cwd()
 data_dir = root/"data"
 
 data_dir.mkdir(exist_ok=True)

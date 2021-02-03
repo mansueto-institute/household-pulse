@@ -4,10 +4,9 @@ from typing import Dict, Optional, Sequence, Tuple
 import zipfile
 import io
 import requests
-import numpy as np
 import pandas as pd
 
-def data_url_str(w: int, wp):
+def data_url_str(w: int, wp: int):
     return f"wk{w}/HPS_Week{wp}_PUF_CSV.zip"
 
 def get_puf_data(data_str: str, i: int, base_url: str = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/2020/"):
