@@ -14,8 +14,14 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CROSSWALK_SPREADSHEET_ID = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
 CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_state']
 
+DATA_COL_NAMES = ['variable', 'value']
+
 def data_url_str(w: int, wp: int):
     return f"wk{w}/HPS_Week{wp}_PUF_CSV.zip"
+
+def stack_df(df, col_names):
+    return pd.DataFrame(df.set_index(['SCRAM', 'WEEK']).stack()).reset_index().rename(
+        columns={'level_2':col_names[0], 0: col_names[1]})
 
 def get_puf_data(data_str: str, i: int, base_url: str = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/2020/"):
     '''
@@ -28,7 +34,7 @@ def get_puf_data(data_str: str, i: int, base_url: str = "https://www2.census.gov
         print("url does not exist: {}".format(url))
         return None
     read_zip = zipfile.ZipFile(io.BytesIO(r.content))
-    data_df = pd.read_csv(read_zip.open("pulse2020_puf_{}.csv".format(i)), dtype={'SCRAM': 'string'})
+    data_df = stack_df(pd.read_csv(read_zip.open("pulse2020_puf_{}.csv".format(i)), dtype={'SCRAM': 'string'}), DATA_COL_NAMES)
     weight_df = pd.read_csv(read_zip.open("pulse2020_repwgt_puf_{}.csv".format(i)), dtype={'SCRAM': 'string'})
     return data_df.merge(weight_df, how='left', on='SCRAM')
 
