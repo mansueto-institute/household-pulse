@@ -7,6 +7,8 @@ data_dir = root/"data"
 
 data_dir.mkdir(exist_ok=True)
 
+SERVICE_ACCOUNT_FILE = root/"credentials.json"
+
 data = []
 r = True
 week = 13
@@ -25,3 +27,4 @@ df = pd.concat(data)
 
 df.to_csv(data_dir/"puf_data.csv", index=False)
 
+question_mapping_df, response_mapping, county_metro_state = get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
