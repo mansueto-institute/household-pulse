@@ -74,11 +74,15 @@ def get_feature_lists(question_mapping: pd.DataFrame, col_var: str):
     '''
     return list(question_mapping['variable'][question_mapping[col_var]=='1'])
 
+def generate_crosstab(df: pd.DataFrame, group_level: str, weight_var: str):
+    '''
+    generate crosstabs (from Nico's example code)
+    '''
+    crosstab = df.groupby([group_level]+['question_group', 'question_val', 'xtab_group', 'xtab_val']).agg({weight_var: 'sum'}).reset_index()
+    crosstab["weight_total"] = crosstab.groupby([group_level]+['question_group','xtab_group'])[weight_var].transform('sum')
+    crosstab["share"] = crosstab[weight_var]/df3.weight_total
+    crosstab["weight_total_val"] = crosstab.groupby([group_level]+['question_group','xtab_group','xtab_val'])[weight_var].transform('sum')
+    crosstab["share_val"] = crosstab[weight_var]/crosstab.weight_total_val
+    crosstab.sort_values(by=[group_level]+['question_group', 'xtab_group'], inplace=True, ascending=True)
+    return crosstab
 
-def generate_crosstabs(df, id_vars, value_vars, var_name, value_name):
-    '''
-    '''
-    return df.melt(id_vars=id_vars, 
-                    value_vars=value_vars, 
-                    var_name=var_name, 
-                    value_name=value_name)
