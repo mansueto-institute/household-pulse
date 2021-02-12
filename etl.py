@@ -34,13 +34,13 @@ def get_puf_data(data_str: str, i: int, base_url: str = "https://www2.census.gov
         print("url does not exist: {}".format(url))
         return None
     read_zip = zipfile.ZipFile(io.BytesIO(r.content))
-    data_df = stack_df(pd.read_csv(read_zip.open("pulse2020_puf_{}.csv".format(i)), dtype={'SCRAM': 'string'}), DATA_COL_NAMES)
+    data_df = pd.read_csv(read_zip.open("pulse2020_puf_{}.csv".format(i)), dtype={'SCRAM': 'string'})
     weight_df = pd.read_csv(read_zip.open("pulse2020_repwgt_puf_{}.csv".format(i)), dtype={'SCRAM': 'string'})
-    return data_df.merge(weight_df, how='left', on='SCRAM')
+    return data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
 
 def get_crosswalk_sheets(service_account_file: Path):
     '''
-    downloads data sheets from crosswalk google sheet
+    downloads data sheets from houehold_pulse_data_dictionary crosswalks
     '''
     creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SCOPES)
     service = build('sheets', 'v4', credentials=creds)
@@ -54,3 +54,31 @@ def get_crosswalk_sheets(service_account_file: Path):
         df = pd.DataFrame(values_input[1:], columns=values_input[0])
         data.append(df)
     return data
+
+def get_label_recode_dict(response_mapping: pd.DataFrame):
+    '''
+    convert question response mapping df into dict to recode labels 
+    '''
+    response_mapping_df = response_mapping[response_mapping['do_not_join']=='0']
+    response_mapping_df['value'] = response_mapping_df['value'].astype('float64')
+    d = {}
+    for i, row in response_mapping_df[['variable','value','label_recode']].iterrows():
+        if row['variable'] not in d.keys():
+            d[row['variable']] = {}
+        d[row['variable']][row['value']] = row['label_recode']
+    return d
+
+def get_feature_lists(question_mapping: pd.DataFrame, col_var: str):
+    '''
+    returns list of columns for col_var group (where col_var == 1)
+    '''
+    return list(question_mapping['variable'][question_mapping[col_var]=='1'])
+
+
+def generate_crosstabs(df, id_vars, value_vars, var_name, value_name):
+    '''
+    '''
+    return df.melt(id_vars=id_vars, 
+                    value_vars=value_vars, 
+                    var_name=var_name, 
+                    value_name=value_name)

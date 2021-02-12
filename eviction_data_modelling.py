@@ -7,7 +7,7 @@ data_dir = root/"data"
 
 data_dir.mkdir(exist_ok=True)
 
-SERVICE_ACCOUNT_FILE = root/"credentials.json"
+service_account_file = root/"credentials.json"
 
 data = []
 r = True
@@ -25,7 +25,35 @@ while r:
 
 df = pd.concat(data)
 
-df.to_csv(data_dir/"puf_data.csv", index=False)
+question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets(service_account_file)
+label_recode_dict = get_label_recode_dict(response_mapping)
 
-question_mapping_df, response_mapping, county_metro_state = get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
+df_replaced = df.replace(label_recode_dict)
+df_replaced['topline'] = 1
 
+stacked_crosstab_features = get_feature_lists(question_mapping, 'stacked_crosstab_features')
+multi_index_cols = get_feature_lists(question_mapping, 'multi_index_cols')
+stacked_question_features = get_feature_lists(question_mapping, 'stacked_question_features')
+
+
+# replicating Nico's crosstab example
+weight_var = 'PWEIGHT'
+id_vars = ['SCRAM', 'EST_MSA', 'topline', 'EEDUC','EGENDER']
+
+df1 = generate_crosstabs(df_replaced, ['SCRAM', 'EST_MSA', 'topline', 'EEDUC','EGENDER']+[weight_var], 
+                        ['RENTCUR', 'MORTCONF', 'EVICT'], 'question_group', 'question_val')
+
+df2 = generate_crosstabs(df1, ['SCRAM','EST_MSA','question_group','question_val']+[weight_var],
+                         ['topline','EEDUC', 'EGENDER'], 'xtab_group', 'xtab_val')
+
+df3 = df2.groupby(['EST_MSA', 'question_group', 'question_val', 'xtab_group', 'xtab_val']).agg({weight_var: 'sum'}).reset_index()
+
+df3["weight_total"] = df3.groupby(['EST_MSA','question_group','xtab_group'])[weight_var].transform('sum')
+df3["share"] = df3[weight_var]/df3.weight_total
+
+df3["weight_total_val"] = df3.groupby(['EST_MSA','question_group','xtab_group','xtab_val'])[weight_var].transform('sum')
+df3["share_val"] = df3[weight_var]/df3.weight_total_val
+df3.sort_values(by= ['EST_MSA', 'question_group', 'xtab_group'], inplace=True, ascending=True)
+df3
+
+# df_replaced.to_csv(data_dir/"puf_data.csv", index=False)
