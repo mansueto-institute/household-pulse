@@ -14,8 +14,14 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CROSSWALK_SPREADSHEET_ID = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
 CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_state']
 
+DATA_COL_NAMES = ['variable', 'value']
+
 def data_url_str(w: int, wp: int):
     return f"wk{w}/HPS_Week{wp}_PUF_CSV.zip"
+
+def stack_df(df, col_names):
+    return pd.DataFrame(df.set_index(['SCRAM', 'WEEK']).stack()).reset_index().rename(
+        columns={'level_2':col_names[0], 0: col_names[1]})
 
 def get_puf_data(data_str: str, i: int, base_url: str = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/2020/"):
     '''
@@ -30,11 +36,11 @@ def get_puf_data(data_str: str, i: int, base_url: str = "https://www2.census.gov
     read_zip = zipfile.ZipFile(io.BytesIO(r.content))
     data_df = pd.read_csv(read_zip.open("pulse2020_puf_{}.csv".format(i)), dtype={'SCRAM': 'string'})
     weight_df = pd.read_csv(read_zip.open("pulse2020_repwgt_puf_{}.csv".format(i)), dtype={'SCRAM': 'string'})
-    return data_df.merge(weight_df, how='left', on='SCRAM')
+    return data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
 
 def get_crosswalk_sheets(service_account_file: Path):
     '''
-    downloads data sheets from crosswalk google sheet
+    downloads data sheets from houehold_pulse_data_dictionary crosswalks
     '''
     creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SCOPES)
     service = build('sheets', 'v4', credentials=creds)
@@ -48,3 +54,35 @@ def get_crosswalk_sheets(service_account_file: Path):
         df = pd.DataFrame(values_input[1:], columns=values_input[0])
         data.append(df)
     return data
+
+def get_label_recode_dict(response_mapping: pd.DataFrame):
+    '''
+    convert question response mapping df into dict to recode labels 
+    '''
+    response_mapping_df = response_mapping[response_mapping['do_not_join']=='0']
+    response_mapping_df['value'] = response_mapping_df['value'].astype('float64')
+    d = {}
+    for i, row in response_mapping_df[['variable','value','label_recode']].iterrows():
+        if row['variable'] not in d.keys():
+            d[row['variable']] = {}
+        d[row['variable']][row['value']] = row['label_recode']
+    return d
+
+def get_feature_lists(question_mapping: pd.DataFrame, col_var: str):
+    '''
+    returns list of columns for col_var group (where col_var == 1)
+    '''
+    return list(question_mapping['variable'][question_mapping[col_var]=='1'])
+
+def generate_crosstab(df: pd.DataFrame, group_level: str, weight_var: str):
+    '''
+    generate crosstabs (from Nico's example code)
+    '''
+    crosstab = df.groupby([group_level]+['question_group', 'question_val', 'xtab_group', 'xtab_val']).agg({weight_var: 'sum'}).reset_index()
+    crosstab["weight_total"] = crosstab.groupby([group_level]+['question_group','xtab_group'])[weight_var].transform('sum')
+    crosstab["share"] = crosstab[weight_var]/df3.weight_total
+    crosstab["weight_total_val"] = crosstab.groupby([group_level]+['question_group','xtab_group','xtab_val'])[weight_var].transform('sum')
+    crosstab["share_val"] = crosstab[weight_var]/crosstab.weight_total_val
+    crosstab.sort_values(by=[group_level]+['question_group', 'xtab_group'], inplace=True, ascending=True)
+    return crosstab
+
