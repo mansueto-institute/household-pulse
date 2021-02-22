@@ -210,7 +210,7 @@ def data_file_str(wp: int, f: str):
 
 def download_housing_data(housing_datafile: Path, week: int, mode: str, header):
     '''
-    
+    download all missing housing data into housing_datafile
     '''
     r = True
     while r:
@@ -227,7 +227,7 @@ def download_housing_data(housing_datafile: Path, week: int, mode: str, header):
 def get_puf_data(data_str: str, wp: int,
                  base_url: str = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"):
     '''
-    download puf files for the given weeks and concatenate the datasets
+    download puf zip file for the given week and merge weights and puf dataframes
     '''
     url = base_url + data_str
     print("trying: " + url)
