@@ -10,177 +10,6 @@ import pandas as pd
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
-PUF_USECOLS = [
-'AHHLD_NUMPER',
- 'WHYCHNGD1',
- 'SPNDSRC7',
- 'HLTHINS5',
- 'WHEREFREE7',
- 'FORCLOSE',
- 'FEWRTRIPS',
- 'SSAPGM2',
- 'MH_SVCS',
- 'WHEREFREE4',
- 'HLTHINS6',
- 'TSPNDPRPD',
- 'SSAPGM1',
- 'EXPCTLOSS',
- 'INTEREST',
- 'SSAEXPCT2',
- 'PSWHYCHG3',
- 'SSADECISN',
- 'INCOME',
- 'TNUM_PS',
- 'PSCHNG5',
- 'PSPLANS5',
- 'WHYCHNGD7',
- 'CHNGHOW9',
- 'CHNGHOW12',
- 'PSWHYCHG4',
- 'WORRY',
- 'WHYCHNGD4',
- 'NOTGET',
- 'SSAPGM5',
- 'PSCHNG4',
- 'SPNDSRC6',
- 'PRESCRIPT',
- 'SSA_APPLY',
- 'HLTHINS2',
- 'PSCHNG1',
- 'SPNDSRC5',
- 'SPNDSRC2',
- 'SPNDSRC8',
- 'WHYCHNGD6',
- 'ABIRTH_YEAR',
- 'SSAEXPCT5',
- 'PSPLANS4',
- 'SSAPGM3',
- 'WHYCHNGD9',
- 'WHEREFREE5',
- 'TEACH3',
- 'RENTCUR',
- 'WHEREFREE3',
- 'PUBHLTH',
- 'ENROLL1',
- 'PSCHNG3',
- 'FOODSUFRSN1',
- 'SSALIKELY',
- 'ENROLL3',
- 'WHYCHNGD13',
- 'UI_APPLY',
- 'HLTHINS7',
- 'DELAY',
- 'RHISPANIC',
- 'PWEIGHT',
- 'AHISPANIC',
- 'PSWHYCHG5',
- 'TW_START',
- 'CHNGHOW4',
- 'INTRNT3',
- 'TEACH1',
- 'INTRNT2',
- 'FEWRTRANS',
- 'SSA_RECV',
- 'HWEIGHT',
- 'AGENDER',
- 'INTRNTAVAIL',
- 'SPNDSRC4',
- 'MS',
- 'CHNGHOW2',
- 'TEACH2',
- 'PSWHYCHG7',
- 'PSWHYCHG1',
- 'EST_ST',
- 'TSPNDFOOD',
- 'WHYCHNGD2',
- 'LIVQTR',
- 'CHNGHOW8',
- 'SPNDSRC3',
- 'COMPAVAIL',
- 'FOODSUFRSN3',
- 'SCRAM',
- 'COMP2',
- 'PSCHNG2',
- 'CHNGHOW10',
- 'PSPLANS6',
- 'SSAPGM4',
- 'ARACE',
- 'WHEREFREE1',
- 'HLTHINS1',
- 'FOODSUFRSN2',
- 'CHNGHOW6',
- 'EEDUC',
- 'SSAEXPCT3',
- 'PLNDTRIPS',
- 'PSWHYCHG9',
- 'UI_RECV',
- 'MH_NOTGET',
- 'ENROLL2',
- 'WHYCHNGD11',
- 'HLTHINS3',
- 'PSPLANS2',
- 'WHYCHNGD10',
- 'TBIRTH_YEAR',
- 'PSWHYCHG8',
- 'PSPLANS3',
- 'THHLD_NUMPER',
- 'WRKLOSS',
- 'SNAP_YN',
- 'CHNGHOW11',
- 'PSCHNG7',
- 'PSCHNG6',
- 'MORTCONF',
- 'CHNGHOW3',
- 'COMP3',
- 'ANXIOUS',
- 'EVICT',
- 'ANYWORK',
- 'CURFOODSUF',
- 'PSWHYCHG6',
- 'SCHLHRS',
- 'WHEREFREE6',
- 'SSAEXPCT4',
- 'FOODSUFRSN5',
- 'WHYCHNGD3',
- 'THHLD_NUMKID',
- 'TEACH4',
- 'SSAEXPCT1',
- 'TEACH5',
- 'CHNGHOW5',
- 'PSWHYCHG2',
- 'TSTDY_HRS',
- 'WHYCHNGD12',
- 'MORTCUR',
- 'AHHLD_NUMKID',
- 'PRIVHLTH',
- 'AEDUC',
- 'EXPNS_DIF',
- 'TENURE',
- 'WHYCHNGD8',
- 'WHYCHNGD5',
- 'HLTHINS8',
- 'KINDWORK',
- 'TCH_HRS',
- 'WHEREFREE2',
- 'DOWN',
- 'INTRNT1',
- 'EGENDER',
- 'REGION',
- 'RRACE',
- 'THHLD_NUMADLT',
- 'CHNGHOW1',
- 'CHNGHOW7',
- 'SPNDSRC1',
- 'PSPLANS1',
- 'EST_MSA',
- 'RSNNOWRK',
- 'FREEFOOD',
- 'HLTHINS4',
- 'WEEK',
- 'COMP1',
- 'CHILDFOOD',
- 'FOODSUFRSN4']
-
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CROSSWALK_SPREADSHEET_ID = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
 CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_state']
@@ -190,12 +19,13 @@ def check_housing_file_exists(housing_datafile: Path):
     check whether housing data csv already exists and set parameters accordingly
     '''
     if housing_datafile.exists():
-        week = int(housing_datafile.read_text().splitlines()[-1].split(',')[1]) + 1
+        file = housing_datafile.read_text().splitlines()
+        week = int(file[-1].split(',')[1]) + 1
         mode, header = ('a', False)
     else:
         week = 13
         mode, header = ('w', True)
-    return week, mode, header
+    return week, mode, header, list(file[0].split(','))
 
 def data_url_str(w: int, wp: int):
     year = '2021' if int(w) > 21 else '2020'
@@ -208,19 +38,19 @@ def data_file_str(wp: int, f: str):
     elif f == 'w':
         return f"pulse{year}_repwgt_puf_{wp}.csv"
 
-def get_puf_data(data_str: str, wp: int,
+def get_puf_data(data_str: str, wp: int, 
                  base_url: str = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"):
     '''
     download puf zip file for the given week and merge weights and puf dataframes
     '''
     url = base_url + data_str
-    print("trying: " + url)
     r = requests.get(url)
+    print("Trying: {}".format(url))
     if not r:
-        print("url does not exist: {}".format(url))
+        print("URL does not exist: {}".format(url))
         return None
     read_zip = zipfile.ZipFile(io.BytesIO(r.content))
-    data_df = pd.read_csv(read_zip.open(data_file_str(wp, 'd')), dtype={'SCRAM': 'string'}, usecols=PUF_USECOLS)
+    data_df = pd.read_csv(read_zip.open(data_file_str(wp, 'd')), dtype={'SCRAM': 'string'})
     weight_df = pd.read_csv(read_zip.open(data_file_str(wp, 'w')), dtype={'SCRAM': 'string'})
     return data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
 
