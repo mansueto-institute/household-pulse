@@ -22,10 +22,11 @@ def check_housing_file_exists(housing_datafile: Path):
         file = housing_datafile.read_text().splitlines()
         week = int(file[-1].split(',')[1]) + 1
         mode, header = ('a', False)
+        cols = list(file[0].split(','))
     else:
         week = 13
-        mode, header = ('w', True)
-    return week, mode, header, list(file[0].split(','))
+        mode, header, cols  = ('w', True, None)
+    return week, mode, header, cols
 
 def data_url_str(w: int, wp: int):
     year = '2021' if int(w) > 21 else '2020'
