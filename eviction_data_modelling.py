@@ -50,7 +50,7 @@ if __name__=="__main__":
         else:
             # making the process robust to variable changes in the data
             if mode == 'a':
-                missing_vars = list(set(cols) - set(week_df.columns))
+                missing_vars = list(set(csv_cols) - set(week_df.columns))
                 new_vars = list(set(week_df.columns) - set(cols))
                 print("Week {} dataset, new variables: {}".format(week, new_vars))
                 print("Week {} dataset, missing variables: {}".format(week, missing_vars))
