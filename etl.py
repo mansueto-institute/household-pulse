@@ -190,7 +190,7 @@ def check_housing_file_exists(housing_datafile: Path):
     check whether housing data csv already exists and set parameters accordingly
     '''
     if housing_datafile.exists():
-        week = housing_datafile.read_text().splitlines()[-1].split(',')[1]
+        week = int(housing_datafile.read_text().splitlines()[-1].split(',')[1]) + 1
         mode, header = ('a', False)
     else:
         week = 13
@@ -207,22 +207,6 @@ def data_file_str(wp: int, f: str):
         return f"pulse{year}_puf_{wp}.csv"
     elif f == 'w':
         return f"pulse{year}_repwgt_puf_{wp}.csv"
-
-def download_housing_data(housing_datafile: Path, week: int, mode: str, header):
-    '''
-    download all missing housing data into housing_datafile
-    '''
-    r = True
-    while r:
-        week_pad = str(week).zfill(2)
-        data_str = data_url_str(week, week_pad)
-        week_df = get_puf_data(data_str, week_pad)
-        if week_df is None:
-            r = False
-        else:
-            week_df.to_csv(housing_datafile, mode=mode, header=header, index=False)
-            header, mode = (False, 'a')
-            week += 1
 
 def get_puf_data(data_str: str, wp: int,
                  base_url: str = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"):
