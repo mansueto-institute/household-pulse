@@ -34,10 +34,7 @@ if __name__=="__main__":
     label_recode_dict = get_label_recode_dict(response_mapping)
 
     cols_file = data_dir/"list_cols.txt"
-    if cols_file.exists():
-        cols = cols_file.read_text().split(" ")
-    else:
-        cols = csv_cols
+    final_cols = cols = cols_file.read_text().split(" ") if cols_file.exists() else csv_cols
 
     # downloads full set of weeks (from week 13 onwards) or just new weeks if housing_datafile already exists
     r = True
@@ -49,14 +46,16 @@ if __name__=="__main__":
             r = False
         else:
             # making the process robust to variable changes in the data
-            if mode == 'a':
-                missing_vars = list(set(csv_cols) - set(week_df.columns))
-                new_vars = list(set(week_df.columns) - set(cols))
-                print("Week {} dataset, new variables: {}".format(week, new_vars))
-                print("Week {} dataset, missing variables: {}".format(week, missing_vars))
-                cols = list(set(cols).intersection(set(week_df.columns)))
-                if missing_vars:
-                    week_df[missing_vars] = None
+            if mode == 'w':
+                csv_cols = cols = final_cols = week_df.columns
+            else:
+                missing_csv_vars = list(set(csv_cols) - set(week_df.columns))
+                print("\nWeek {} dataset, new variables: \n{}\n".format(week, list(set(week_df.columns) - set(cols))))
+                print("Week {} dataset, missing variables: \n{}\n".format(week, list(set(cols) - set(week_df.columns))))
+                final_cols = list(set(final_cols).intersection(set(week_df.columns)))
+                cols = week_df.columns
+                if missing_csv_vars:
+                    week_df[missing_csv_vars] = None
                 week_df = week_df[csv_cols]
             week_df.to_csv(raw_housing_datafile, mode=mode, header=header, index=False)
             week_df.replace(label_recode_dict).to_csv(remapped_housing_datafile, mode=mode, header=header, index=False)
@@ -65,21 +64,21 @@ if __name__=="__main__":
     print("Finished downloading data")
 
     # save list of cols present in all weeks of data:
-    cols_file.write_text(' '.join(cols))
+    cols_file.write_text(' '.join(final_cols))
 
     ###### generate crosstabs
-    df = pd.read_csv(remapped_housing_datafile, usecols=cols)
+    df = pd.read_csv(remapped_housing_datafile, usecols=final_cols)
     df['TOPLINE'] = 1
 
     # to be replaced by Ryan's code
     crosstab_vars_dict = {
-        'weight_var': 'PWEIGHT',
-        'group_level': 'EST_MSA',
+        'weight_var': ['PWEIGHT'],
+        'group_level': ['EST_MSA'],
         'multi_index_vars': ['SCRAM', 'EST_MSA'],
         'stacked_crosstab_vars': ['TOPLINE', 'EEDUC','EGENDER'],
         'question_vars': ['RENTCUR', 'MORTCONF', 'EVICT']
     }
 
-    crosstab = get_crosstabs(crosstab_vars_dict)
+    # crosstab = get_crosstabs(crosstab_vars_dict)
 
 
