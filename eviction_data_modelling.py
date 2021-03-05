@@ -1,19 +1,41 @@
 from pathlib import Path
+import numpy as np
 
 from etl import *
 
-# to be replaced with Ryan's functions
-def get_crosstabs(vars_dict):
-    df1 = df.melt(id_vars = vars_dict['multi_index_vars'] + vars_dict['stacked_crosstab_vars'] + vars_dict['weight_var'], 
-                  value_vars = vars_dict['question_vars'],
-                  var_name = 'question_group',
-                  value_name = 'question_val')
-    df2 = df1.melt(id_vars = vars_dict['multi_index_vars'] + ['question_group','question_val'] + vars_dict['weight_var'],
-                   value_vars = vars_dict['stacked_crosstab_vars'],
-                   var_name = 'xtab_group',
-                   value_name = 'xtab_val')
-    return generate_crosstab(df2, vars_dict['group_level'], vars_dict['weight_var'])
+def freq_crosstab(df, col_list, weight, critical_val=1):
+    pt_estimates = df.groupby(col_list, as_index=True)[[i for i in df.columns if weight in i]].agg('sum')
+    pt_estimates['std_err'] = get_std_err(pt_estimates, weight)
+    pt_estimates['mrgn_err'] = pt_estimates.std_err * critical_val
+    return pt_estimates[[weight, 'std_err','mrgn_err']].reset_index()
 
+def full_crosstab(df, col_list, weight, proportion_level, critical_val=1):
+    df1 = df.copy()
+    detail = freq_crosstab(df1, col_list, weight, critical_val)
+    top = freq_crosstab(df1, proportion_level, weight, critical_val)
+    rv = detail.merge(top,'left',proportion_level,suffixes=('_full','_demo'))
+    rv['proportions'] = rv[weight+'_full']/rv[weight+'_demo']
+    return rv
+
+def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='PWEIGHT', critical_val=1):
+    rv = pd.DataFrame()
+    input_df = df.copy()
+    input_df[select_all_questions] = input_df[select_all_questions].replace('-99','0 - not selected')
+    input_df.replace(['-88','-99'],np.nan,inplace=True)
+    for ct in ct_list:
+        for q in q_list:
+            full = idx_list + [ct, q]
+            abstract = idx_list + [ct]
+            temp = input_df[-input_df[full].isna().any(axis=1)]
+            curr_bin = full_crosstab(temp,full,
+                            weight,
+                            abstract,
+                            critical_val=critical_val).round(2)
+            curr_bin.rename(columns={q:'q_val',ct:'ct_val'},inplace=True)
+            curr_bin['ct_var'] = ct
+            curr_bin['q_var'] = q
+            rv = pd.concat([rv,curr_bin])
+    return rv
 
 if __name__=="__main__":
 
@@ -67,18 +89,18 @@ if __name__=="__main__":
     cols_file.write_text(' '.join(final_cols))
 
     ###### generate crosstabs
-    df = pd.read_csv(remapped_housing_datafile, usecols=final_cols)
+    df = pd.read_csv(remapped_housing_datafile, usecols=final_cols, low_memory=False)
     df['TOPLINE'] = 1
 
-    # to be replaced by Ryan's code
-    crosstab_vars_dict = {
-        'weight_var': ['PWEIGHT'],
-        'group_level': ['EST_MSA'],
-        'multi_index_vars': ['SCRAM', 'EST_MSA'],
-        'stacked_crosstab_vars': ['TOPLINE', 'EEDUC','EGENDER'],
-        'question_vars': ['RENTCUR', 'MORTCONF', 'EVICT']
-    }
+    question_cols = filter_non_weight_cols(final_cols)
+    question_mapping_usecols = question_mapping[question_mapping['variable'].isin(question_cols)]
 
-    # crosstab = get_crosstabs(crosstab_vars_dict)
+    select_all_questions = list(question_mapping_usecols['variable'][question_mapping_usecols['select_all_that_apply'] == '1'].unique())
 
+    index_list = ['EST_MSA', 'WEEK']
+    crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
+    question_list = ['SPNDSRC1', 'SPNDSRC2', 'SPNDSRC3', 'SPNDSRC4', 'SPNDSRC5', 'SPNDSRC6', 'SPNDSRC7', 'SPNDSRC8', 'RENTCUR', 'MORTCUR', 'MORTCONF', 'EVICT', 'FORCLOSE']
+    bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1)
+    # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
+    # -99 is DNR
 

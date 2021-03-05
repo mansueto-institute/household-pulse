@@ -3,6 +3,7 @@ from typing import Dict, Optional, Sequence, Tuple
 
 import zipfile
 import io
+import re
 import os
 import requests
 import pandas as pd
@@ -84,6 +85,18 @@ def get_label_recode_dict(response_mapping: pd.DataFrame):
             d[row['variable']] = {}
         d[row['variable']][row['value']] = row['label_recode']
     return d
+
+def get_std_err(df, weight):
+    #make 1d array of weight col
+    obs_wgts = df[weight].to_numpy().reshape(len(df),1)
+    #make 80d array of replicate weights
+    rep_wgts = df[[i for i in df.columns if weight in i and not i == weight]].to_numpy()
+    #return standard error of estimate
+    return np.sqrt((np.sum(np.square(rep_wgts-obs_wgts),axis=1)*(4/80)))
+
+def filter_non_weight_cols(cols_list):
+    r = re.compile("(?!.*WEIGHT\d+)")
+    return list(filter(r.match, cols_list))
 
 def generate_crosstab(df: pd.DataFrame, group_level: str, weight_var: str):
     '''
