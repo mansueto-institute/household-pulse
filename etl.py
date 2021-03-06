@@ -86,6 +86,24 @@ def get_label_recode_dict(response_mapping: pd.DataFrame):
         d[row['variable']][row['value']] = row['label_recode']
     return d
 
+def bucketize_numeric_cols(df: pd.DataFrame, question_mappin: pd.DataFrame):
+    for col in list(question_mapping['variable'][question_mapping['type_of_variable'] == 'NUMERIC']):
+        df[col] = pd.cut(df[col], bins=numeric_col_buckets[col]['bins'], labels=numeric_col_buckets[col]['labels'], right=False)
+
+numeric_col_buckets = {
+    'TBIRTH_YEAR': {bins: [1920,1957,1972,1992,2003],
+                    labels: ['65+','50-64','30-49','18-29']}
+    'THHLD_NUMPER': [0, 2, 3, 5, 9, 40],
+    'THHLD_NUMKID': ,
+    'THHLD_NUMADLT': ,
+    'TUI_NUMPER': ,
+    'TSPNDFOOD': ,
+    'TSPNDPRPD': ,
+    'TBEDROOMS': ,
+    'TSTDY_HRS': ,
+    'TNUM_PS': 
+}
+
 def get_std_err(df, weight):
     #make 1d array of weight col
     obs_wgts = df[weight].to_numpy().reshape(len(df),1)
