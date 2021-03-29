@@ -7,6 +7,7 @@ import re
 import os
 import requests
 import pandas as pd
+import numpy as np
 
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
@@ -14,6 +15,18 @@ from google.oauth2 import service_account
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CROSSWALK_SPREADSHEET_ID = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
 CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_state']
+
+# NUMERIC_COL_BUCKETS = {
+#     'TBIRTH_YEAR': {'bins': [1920,1957,1972,1992,2003],
+#                     'labels': ['65+','50-64','30-49','18-29']},
+#     'THHLD_NUMPER': [0, 2, 3, 5, 9, 40],
+#     'THHLD_NUMKID': None,
+#     'THHLD_NUMADLT': None,
+#     'TSPNDFOOD': None,
+#     'TSPNDPRPD': None,
+#     'TSTDY_HRS': None,
+#     'TNUM_PS': None
+# }
 
 def check_housing_file_exists(housing_datafile: Path):
     '''
@@ -86,23 +99,10 @@ def get_label_recode_dict(response_mapping: pd.DataFrame):
         d[row['variable']][row['value']] = row['label_recode']
     return d
 
-def bucketize_numeric_cols(df: pd.DataFrame, question_mappin: pd.DataFrame):
-    for col in list(question_mapping['variable'][question_mapping['type_of_variable'] == 'NUMERIC']):
-        df[col] = pd.cut(df[col], bins=numeric_col_buckets[col]['bins'], labels=numeric_col_buckets[col]['labels'], right=False)
-
-numeric_col_buckets = {
-    'TBIRTH_YEAR': {bins: [1920,1957,1972,1992,2003],
-                    labels: ['65+','50-64','30-49','18-29']}
-    'THHLD_NUMPER': [0, 2, 3, 5, 9, 40],
-    'THHLD_NUMKID': ,
-    'THHLD_NUMADLT': ,
-    'TUI_NUMPER': ,
-    'TSPNDFOOD': ,
-    'TSPNDPRPD': ,
-    'TBEDROOMS': ,
-    'TSTDY_HRS': ,
-    'TNUM_PS': 
-}
+# def bucketize_numeric_cols(df: pd.DataFrame, question_mappin: pd.DataFrame):
+#     for col in list(question_mapping['variable'][question_mapping['type_of_variable'] == 'NUMERIC']):
+#         df[col] = pd.cut(df[col], bins=NUMERIC_COL_BUCKETS[col]['bins'], labels=NUMERIC_COL_BUCKETS[col]['labels'], right=False)
+#     return df
 
 def get_std_err(df, weight):
     #make 1d array of weight col
@@ -115,15 +115,3 @@ def get_std_err(df, weight):
 def filter_non_weight_cols(cols_list):
     r = re.compile("(?!.*WEIGHT\d+)")
     return list(filter(r.match, cols_list))
-
-def generate_crosstab(df: pd.DataFrame, group_level: str, weight_var: str):
-    '''
-    generate crosstabs (from Nico's example code)
-    '''
-    crosstab = df.groupby([group_level]+['question_group', 'question_val', 'xtab_group', 'xtab_val']).agg({weight_var: 'sum'}).reset_index()
-    crosstab["weight_total"] = crosstab.groupby([group_level]+['question_group','xtab_group'])[weight_var].transform('sum')
-    crosstab["share"] = crosstab[weight_var]/crosstab.weight_total
-    crosstab["weight_total_val"] = crosstab.groupby([group_level]+['question_group','xtab_group','xtab_val'])[weight_var].transform('sum')
-    crosstab["share_val"] = crosstab[weight_var]/crosstab.weight_total_val
-    return crosstab.sort_values(by=[group_level]+['question_group', 'xtab_group'], ascending=True)
-
