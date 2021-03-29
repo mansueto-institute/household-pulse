@@ -1,6 +1,4 @@
 from pathlib import Path
-import numpy as np
-
 from etl import *
 
 def freq_crosstab(df, col_list, weight, critical_val=1):
@@ -27,10 +25,13 @@ def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='
             full = idx_list + [ct, q]
             abstract = idx_list + [ct]
             temp = input_df[-input_df[full].isna().any(axis=1)]
+            if q in select_all_questions:
+                all_q = [i for i in select_all_questions if q[:-1] in i]
+                temp = temp[-(temp[all_q].iloc[:,:]=='0 - not selected').all(1)]
             curr_bin = full_crosstab(temp,full,
                             weight,
                             abstract,
-                            critical_val=critical_val).round(2)
+                            critical_val=critical_val)
             curr_bin.rename(columns={q:'q_val',ct:'ct_val'},inplace=True)
             curr_bin['ct_var'] = ct
             curr_bin['q_var'] = q
@@ -99,8 +100,10 @@ if __name__=="__main__":
 
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
-    question_list = ['SPNDSRC1', 'SPNDSRC2', 'SPNDSRC3', 'SPNDSRC4', 'SPNDSRC5', 'SPNDSRC6', 'SPNDSRC7', 'SPNDSRC8', 'RENTCUR', 'MORTCUR', 'MORTCONF', 'EVICT', 'FORCLOSE']
-    bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1)
-    # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
-    # -99 is DNR
-
+    question_list = ['SPNDSRC1', 'SPNDSRC2', 'SPNDSRC3',
+                    'SPNDSRC4', 'SPNDSRC5', 'SPNDSRC6',
+                    'SPNDSRC7', 'SPNDSRC8', 'RENTCUR',
+                    'MORTCUR', 'MORTCONF', 'EVICT', 'FORCLOSE']
+    bulk_crosstabs(df, index_list, crosstab_list,
+                    question_list, select_all_questions, weight='PWEIGHT',
+                    critical_val=1).to_csv('analysis/flat_file.csv')

@@ -6,6 +6,7 @@ import io
 import re
 import os
 import requests
+import numpy as np
 import pandas as pd
 
 from googleapiclient.discovery import build
