@@ -50,7 +50,7 @@ if __name__=="__main__":
     ###### download housing data
     raw_housing_datafile = data_dir/"puf_housing_data_raw.csv"
     remapped_housing_datafile = data_dir/"puf_housing_data_remapped_labels.csv"
-    week, mode, header, csv_cols = check_housing_file_exists(raw_housing_datafile)
+    week, mode, header, csv_cols = check_housing_file_exists(remapped_housing_datafile)
 
     # download crosswalk mapping tables
     question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets(service_account_file)
@@ -80,8 +80,8 @@ if __name__=="__main__":
                 if missing_csv_vars:
                     week_df[missing_csv_vars] = None
                 week_df = week_df[csv_cols]
-            week_df.to_csv(raw_housing_datafile, mode=mode, header=header, index=False)
             week_df.replace(label_recode_dict).to_csv(remapped_housing_datafile, mode=mode, header=header, index=False)
+            week_df.to_csv(raw_housing_datafile, mode=mode, header=header, index=False)
             header, mode = (False, 'a')
             week += 1
     print("Finished downloading data")
@@ -90,7 +90,7 @@ if __name__=="__main__":
     cols_file.write_text(' '.join(final_cols))
 
     ###### generate crosstabs
-    df = pd.read_csv(remapped_housing_datafile, usecols=final_cols, low_memory=False)
+    df = pd.read_csv(remapped_housing_datafile, usecols=final_cols)
     df['TOPLINE'] = 1
 
     question_cols = filter_non_weight_cols(final_cols)
@@ -100,10 +100,10 @@ if __name__=="__main__":
 
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
-    question_list = ['SPNDSRC1', 'SPNDSRC2', 'SPNDSRC3',
-                    'SPNDSRC4', 'SPNDSRC5', 'SPNDSRC6',
-                    'SPNDSRC7', 'SPNDSRC8', 'RENTCUR',
-                    'MORTCUR', 'MORTCONF', 'EVICT', 'FORCLOSE']
-    bulk_crosstabs(df, index_list, crosstab_list,
-                    question_list, select_all_questions, weight='PWEIGHT',
-                    critical_val=1).to_csv('analysis/flat_file.csv')
+    question_list = ['SPNDSRC1', 'SPNDSRC2', 'SPNDSRC3', 'SPNDSRC4', 'SPNDSRC5', 'SPNDSRC6', 'SPNDSRC7', 'SPNDSRC8', 'RENTCUR', 'MORTCUR', 'MORTCONF', 'EVICT', 'FORCLOSE']
+    bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1)
+    # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
+    # -99 is DNR
+
+    bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1).to_csv(data_dir/'crosstabs.csv', index=False)
+
