@@ -101,9 +101,9 @@ if __name__=="__main__":
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
     question_list = ['SPNDSRC1', 'SPNDSRC2', 'SPNDSRC3', 'SPNDSRC4', 'SPNDSRC5', 'SPNDSRC6', 'SPNDSRC7', 'SPNDSRC8', 'RENTCUR', 'MORTCUR', 'MORTCONF', 'EVICT', 'FORCLOSE']
-    bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1)
+    crosstabs = bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1)
     # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
     # -99 is DNR
 
-    bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1).to_csv(data_dir/'crosstabs.csv', index=False)
-
+    crosstabs.to_csv(data_dir/'crosstabs.csv', index=False)
+    export_to_sheets(crosstabs,'flat_file',service_account_file)

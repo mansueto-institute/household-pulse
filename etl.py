@@ -116,3 +116,15 @@ def get_std_err(df, weight):
 def filter_non_weight_cols(cols_list):
     r = re.compile("(?!.*WEIGHT\d+)")
     return list(filter(r.match, cols_list))
+
+def export_to_sheets(df, sheet_name, service_account_file, workbook_id=CROSSWALK_SPREADSHEET_ID):
+    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SCOPES)
+    service = build('sheets', 'v4', credentials=creds)
+    service.spreadsheets().values().update(
+        spreadsheetId=workbook_id,
+        valueInputOption='RAW',
+        range=sheet_name,
+        body=dict(
+            majorDimension='ROWS',
+            values=df.T.reset_index().T.values.tolist())
+    ).execute()
