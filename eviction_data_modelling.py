@@ -105,5 +105,9 @@ if __name__=="__main__":
     # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
     # -99 is DNR
 
+    crosstabs['EST_MSA'] = (crosstabs['EST_MSA'].astype(int)).astype(str)
+    crosstabs = crosstabs.merge(county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(), left_on='EST_MSA', right_on='cbsa_fips').iloc[:, :-1]
+    crosstabs = crosstabs.merge(question_mapping[['description_recode', 'variable']], left_on='q_var', right_on='variable').iloc[:,:-1]
+
     crosstabs.to_csv(data_dir/'crosstabs.csv', index=False)
     export_to_sheets(crosstabs,'flat_file',service_account_file)

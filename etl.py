@@ -81,7 +81,7 @@ def get_crosswalk_sheets(service_account_file: Path):
                                 ranges=CROSSWALK_SHEET_NAMES).execute()
     ranges = result_input.get('valueRanges', [])
     data = []
-    for r in ranges:
+    for r in ranges[:3]:
         values_input = r.get('values', [])
         df = pd.DataFrame(values_input[1:], columns=values_input[0])
         data.append(df)
