@@ -65,6 +65,7 @@ if __name__=="__main__":
         week_pad = str(week).zfill(2)
         data_str = data_url_str(week, week_pad)
         week_df = get_puf_data(data_str, week_pad)
+
         if week_df is None:
             r = False
         else:
@@ -108,6 +109,7 @@ if __name__=="__main__":
     crosstabs['EST_MSA'] = (crosstabs['EST_MSA'].astype(int)).astype(str)
     crosstabs = crosstabs.merge(county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(), left_on='EST_MSA', right_on='cbsa_fips').iloc[:, :-1]
     crosstabs = crosstabs.merge(question_mapping[['description_recode', 'variable']], left_on='q_var', right_on='variable').iloc[:,:-1]
+    crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
 
     crosstabs.to_csv(data_dir/'crosstabs.csv', index=False)
     export_to_sheets(crosstabs,'flat_file',service_account_file)

@@ -9,6 +9,7 @@ import requests
 import numpy as np
 import pandas as pd
 import numpy as np
+from bs4 import BeautifulSoup
 
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
@@ -128,3 +129,20 @@ def export_to_sheets(df, sheet_name, service_account_file, workbook_id=CROSSWALK
             majorDimension='ROWS',
             values=df.T.reset_index().T.values.tolist())
     ).execute()
+
+def week_mapper():
+    URL = 'https://www.census.gov/programs-surveys/household-pulse-survey/data.html'
+    page = requests.get(URL)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    week_dict = {}
+    for i in soup.find_all("p", class_="uscb-margin-TB-02 uscb-title-3"):
+        label = i.text.strip('\n\t\t\t')
+        if 'Week' in label:
+            kv_pair = label.split(':')
+            week_int = int(re.sub("[^0-9]", "", kv_pair[0]))
+            if week_int > 21:
+                dates = kv_pair[1][1:] + ' 2021'
+            else:
+                dates = kv_pair[1][1:] + ' 2020'
+            week_dict[week_int] = dates
+    return week_dict
