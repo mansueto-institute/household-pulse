@@ -39,9 +39,13 @@ def loc_eval(x, b):
 
 
 def loess(xvals, yvals, data, alpha, poly_degree=1):
+    '''
+    lifted from Mike Lang
+    https://github.com/MikLang/Lowess_simulation/blob/master/Lowess_simulations.py
+    '''
     all_data = sorted(zip(data[xvals].tolist(), data[yvals].tolist()), key=lambda x: x[0])
     xvals, yvals = zip(*all_data)
-    evalDF = pd.DataFrame(columns=['v','g'])
+    eval_df = pd.DataFrame(columns=['v','g'])
     n = len(xvals)
     m = n + 1
     q = int(np.floor(n * alpha) if alpha <= 1.0 else n)
@@ -61,16 +65,16 @@ def loess(xvals, yvals, data, alpha, poly_degree=1):
         scale_fact = raw_dists[q-1]
         scaled_dists = [(j[0],(j[1]/scale_fact)) for j in iterdists]
         weights = [(j[0],((1-np.abs(j[1]**3))**3 if j[1]<=1 else 0)) for j in scaled_dists]
-        _, weights      = zip(*sorted(weights,     key=lambda x: x[0]))
-        _, raw_dists    = zip(*sorted(iterdists,   key=lambda x: x[0]))
-        _, scaled_dists = zip(*sorted(scaled_dists,key=lambda x: x[0]))
-        W         = np.diag(weights)
-        b         = np.linalg.inv(X.T @ W @ X) @ (X.T @ W @ yvals)
+        _, weights = zip(*sorted(weights, key=lambda x: x[0]))
+        _, raw_dists = zip(*sorted(iterdists, key=lambda x: x[0]))
+        _, scaled_dists = zip(*sorted(scaled_dists, key=lambda x: x[0]))
+        W = np.diag(weights)
+        b = np.linalg.inv(X.T @ W @ X) @ (X.T @ W @ yvals)
         local_est = loc_eval(iterval, b)
-        iterDF2   = pd.DataFrame({
+        iter_df2   = pd.DataFrame({
                        'v'  :[iterval],
                        'g'  :[local_est]
                        })
-        evalDF = pd.concat([evalDF, iterDF2])
-    evalDF = evalDF[['v','g']]
-    return evalDF
+        eval_df = pd.concat([eval_df, iter_df2])
+    eval_df = eval_df[['v','g']]
+    return eval_df
