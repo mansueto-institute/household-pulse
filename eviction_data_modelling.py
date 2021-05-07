@@ -45,7 +45,7 @@ if __name__=="__main__":
     data_dir = root/"data"
     data_dir.mkdir(exist_ok=True)
 
-    service_account_file = root/"credentials.json"
+    SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 
     ###### download housing data
     raw_housing_datafile = data_dir/"puf_housing_data_raw.csv"
@@ -53,7 +53,7 @@ if __name__=="__main__":
     week, mode, header, csv_cols = check_housing_file_exists(remapped_housing_datafile)
 
     # download crosswalk mapping tables
-    question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets(service_account_file)
+    question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
     label_recode_dict = get_label_recode_dict(response_mapping)
 
     cols_file = data_dir/"list_cols.txt"
@@ -112,4 +112,6 @@ if __name__=="__main__":
     crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
 
     crosstabs.to_csv(data_dir/'crosstabs.csv', index=False)
-    export_to_sheets(crosstabs,'flat_file',service_account_file)
+    # upload_to_cloud_storage("crosstabs_output", crosstabs, "crosstabs.csv")
+    upload_to_gdrive(SERVICE_ACCOUNT_FILE, data_dir/'crosstabs.csv')
+    # export_to_sheets(crosstabs,'flat_file',service_account_file)

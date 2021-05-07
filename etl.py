@@ -13,22 +13,24 @@ from bs4 import BeautifulSoup
 
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
+from google.cloud import storage
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+from oauth2client.service_account import ServiceAccountCredentials
 
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SHEETS_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CROSSWALK_SPREADSHEET_ID = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
 CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_state']
+DRIVE_SCOPES = ['https://www.googleapis.com/auth/drive']
+GDRIVE_ID = '14LK-dEay1G9UpBjXw6Kt9eTXwZjx8rj9'
 
-# NUMERIC_COL_BUCKETS = {
-#     'TBIRTH_YEAR': {'bins': [1920,1957,1972,1992,2003],
-#                     'labels': ['65+','50-64','30-49','18-29']},
-#     'THHLD_NUMPER': [0, 2, 3, 5, 9, 40],
-#     'THHLD_NUMKID': None,
-#     'THHLD_NUMADLT': None,
-#     'TSPNDFOOD': None,
-#     'TSPNDPRPD': None,
-#     'TSTDY_HRS': None,
-#     'TNUM_PS': None
-# }
+def upload_to_gdrive(service_account_file, upload_file):
+    gauth = GoogleAuth()
+    gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, DRIVE_SCOPES[0])
+    drive = GoogleDrive(gauth)
+    gfile = drive.CreateFile({'parents': [{'id': GDRIVE_ID}], 'title': 'crosstabs.csv'})
+    gfile.SetContentFile(upload_file)
+    gfile.Upload()
 
 def check_housing_file_exists(housing_datafile: Path):
     '''
@@ -75,7 +77,7 @@ def get_crosswalk_sheets(service_account_file: Path):
     '''
     download data sheets from houehold_pulse_data_dictionary crosswalks
     '''
-    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SCOPES)
+    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
     service = build('sheets', 'v4', credentials=creds)
     sheet = service.spreadsheets()
     result_input = sheet.values().batchGet(spreadsheetId=CROSSWALK_SPREADSHEET_ID,
@@ -101,11 +103,6 @@ def get_label_recode_dict(response_mapping: pd.DataFrame):
         d[row['variable']][row['value']] = row['label_recode']
     return d
 
-# def bucketize_numeric_cols(df: pd.DataFrame, question_mappin: pd.DataFrame):
-#     for col in list(question_mapping['variable'][question_mapping['type_of_variable'] == 'NUMERIC']):
-#         df[col] = pd.cut(df[col], bins=NUMERIC_COL_BUCKETS[col]['bins'], labels=NUMERIC_COL_BUCKETS[col]['labels'], right=False)
-#     return df
-
 def get_std_err(df, weight):
     #make 1d array of weight col
     obs_wgts = df[weight].to_numpy().reshape(len(df),1)
@@ -119,7 +116,7 @@ def filter_non_weight_cols(cols_list):
     return list(filter(r.match, cols_list))
 
 def export_to_sheets(df, sheet_name, service_account_file, workbook_id=CROSSWALK_SPREADSHEET_ID):
-    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SCOPES)
+    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
     service = build('sheets', 'v4', credentials=creds)
     service.spreadsheets().values().update(
         spreadsheetId=workbook_id,
@@ -129,6 +126,16 @@ def export_to_sheets(df, sheet_name, service_account_file, workbook_id=CROSSWALK
             majorDimension='ROWS',
             values=df.T.reset_index().T.values.tolist())
     ).execute()
+
+def upload_to_cloud_storage(bucket_name, df, filename):
+    '''
+    Uploads a file to the bucket.
+    '''
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(filename)
+    blob.upload_from_string(df.to_csv(), 'text/csv', timeout=450)
+    print('File uploaded to {}:{}.'.format(bucket_name, filename))
 
 def week_mapper():
     URL = 'https://www.census.gov/programs-surveys/household-pulse-survey/data.html'
