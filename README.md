@@ -1,4 +1,4 @@
-## Eviction Defense Map
+## Housholed Pulse Survey
 
 * [Project workplan](https://docs.google.com/document/d/1w9o-pM68D3nr9rKDgwtDZqzrRjwVasWdZGQk5tnHXYE/edit): 
   * Scope of work, check-in notes, and methodological notes.
