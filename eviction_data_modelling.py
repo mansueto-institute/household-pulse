@@ -1,5 +1,6 @@
 from pathlib import Path
 from etl import *
+import zipfile
 
 def freq_crosstab(df, col_list, weight, critical_val=1):
     pt_estimates = df.groupby(col_list, as_index=True)[[i for i in df.columns if weight in i]].agg('sum')
@@ -94,14 +95,17 @@ if __name__=="__main__":
     df = pd.read_csv(remapped_housing_datafile, usecols=final_cols)
     df['TOPLINE'] = 1
 
-    question_cols = filter_non_weight_cols(final_cols)
+    numeric_cols = set(df.columns).intersection(set(question_mapping['variable'][question_mapping['type_of_variable']=='NUMERIC']))
+    
+    question_cols = list(set(question_mapping['variable'][question_mapping.stacked_question_features=='1']).intersection(set(df.columns)))
     question_mapping_usecols = question_mapping[question_mapping['variable'].isin(question_cols)]
 
     select_all_questions = list(question_mapping_usecols['variable'][question_mapping_usecols['select_all_that_apply'] == '1'].unique())
 
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
-    question_list = ['SPNDSRC1', 'SPNDSRC2', 'SPNDSRC3', 'SPNDSRC4', 'SPNDSRC5', 'SPNDSRC6', 'SPNDSRC7', 'SPNDSRC8', 'RENTCUR', 'MORTCUR', 'MORTCONF', 'EVICT', 'FORCLOSE']
+    question_list = [x for x in question_cols if x not in index_list and x not in crosstab_list]
+
     crosstabs = bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1)
     # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
     # -99 is DNR
@@ -112,6 +116,9 @@ if __name__=="__main__":
     crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
 
     crosstabs.to_csv(data_dir/'crosstabs.csv', index=False)
-    # upload_to_cloud_storage("crosstabs_output", crosstabs, "crosstabs.csv")
+    upload_to_cloud_storage("crosstabs_output", crosstabs, "crosstabs.csv")
+
+    zf = zipfile.ZipFile("crosstabs.csv.zip", mode="w")
+    compression = zipfile.ZIP_DEFLATED
     upload_to_gdrive(SERVICE_ACCOUNT_FILE, data_dir/'crosstabs.csv')
     # export_to_sheets(crosstabs,'flat_file',service_account_file)

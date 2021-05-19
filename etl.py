@@ -24,14 +24,6 @@ CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_s
 DRIVE_SCOPES = ['https://www.googleapis.com/auth/drive']
 GDRIVE_ID = '14LK-dEay1G9UpBjXw6Kt9eTXwZjx8rj9'
 
-def upload_to_gdrive(service_account_file, upload_file):
-    gauth = GoogleAuth()
-    gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, DRIVE_SCOPES[0])
-    drive = GoogleDrive(gauth)
-    gfile = drive.CreateFile({'parents': [{'id': GDRIVE_ID}], 'title': 'crosstabs.csv'})
-    gfile.SetContentFile(upload_file)
-    gfile.Upload()
-
 def check_housing_file_exists(housing_datafile: Path):
     '''
     check whether housing data csv already exists and set parameters accordingly
@@ -75,7 +67,7 @@ def get_puf_data(data_str: str, wp: int,
 
 def get_crosswalk_sheets(service_account_file: Path):
     '''
-    download data sheets from houehold_pulse_data_dictionary crosswalks
+    Download data sheets from houehold_pulse_data_dictionary crosswalks
     '''
     creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
     service = build('sheets', 'v4', credentials=creds)
@@ -92,7 +84,10 @@ def get_crosswalk_sheets(service_account_file: Path):
 
 def get_label_recode_dict(response_mapping: pd.DataFrame):
     '''
-    convert question response mapping df into dict to recode labels 
+    Convert question response mapping df into dict to recode labels 
+    inputs:
+        response_mapping: pd.DataFrame, the response_mapping df from the household_publse_data_dictionary google sheet
+    returns: dictionary - {variable: {value: label_recode}}
     '''
     response_mapping_df = response_mapping[response_mapping['do_not_join']=='0']
     response_mapping_df['value'] = response_mapping_df['value'].astype('float64')
@@ -112,6 +107,12 @@ def get_std_err(df, weight):
     return np.sqrt((np.sum(np.square(rep_wgts-obs_wgts),axis=1)*(4/80)))
 
 def filter_non_weight_cols(cols_list):
+    '''
+    Helper function to filter columns in dataframe to just variable columns (removes weight columns)
+    inputs:
+        cols_list: list of strings, the column names of the dataframe
+    returns: list of strings, the column names with the WEIGHT column names removed
+    '''
     r = re.compile("(?!.*WEIGHT\d+)")
     return list(filter(r.match, cols_list))
 
@@ -127,15 +128,34 @@ def export_to_sheets(df, sheet_name, service_account_file, workbook_id=CROSSWALK
             values=df.T.reset_index().T.values.tolist())
     ).execute()
 
-def upload_to_cloud_storage(bucket_name, df, filename):
+def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
     '''
-    Uploads a file to the bucket.
+    Uploads a dataframe to cloud storage bucket.
+    inputs:
+        bucket_name: string, name of the bucket to upload to 
+        df: pd.DataFrame to be uploaded to cloud storage
+        filename: string, name of file in cloud storage
     '''
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(filename)
     blob.upload_from_string(df.to_csv(), 'text/csv', timeout=450)
     print('File uploaded to {}:{}.'.format(bucket_name, filename))
+
+def upload_to_gdrive(service_account_file: Path, upload_filename: str):
+    '''
+    Uploads crosstabs csv to gdrive folder.
+    inputs:
+        service_account_file: string, path to service account file 
+        upload_filename: string, name of file on gdrive
+    '''
+    gauth = GoogleAuth()
+    gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name(service_account_file, DRIVE_SCOPES[0])
+    drive = GoogleDrive(gauth)
+    gfile = drive.CreateFile({'parents': [{'id': GDRIVE_ID}], 'title': 'crosstabs.csv'})
+    gfile.SetContentFile(upload_filename)
+    gfile.Upload()
+    print("uploaded file to gdrive")
 
 def week_mapper():
     URL = 'https://www.census.gov/programs-surveys/household-pulse-survey/data.html'
