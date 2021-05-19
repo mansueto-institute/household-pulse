@@ -24,6 +24,38 @@ CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_s
 DRIVE_SCOPES = ['https://www.googleapis.com/auth/drive']
 GDRIVE_ID = '14LK-dEay1G9UpBjXw6Kt9eTXwZjx8rj9'
 
+NUMERIC_COL_BUCKETS = {
+    'TBIRTH_YEAR': {'bins': [1920, 1957, 1972, 1992, 2003],
+                    'labels': ['65+','50-64','30-49','18-29']},
+    'THHLD_NUMPER': {'bins': [0, 3, 6, 10, 99],
+                    'labels': ['1-2','3-5','6-9','10+']},
+    'THHLD_NUMKID': {'bins': [0, 1, 3, 6, 10, 40],
+                    'labels': ['0','1-2','3-5','6-9','10+']},
+    'THHLD_NUMADLT': {'bins': [0, 2, 6, 9, 40],
+                     'labels': ['1-2','3-5','6-9','10+']},
+    'TSPNDFOOD': {'bins': [0, 100, 300, 500, 800, 1000],
+                 'labels': ['0-99','100-299','300-499','500-799','800+']},
+    'TSPNDPRPD': {'bins': [0, 100, 200, 300, 400, 1000],
+                 'labels': ['0-99','100-199','200-299','300-399','400+']},
+    'TSTDY_HRS': {'bins': [0, 5, 10, 15, 20,50],
+                 'labels': ['0-4','5-9','10-14','15-19','20+']},
+    'TNUM_PS': {'bins': [0, 1, 2, 3, 4, 99],
+                'labels': ['0','1','2','3','4+']},
+    'TBEDROOMS': {'bins': [0, 1, 2, 3, 4, 99],
+                 'labels': ['0','1','2','3','4+']},
+    'TUI_NUMPER': {'bins': [0, 1, 2, 3, 4, 99],
+                  'labels': ['0','1','2','3','4+']},
+}
+
+def bucketize_numeric_cols(df: pd.DataFrame, question_mapping: pd.DataFrame):
+    num_cols = list(question_mapping['variable'][question_mapping['type_of_variable'] == 'NUMERIC'])
+    for col in num_cols:
+        if col in df.columns:
+            df[col] = pd.cut(df[col],
+                        bins=NUMERIC_COL_BUCKETS[col]['bins'], 
+                        labels=NUMERIC_COL_BUCKETS[col]['labels'], right=False)
+    return df
+
 def check_housing_file_exists(housing_datafile: Path):
     '''
     check whether housing data csv already exists and set parameters accordingly

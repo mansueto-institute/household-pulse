@@ -8,6 +8,19 @@ def freq_crosstab(df, col_list, weight, critical_val=1):
     pt_estimates['mrgn_err'] = pt_estimates.std_err * critical_val
     return pt_estimates[[weight, 'std_err','mrgn_err']].reset_index()
 
+def national_crosstabs(df, col_list, weights, critical_val=1):
+    rv = pd.DataFrame()
+    for i in col_list:
+        for w in weights:
+            ct = freq_crosstab(df,[i], w,critical_val)
+            total = ct[w].sum()
+            ct['question'] = i
+            ct['proportions'] = ct.apply(lambda x: x[w]/total, axis=1)
+            ct['weight'] = w
+            ct = ct.rename(columns={i:'response',w:'value'})
+            rv = pd.concat([rv,ct])
+    return rv
+
 def full_crosstab(df, col_list, weight, proportion_level, critical_val=1):
     df1 = df.copy()
     detail = freq_crosstab(df1, col_list, weight, critical_val)
@@ -19,8 +32,6 @@ def full_crosstab(df, col_list, weight, proportion_level, critical_val=1):
 def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='PWEIGHT', critical_val=1):
     rv = pd.DataFrame()
     input_df = df.copy()
-    input_df[select_all_questions] = input_df[select_all_questions].replace('-99','0 - not selected')
-    input_df.replace(['-88','-99'],np.nan,inplace=True)
     for ct in ct_list:
         for q in q_list:
             full = idx_list + [ct, q]
@@ -37,6 +48,7 @@ def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='
             curr_bin['ct_var'] = ct
             curr_bin['q_var'] = q
             rv = pd.concat([rv,curr_bin])
+    rv['weight'] = weight
     return rv
 
 if __name__=="__main__":
@@ -61,7 +73,7 @@ if __name__=="__main__":
     final_cols = cols = cols_file.read_text().split(" ") if cols_file.exists() else csv_cols
 
     # downloads full set of weeks (from week 13 onwards) or just new weeks if housing_datafile already exists
-    r = True
+    r = False
     while r:
         week_pad = str(week).zfill(2)
         data_str = data_url_str(week, week_pad)
@@ -104,21 +116,48 @@ if __name__=="__main__":
 
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
-    question_list = [x for x in question_cols if x not in index_list and x not in crosstab_list]
+    question_list2 = [x for x in question_cols if x not in index_list and x not in crosstab_list and len(df[x].unique())>6]
 
-    crosstabs = bulk_crosstabs(df, index_list, crosstab_list, question_list, select_all_questions, weight='PWEIGHT', critical_val=1)
+    df[select_all_questions] = df[select_all_questions].replace('-99','0 - not selected')
+    df = bucketize_numeric_cols(df, question_mapping)
+    df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
+    crosstabs = pd.concat([bulk_crosstabs(df, index_list, crosstab_list,
+                                question_list2, select_all_questions,
+                                weight='PWEIGHT', critical_val=1.645), 
+                                bulk_crosstabs(df, index_list, crosstab_list,
+                                question_list2, select_all_questions,
+                                weight='HWEIGHT', critical_val=1.645)])
+    crosstabs_nat = pd.concat([bulk_crosstabs(df, ['WEEK'], ['TOPLINE'],
+                                question_list2, select_all_questions,
+                                weight='PWEIGHT', critical_val=1.645),
+                                bulk_crosstabs(df, ['WEEK'], ['TOPLINE'],
+                                question_list2, select_all_questions,
+                                weight='HWEIGHT', critical_val=1.645)])
     # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
     # -99 is DNR
 
     crosstabs['EST_MSA'] = (crosstabs['EST_MSA'].astype(int)).astype(str)
-    crosstabs = crosstabs.merge(county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(), left_on='EST_MSA', right_on='cbsa_fips').iloc[:, :-1]
-    crosstabs = crosstabs.merge(question_mapping[['description_recode', 'variable']], left_on='q_var', right_on='variable').iloc[:,:-1]
+    crosstabs = crosstabs.merge(county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(),
+                                left_on='EST_MSA',
+                                right_on='cbsa_fips').iloc[:, :-1]
+    crosstabs = crosstabs.merge(question_mapping[['description_recode', 'variable']],left_on='q_var', right_on='variable').iloc[:,:-1]
+    crosstabs_nat['collection_dates'] = crosstabs_nat.WEEK.map(week_mapper())
+    crosstabs_nat = crosstabs_nat.merge(question_mapping[['description_recode', 'variable']],left_on='q_var', right_on='variable').iloc[:,:-1]
     crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
+    #natl_level = national_crosstabs(df,question_list2,['PWEIGHT','HWEIGHT'],1.645)
+    #natl_level = natl_level.merge(question_mapping[['description_recode', 'variable']],
+    #                              left_on='question', right_on='variable')
+
+    #crosstabs.to_csv(data_dir/'crosstabs.csv', index=False)
+    #crosstabs_nat.to_csv(data_dir/'crosstabs_national.csv', index=False)
 
     crosstabs.to_csv(data_dir/'crosstabs.csv', index=False)
     upload_to_cloud_storage("crosstabs_output", crosstabs, "crosstabs.csv")
+    upload_to_cloud_storage("crosstabs_output", crosstabs_nat, "crosstabs_national.csv")
 
     zf = zipfile.ZipFile("crosstabs.csv.zip", mode="w")
     compression = zipfile.ZIP_DEFLATED
     upload_to_gdrive(SERVICE_ACCOUNT_FILE, data_dir/'crosstabs.csv')
+    #upload_to_gdrive(SERVICE_ACCOUNT_FILE, data_dir/'crosstabs_national.csv')
+
     # export_to_sheets(crosstabs,'flat_file',service_account_file)
