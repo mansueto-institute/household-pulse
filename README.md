@@ -1,5 +1,6 @@
 ## Housholed Pulse Survey
-
+* Run workflow
+  * execute from terminal in root directory with "python3 prod/eviction_data_modelling.py"
 * [Project workplan](https://docs.google.com/document/d/1w9o-pM68D3nr9rKDgwtDZqzrRjwVasWdZGQk5tnHXYE/edit): 
   * Scope of work, check-in notes, and methodological notes.
 * [Cloud Drive](https://drive.google.com/drive/u/0/folders/14LK-dEay1G9UpBjXw6Kt9eTXwZjx8rj9)
