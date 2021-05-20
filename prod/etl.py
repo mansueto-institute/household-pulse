@@ -154,18 +154,6 @@ def filter_non_weight_cols(cols_list):
     r = re.compile("(?!.*WEIGHT\d+)")
     return list(filter(r.match, cols_list))
 
-def export_to_sheets(df, sheet_name, service_account_file, workbook_id=CROSSWALK_SPREADSHEET_ID):
-    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
-    service = build('sheets', 'v4', credentials=creds)
-    service.spreadsheets().values().update(
-        spreadsheetId=workbook_id,
-        valueInputOption='RAW',
-        range=sheet_name,
-        body=dict(
-            majorDimension='ROWS',
-            values=df.T.reset_index().T.values.tolist())
-    ).execute()
-
 def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
     '''
     Uploads a dataframe to cloud storage bucket.
@@ -180,7 +168,7 @@ def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
     blob.upload_from_string(df.to_csv(), 'text/csv', timeout=450)
     print('File uploaded to {}:{}.'.format(bucket_name, filename))
 
-def upload_to_gdrive(service_account_file: Path, upload_filename: str):
+def upload_to_gdrive(upload_filename: str):
     '''
     Uploads crosstabs csv to gdrive folder.
     inputs:
@@ -188,7 +176,7 @@ def upload_to_gdrive(service_account_file: Path, upload_filename: str):
         upload_filename: string, name of file on gdrive
     '''
     gauth = GoogleAuth()
-    gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name(service_account_file, DRIVE_SCOPES[0])
+    gauth.credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/spreadsheets'])
     drive = GoogleDrive(gauth)
     gfile = drive.CreateFile({'parents': [{'id': GDRIVE_ID}], 'title': 'crosstabs.csv'})
     gfile.SetContentFile(upload_filename)

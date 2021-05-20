@@ -158,7 +158,7 @@ if __name__=="__main__":
 
     zf = zipfile.ZipFile("crosstabs.csv.zip", mode="w")
     compression = zipfile.ZIP_DEFLATED
-    upload_to_gdrive(SERVICE_ACCOUNT_FILE, data_dir/'crosstabs.csv')
+    # upload_to_gdrive(data_dir/'crosstabs.csv')
     #upload_to_gdrive(SERVICE_ACCOUNT_FILE, data_dir/'crosstabs_national.csv')
 
     # export_to_sheets(crosstabs,'flat_file',service_account_file)
