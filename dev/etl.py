@@ -97,20 +97,14 @@ def get_puf_data(data_str: str, wp: int,
     weight_df = pd.read_csv(read_zip.open(data_file_str(wp, 'w')), dtype={'SCRAM': 'string'})
     return data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
 
-def get_crosswalk_sheets():
+def get_crosswalk_sheets(service_account_file: Path):
     '''
-    N.B. this is the prod version for databricks (auth will not work on local machine - use dev version)
-    Download sheets from housing_pulse_data_dictionary into dataframes
-    returns:
-        list of pandas dataframes (3), the first three sheets in the google sheets  
+    Download data sheets from houehold_pulse_data_dictionary crosswalks
     '''
-    CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_state']
-    credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/spreadsheets'])
-    service = build('sheets', 'v4', credentials=credentials)
+    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
+    service = build('sheets', 'v4', credentials=creds)
     sheet = service.spreadsheets()
-    spreadsheet_id = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
-    # Call the Sheets API
-    result_input = sheet.values().batchGet(spreadsheetId=spreadsheet_id,
+    result_input = sheet.values().batchGet(spreadsheetId=CROSSWALK_SPREADSHEET_ID,
                                 ranges=CROSSWALK_SHEET_NAMES).execute()
     ranges = result_input.get('valueRanges', [])
     data = []
