@@ -279,6 +279,7 @@ if __name__=="__main__":
             recoded_df = bucketize_numeric_cols(recoded_df, question_mapping)
             recoded_df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
 
+            print("generating crosstabs for week {}".format(week))
             crosstabs_week = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
                                 question_list, select_all_questions,
                                 weight='PWEIGHT', critical_val=1.645), 
@@ -295,6 +296,7 @@ if __name__=="__main__":
             crosstabs_list.append(crosstabs_week)
             crosstabs_nat_list.append(crosstabs_nat_week)
             week += 1
+    print("Finished downloading data")
 
     # common_cols = list(set.intersection(*(set(df.columns) for df in puf_dfs)))
     # df = pd.concat([df[common_cols] for df in puf_dfs], ignore_index=True)
@@ -309,6 +311,7 @@ if __name__=="__main__":
     # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
     # -99 is DNR
 
+    print("Creating full crosstabs")
     crosstabs = pd.concat(crosstabs_list)
     crosstabs_nat = pd.concat(crosstabs_nat_list)
 
@@ -326,4 +329,4 @@ if __name__=="__main__":
 
     upload_to_cloud_storage("household-pulse-bucket", crosstabs, "crosstabs.csv")
     upload_to_cloud_storage("household-pulse-bucket", crosstabs_nat, "crosstabs_national.csv")
-
+    
