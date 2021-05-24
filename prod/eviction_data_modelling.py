@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict, Optional, Sequence, Tuple
 
 import zipfile
@@ -55,20 +54,6 @@ def bucketize_numeric_cols(df: pd.DataFrame, question_mapping: pd.DataFrame):
                         bins=NUMERIC_COL_BUCKETS[col]['bins'], 
                         labels=NUMERIC_COL_BUCKETS[col]['labels'], right=False)
     return df
-
-def check_housing_file_exists(housing_datafile: Path):
-    '''
-    check whether housing data csv already exists and set parameters accordingly
-    '''
-    if housing_datafile.exists():
-        file = housing_datafile.read_text().splitlines()
-        week = int(file[-1].split(',')[1]) + 1
-        mode, header = ('a', False)
-        cols = list(file[0].split(','))
-    else:
-        week = 13
-        mode, header, cols  = ('w', True, None)
-    return week, mode, header, cols
 
 def data_url_str(w: int, wp: int):
     year = '2021' if int(w) > 21 else '2020'
@@ -168,21 +153,6 @@ def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
     blob.upload_from_string(df.to_csv(), 'text/csv', timeout=450)
     print('File uploaded to {}:{}.'.format(bucket_name, filename))
 
-def upload_to_gdrive(upload_filename: str):
-    '''
-    Uploads crosstabs csv to gdrive folder.
-    inputs:
-        service_account_file: string, path to service account file 
-        upload_filename: string, name of file on gdrive
-    '''
-    gauth = GoogleAuth()
-    gauth.credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/spreadsheets'])
-    drive = GoogleDrive(gauth)
-    gfile = drive.CreateFile({'parents': [{'id': GDRIVE_ID}], 'title': 'crosstabs.csv'})
-    gfile.SetContentFile(upload_filename)
-    gfile.Upload()
-    print("uploaded file to gdrive")
-
 def week_mapper():
     URL = 'https://www.census.gov/programs-surveys/household-pulse-survey/data.html'
     page = requests.get(URL)
@@ -249,30 +219,46 @@ def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='
     rv['weight'] = weight
     return rv
 
+def LOCAL_get_crosswalk_sheets(service_account_file):
+    '''
+    USE THIS VERSION WHEN TESTING LOCALLY
+    Download data sheets from houehold_pulse_data_dictionary crosswalks
+    '''
+    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
+    service = build('sheets', 'v4', credentials=creds)
+    sheet = service.spreadsheets()
+    result_input = sheet.values().batchGet(spreadsheetId=CROSSWALK_SPREADSHEET_ID,
+                                ranges=CROSSWALK_SHEET_NAMES).execute()
+    ranges = result_input.get('valueRanges', [])
+    data = []
+    for r in ranges[:3]:
+        values_input = r.get('values', [])
+        df = pd.DataFrame(values_input[1:], columns=values_input[0])
+        data.append(df)
+    return data
+
 if __name__=="__main__":
 
-    root = Path.cwd().parent
-
-    data_dir = root/"data"
-    data_dir.mkdir(exist_ok=True)
-
-    SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-
-    ###### download housing data
-    raw_housing_datafile = data_dir/"puf_housing_data_raw.csv"
-    remapped_housing_datafile = data_dir/"puf_housing_data_remapped_labels.csv"
-    week, mode, header, csv_cols = check_housing_file_exists(remapped_housing_datafile)
+    # FOR LOCAL DEV - REMOVE 
+    # SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 
     # download crosswalk mapping tables
-    question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
+    question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets()
+    # question_mapping, response_mapping, county_metro_state = LOCAL_get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
     label_recode_dict = get_label_recode_dict(response_mapping)
 
-    cols_file = data_dir/"list_cols.txt"
-    final_cols = cols = cols_file.read_text().split(" ") if cols_file.exists() else csv_cols
+    index_list = ['EST_MSA', 'WEEK']
+    crosstab_list = ['TOPLINE', 'RRACE']
+    # crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
 
-    # downloads full set of weeks (from week 13 onwards) or just new weeks if housing_datafile already exists
+    # download housing data
+    crosstabs_list = []
+    crosstabs_nat_list = []
+
     r = True
+    week = 13 
     while r:
+        print("downloading data: week {}".format(week))
         week_pad = str(week).zfill(2)
         data_str = data_url_str(week, week_pad)
         week_df = get_puf_data(data_str, week_pad)
@@ -280,60 +266,51 @@ if __name__=="__main__":
         if week_df is None:
             r = False
         else:
-            # making the process robust to variable changes in the data
-            if mode == 'w':
-                csv_cols = cols = final_cols = week_df.columns
-            else:
-                missing_csv_vars = list(set(csv_cols) - set(week_df.columns))
-                print("\nWeek {} dataset, new variables: \n{}\n".format(week, list(set(week_df.columns) - set(cols))))
-                print("Week {} dataset, missing variables: \n{}\n".format(week, list(set(cols) - set(week_df.columns))))
-                final_cols = list(set(final_cols).intersection(set(week_df.columns)))
-                cols = week_df.columns
-                if missing_csv_vars:
-                    week_df[missing_csv_vars] = None
-                week_df = week_df[csv_cols]
-            week_df.replace(label_recode_dict).to_csv(remapped_housing_datafile, mode=mode, header=header, index=False)
-            week_df.to_csv(raw_housing_datafile, mode=mode, header=header, index=False)
-            header, mode = (False, 'a')
-            week += 1
-    print("Finished downloading data")
+            recoded_df = week_df.replace(label_recode_dict)
+            recoded_df['TOPLINE'] = 1
+            
+            question_cols = list(set(question_mapping['variable'][question_mapping.stacked_question_features=='1']).intersection(set(recoded_df.columns)))
+            question_mapping_usecols = question_mapping[question_mapping['variable'].isin(question_cols)]
+            select_all_questions = list(question_mapping_usecols['variable'][question_mapping_usecols['select_all_that_apply'] == '1'].unique())
+            question_list = [x for x in question_cols if x not in index_list and x not in crosstab_list and not (
+                    len(recoded_df[x].unique())>6)]
 
-    # save list of cols present in all weeks of data:
-    cols_file.write_text(' '.join(final_cols))
+            recoded_df[select_all_questions] = recoded_df[select_all_questions].replace('-99','0 - not selected')
+            recoded_df = bucketize_numeric_cols(recoded_df, question_mapping)
+            recoded_df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
 
-    ###### generate crosstabs
-    df = pd.read_csv(remapped_housing_datafile, usecols=final_cols)
-    df['TOPLINE'] = 1
-
-    numeric_cols = set(df.columns).intersection(set(question_mapping['variable'][question_mapping['type_of_variable']=='NUMERIC']))
-    
-    question_cols = list(set(question_mapping['variable'][question_mapping.stacked_question_features=='1']).intersection(set(df.columns)))
-    question_mapping_usecols = question_mapping[question_mapping['variable'].isin(question_cols)]
-
-    select_all_questions = list(question_mapping_usecols['variable'][question_mapping_usecols['select_all_that_apply'] == '1'].unique())
-
-    index_list = ['EST_MSA', 'WEEK']
-    crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
-    question_list2 = [x for x in question_cols if x not in index_list and x not in crosstab_list and not (
-                    len(df[x].unique())>6 and not x in numeric_cols)]
-
-    df[select_all_questions] = df[select_all_questions].replace('-99','0 - not selected')
-    df = bucketize_numeric_cols(df, question_mapping)
-    df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
-    crosstabs = pd.concat([bulk_crosstabs(df, index_list, crosstab_list,
-                                question_list2, select_all_questions,
+            crosstabs_week = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
+                                question_list, select_all_questions,
                                 weight='PWEIGHT', critical_val=1.645), 
-                                bulk_crosstabs(df, index_list, crosstab_list,
-                                question_list2, select_all_questions,
+                                bulk_crosstabs(recoded_df, index_list, crosstab_list,
+                                question_list, select_all_questions,
                                 weight='HWEIGHT', critical_val=1.645)])
-    crosstabs_nat = pd.concat([bulk_crosstabs(df, ['WEEK'], ['TOPLINE'],
-                                question_list2, select_all_questions,
+            crosstabs_nat_week = pd.concat([bulk_crosstabs(recoded_df, ['WEEK'], ['TOPLINE'],
+                                question_list, select_all_questions,
                                 weight='PWEIGHT', critical_val=1.645),
-                                bulk_crosstabs(df, ['WEEK'], ['TOPLINE'],
-                                question_list2, select_all_questions,
+                                bulk_crosstabs(recoded_df, ['WEEK'], ['TOPLINE'],
+                                question_list, select_all_questions,
                                 weight='HWEIGHT', critical_val=1.645)])
+
+            crosstabs_list.append(crosstabs_week)
+            crosstabs_nat_list.append(crosstabs_nat_week)
+            week += 1
+
+    # common_cols = list(set.intersection(*(set(df.columns) for df in puf_dfs)))
+    # df = pd.concat([df[common_cols] for df in puf_dfs], ignore_index=True)
+    # print("Finished downloading data")
+
+    # ###### generate crosstabs
+    # df = pd.read_csv(remapped_housing_datafile, usecols=final_cols)
+    # df['TOPLINE'] = 1
+
+    # numeric_cols = set(df.columns).intersection(set(question_mapping['variable'][question_mapping['type_of_variable']=='NUMERIC'])
+
     # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
     # -99 is DNR
+
+    crosstabs = pd.concat(crosstabs_list)
+    crosstabs_nat = pd.concat(crosstabs_nat_list)
 
     crosstabs['EST_MSA'] = (crosstabs['EST_MSA'].astype(int)).astype(str)
     crosstabs = crosstabs.merge(county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(),
