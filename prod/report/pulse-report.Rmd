@@ -1,0 +1,62 @@
+---
+title: "Household Pulse Survey"
+author: "Caitlin Loftus, Ryan Webb, Nicholas Marchio"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+header-includes:
+   - \usepackage[default]{sourcesanspro}
+   - \usepackage[T1]{fontenc}
+mainfont: SourceSansPro
+geometry: "left=1cm,right=1cm,top=1cm,bottom=1cm"
+output:
+  pdf_document: 
+    keep_tex: true
+    toc: true 
+    toc_depth: 2 
+    number_sections: true 
+    fig_crop: no
+  html_document: 
+    toc: true 
+    toc_depth: 2
+    number_sections: true 
+    fig_crop: no
+---
+
+```{r setup, include=FALSE}
+source('/Users/nm/Desktop/projects/eviction-defense-map/prod/report/pulse-viz-prep.R')
+```
+\newpage
+
+What is the Household Pulse Survey? The U.S. Census Bureau, in collaboration with multiple federal agencies, is collecting data on the social and economic effects of coronavirus on American households. The Household Pulse Survey is designed to deploy quickly and efficiently, collecting data to measure household experiences during the coronavirus pandemic. Data is disseminated in near real-time to inform federal and state response and recovery planning.
+
+\newpage
+
+```{r viz, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+
+#for (topic in unique(df_dict$topic_area)) {
+for (topic in c("Housing","Health")) {
+  # print(topic)
+  cat('\n# ', topic,'\n', sep = "")
+  q_list <- df_dict %>% filter(topic_area == topic,
+                               question_type %in% c('Binary Outcome',
+                                                    'Multiple Choice')) %>%
+    pull(q_var)
+  for (q in q_list) {
+    cat('\n## ', df_pulse %>% filter(q_var == q) %>%
+            select(question) %>% 
+          distinct() %>% pull(question),'\n', sep = "")
+    df_input <- viz_prep(data = df_pulse %>% filter(q_var == q),
+                         question_variable = q)
+    plot1 <- viz_stackedbar(data = df_input)
+    subchunkify(g=print(plot1), fig.align = 'left', fig.height = 4.5,
+                fig.asp = 0.5625, dpi = 150, out.width = "100%") 
+    cat('\n**',df_input %>% filter(response_order == 1) %>% 
+          select(response_label) %>% distinct() %>% 
+        pull(response_label),'**', sep = "")
+    plot2 <- viz_trendline(data = df_input)
+        subchunkify(g=print(plot2), fig.align = 'left', 
+                fig.width = 13, fig.height = 6.5, dpi = 150, out.width = "100%")
+        cat('\\pagebreak')
+  }
+}
+
+```
