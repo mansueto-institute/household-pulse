@@ -332,10 +332,10 @@ if __name__=="__main__":
                                         bulk_crosstabs(df, index_list, crosstab_list,
                                         question_list2, select_all_questions,
                                         weight='HWEIGHT', critical_val=1.645)])
-            crosstabs_nat = pd.concat([bulk_crosstabs(df, ['WEEK'], ['TOPLINE'],
+            crosstabs_nat = pd.concat([bulk_crosstabs(df, ['WEEK'], ['TOPLINE','EST_ST','EST_MSA'],
                                         question_list2, select_all_questions,
                                         weight='PWEIGHT', critical_val=1.645),
-                                        bulk_crosstabs(df, ['WEEK'], ['TOPLINE'],
+                                        bulk_crosstabs(df, ['WEEK'], ['TOPLINE','EST_ST','EST_MSA'],
                                         question_list2, select_all_questions,
                                         weight='HWEIGHT', critical_val=1.645)])
 
@@ -363,6 +363,7 @@ if __name__=="__main__":
     ###### upload crosstabs
     final_ct = pd.concat(full_crosstabs)
     final_ct_national = pd.concat(full_crosstabs_national)
+
     upload_to_cloud_storage("household-pulse-bucket", final_ct, "crosstabs.csv")
     upload_to_cloud_storage("household-pulse-bucket", final_ct_national, "crosstabs_national.csv")
     print('Uploaded to cloud storage')
