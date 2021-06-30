@@ -1,4 +1,4 @@
-# Databricks notebook
+# Databricks notebook source
 from typing import Dict, Optional, Sequence, Tuple
 
 import zipfile
