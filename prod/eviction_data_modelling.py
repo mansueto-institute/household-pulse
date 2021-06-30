@@ -46,6 +46,14 @@ NUMERIC_COL_BUCKETS = {
 }
 
 def bucketize_numeric_cols(df: pd.DataFrame, question_mapping: pd.DataFrame):
+    '''
+    Bucketize numeric columns using the buckets specified above in NUMERIC_COL_BUCKETS dict
+    
+    inputs:
+        df: pd DataFrame, main dataframe with columns to be bucketized
+        question_mapping: pd DataFrame, question mapping crosswalk, which specifies the numeric columns
+    returns: pd DataFrame with the numeric columns bucketized
+    '''
     num_cols = list(question_mapping['variable'][question_mapping['type_of_variable'] == 'NUMERIC'])
     for col in num_cols:
         if col in df.columns:
@@ -55,21 +63,44 @@ def bucketize_numeric_cols(df: pd.DataFrame, question_mapping: pd.DataFrame):
     return df
 
 def data_url_str(w: int, wp: int):
+    '''
+    Helper function to get string for file to download from census api
+    
+    inputs:
+        w: str, the week of data to download
+        wp: str, the week of data to download, padded to 2 digits
+    returns:
+        string, the year/week/file.zip to be downloaded
+    '''
     year = '2021' if int(w) > 21 else '2020'
     return f"{year}/wk{w}/HPS_Week{wp}_PUF_CSV.zip"
 
 def data_file_str(wp: int, f: str):
+    '''
+    Helper function to get the string names of the files downloaded
+    
+    inputs: 
+        wp: str, the week of data downloaded, padded to 2 digits
+        f: str, the file to dowload (d: main data file, w: weights file)
+    returns: str, name of file downloaded
+    '''
     year = '2021' if int(wp) > 21 else '2020'
     if f == 'd':
         return f"pulse{year}_puf_{wp}.csv"
     elif f == 'w':
         return f"pulse{year}_repwgt_puf_{wp}.csv"
 
-def get_puf_data(data_str: str, wp: int, 
-                 base_url: str = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"):
+def get_puf_data(data_str: str, wp: int):
     '''
-    download puf zip file for the given week and merge weights and puf dataframes
+    Download Census Household Pulse PUF zip file for the given week and merge weights and PUF dataframes
+    
+    inputs: 
+        data_str: str, the year/month/file.zip string to be downloaded 
+        wp: str, the week of data to be downloaded, padded to 2 digits
+    returns:
+        pd DataFrame, the weeks census household pulse data merged with the weights csv
     '''
+    base_url = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
     url = base_url + data_str
     r = requests.get(url)
     print("Trying: {}".format(url))
@@ -83,10 +114,11 @@ def get_puf_data(data_str: str, wp: int,
 
 def get_crosswalk_sheets():
     '''
-    N.B. this is the prod version for databricks (auth will not work on local machine - use dev version)
     Download sheets from housing_pulse_data_dictionary into dataframes
+    N.B. this is the prod version for databricks (auth will not work on local machine - use LOCAL version)
+
     returns:
-        list of pandas dataframes (3), the first three sheets in the google sheets  
+        list of pandas dataframes (3), the first three sheets in the google sheets crosswalk
     '''
     CROSSWALK_SHEET_NAMES = ['question_mapping', 'response_mapping', 'county_metro_state']
     credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/spreadsheets'])
@@ -108,6 +140,9 @@ def LOCAL_get_crosswalk_sheets(service_account_file):
     '''
     USE THIS VERSION WHEN TESTING LOCALLY
     Download data sheets from houehold_pulse_data_dictionary crosswalks
+
+    returns:
+        list of pandas dataframes (3), the first three sheets in the google sheets crosswalk
     '''
     creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
     service = build('sheets', 'v4', credentials=creds)
@@ -125,6 +160,7 @@ def LOCAL_get_crosswalk_sheets(service_account_file):
 def get_label_recode_dict(response_mapping: pd.DataFrame):
     '''
     Convert question response mapping df into dict to recode labels 
+
     inputs:
         response_mapping: pd.DataFrame, the response_mapping df from the household_publse_data_dictionary google sheet
     returns: dictionary - {variable: {value: label_recode}}
@@ -138,7 +174,16 @@ def get_label_recode_dict(response_mapping: pd.DataFrame):
         d[row['variable']][row['value']] = row['label_recode']
     return d
 
-def get_std_err(df, weight):
+def get_std_err(df: pd.DataFrame, weight: str):
+    '''
+    Calculate standard error of dataframe
+
+    inputs:
+        df: pd DataFrame
+        weight: str, specify whether person ('PWEIGHT') or household ('HWEIGHT') weight
+    returns:
+        float, the standard error
+    '''
     #make 1d array of weight col
     obs_wgts = df[weight].to_numpy().reshape(len(df),1)
     #make 80d array of replicate weights
@@ -149,6 +194,7 @@ def get_std_err(df, weight):
 def filter_non_weight_cols(cols_list):
     '''
     Helper function to filter columns in dataframe to just variable columns (removes weight columns)
+    
     inputs:
         cols_list: list of strings, the column names of the dataframe
     returns: list of strings, the column names with the WEIGHT column names removed
@@ -159,6 +205,7 @@ def filter_non_weight_cols(cols_list):
 def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
     '''
     Uploads a dataframe to cloud storage bucket.
+    
     inputs:
         bucket_name: string, name of the bucket to upload to 
         df: pd.DataFrame to be uploaded to cloud storage
@@ -167,10 +214,16 @@ def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(filename)
-    blob.upload_from_string(df.to_csv(), 'text/csv', timeout=450)
+    blob.upload_from_string(df.to_csv(index=False), 'text/csv', timeout=450)
     print('File uploaded to {}:{}.'.format(bucket_name, filename))
 
 def week_mapper():
+    '''
+    Scrapes date range meta data for each release of the Household Pulse data
+
+    returns:
+        dict, {week int: dates}
+    '''
     URL = 'https://www.census.gov/programs-surveys/household-pulse-survey/data.html'
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -191,7 +244,8 @@ def freq_crosstab(df, col_list, weight, critical_val=1):
     pt_estimates = df.groupby(col_list, as_index=True)[[i for i in df.columns if weight in i]].agg('sum')
     pt_estimates['std_err'] = get_std_err(pt_estimates, weight)
     pt_estimates['mrgn_err'] = pt_estimates.std_err * critical_val
-    return pt_estimates[[weight, 'std_err','mrgn_err']].reset_index()
+    pt_estimates.rename(columns={weight: 'value'},inplace=True)
+    return pt_estimates[['value', 'std_err','mrgn_err']].reset_index()
 
 def national_crosstabs(df, col_list, weights, critical_val=1):
     rv = pd.DataFrame()
@@ -206,12 +260,13 @@ def national_crosstabs(df, col_list, weights, critical_val=1):
             rv = pd.concat([rv,ct])
     return rv
 
+
 def full_crosstab(df, col_list, weight, proportion_level, critical_val=1):
     df1 = df.copy()
     detail = freq_crosstab(df1, col_list, weight, critical_val)
     top = freq_crosstab(df1, proportion_level, weight, critical_val)
     rv = detail.merge(top,'left',proportion_level,suffixes=('_full','_demo'))
-    rv['proportions'] = rv[weight+'_full']/rv[weight+'_demo']
+    rv['proportions'] = rv['value_full']/rv['value_demo']
     return rv
 
 def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='PWEIGHT', critical_val=1):
@@ -236,6 +291,12 @@ def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='
     rv['weight'] = weight
     return rv
 
+def get_file_from_storage(filepath: str):
+    '''
+    '''
+    fs = gcsfs.GCSFileSystem(project='household-pulse') 
+    with fs.open(filepath) as f:
+        return pd.read_csv(f)
 
 if __name__=="__main__":
 
@@ -254,12 +315,21 @@ if __name__=="__main__":
     
     label_recode_dict = get_label_recode_dict(response_mapping)
 
+    # check for existing crosstabs file and find latest week of data
+    try:
+        existing_crosstabs = get_file_from_storage('household-pulse-bucket/crosstabs.csv')
+        existing_crosstabs_national = get_file_from_storage('household-pulse-bucket/crosstabs_national.csv')
+        week = existing_crosstabs['WEEK'].max()
+    except:
+        existing_crosstabs = pd.DataFrame()
+        existing_crosstabs_national = pd.DataFrame()
+        week = 13
+
     # download housing data
     crosstabs_list = []
     crosstabs_nat_list = []
 
     r = True
-    week = 13 
     while r:
         print("downloading data: week {}".format(week))
         week_pad = str(week).zfill(2)
@@ -278,7 +348,7 @@ if __name__=="__main__":
             question_list = [x for x in question_cols if x not in index_list and x not in crosstab_list and not (
                     len(recoded_df[x].unique())>6)]
 
-            recoded_df[select_all_questions] = recoded_df[select_all_questions].replace('-99','0 - not selected')
+            recoded_df[select_all_questions] = recoded_df[select_all_questions].replace(['-99', -99],'0 - not selected')
             recoded_df = bucketize_numeric_cols(recoded_df, question_mapping)
             recoded_df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
 
@@ -296,40 +366,40 @@ if __name__=="__main__":
                                 question_list, select_all_questions,
                                 weight='HWEIGHT', critical_val=1.645)])
 
-            crosstabs_list.append(crosstabs_week)
-            crosstabs_nat_list.append(crosstabs_nat_week)
+            crosstabs['EST_MSA'] = (crosstabs['EST_MSA'].astype(int)).astype(str)
+            
+            crosstabs = crosstabs.merge(
+                county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(),
+                left_on='EST_MSA',
+                right_on='cbsa_fips').iloc[:, :-1]
+            
+            crosstabs = crosstabs.merge(
+                question_mapping[['description_recode', 'variable']],
+                left_on='q_var',
+                right_on='variable').iloc[:,:-1]
+            
+            crosstabs_nat['collection_dates'] = crosstabs_nat.WEEK.map(week_mapper())
+            
+            crosstabs_nat = crosstabs_nat.merge(
+                question_mapping[['description_recode', 'variable']],
+                left_on='q_var',
+                right_on='variable').iloc[:,:-1]
+            
+            crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
+            
+            full_crosstabs.append(crosstabs)
+            full_crosstabs_national.append(crosstabs_nat)
             week += 1
     print("Finished downloading data")
 
-    # common_cols = list(set.intersection(*(set(df.columns) for df in puf_dfs)))
-    # df = pd.concat([df[common_cols] for df in puf_dfs], ignore_index=True)
-    # print("Finished downloading data")
-
-    # ###### generate crosstabs
-    # df = pd.read_csv(remapped_housing_datafile, usecols=final_cols)
-    # df['TOPLINE'] = 1
-
-    # numeric_cols = set(df.columns).intersection(set(question_mapping['variable'][question_mapping['type_of_variable']=='NUMERIC'])
-
-    # idx one at a time? level of proportions? TODO: Fix proportion calc w/ NA
-    # -99 is DNR
+    ###### upload crosstabs
 
     print("Creating full crosstabs")
-    crosstabs = pd.concat(crosstabs_list)
-    crosstabs_nat = pd.concat(crosstabs_nat_list)
-
-    crosstabs['EST_MSA'] = (crosstabs['EST_MSA'].astype(int)).astype(str)
-    crosstabs = crosstabs.merge(county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(),
-                                left_on='EST_MSA',
-                                right_on='cbsa_fips').iloc[:, :-1]
-    crosstabs = crosstabs.merge(question_mapping[['description_recode', 'variable']],left_on='q_var', right_on='variable').iloc[:,:-1]
-    crosstabs_nat['collection_dates'] = crosstabs_nat.WEEK.map(week_mapper())
-    crosstabs_nat = crosstabs_nat.merge(question_mapping[['description_recode', 'variable']],left_on='q_var', right_on='variable').iloc[:,:-1]
-    crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
-    #natl_level = national_crosstabs(df,question_list2,['PWEIGHT','HWEIGHT'],1.645)
-    #natl_level = natl_level.merge(question_mapping[['description_recode', 'variable']],
-    #                              left_on='question', right_on='variable')
-
-    upload_to_cloud_storage("household-pulse-bucket", crosstabs, "crosstabs.csv")
-    upload_to_cloud_storage("household-pulse-bucket", crosstabs_nat, "crosstabs_national.csv")
+    final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
+    final_ct_national = pd.concat([existing_crosstabs_national] + full_crosstabs_national)
+    upload_to_cloud_storage("household-pulse-bucket", final_ct, "crosstabs.csv")
+    upload_to_cloud_storage("household-pulse-bucket", final_ct_national, "crosstabs_national.csv")
+    print('Uploaded to cloud storage')
     
+
+filepath = 'household-pulse-bucket/crosstabs.csv'
