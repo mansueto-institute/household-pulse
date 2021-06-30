@@ -302,7 +302,7 @@ def get_file_from_storage(filepath: str):
     fs = gcsfs.GCSFileSystem(project='household-pulse') 
     with fs.open(filepath) as f:
         return pd.read_csv(f)
-        
+
 
 if __name__=="__main__":
 
@@ -327,7 +327,7 @@ if __name__=="__main__":
     try:
         existing_crosstabs = get_file_from_storage('household-pulse-bucket/crosstabs.csv')
         existing_crosstabs_national = get_file_from_storage('household-pulse-bucket/crosstabs_national.csv')
-        week = existing_crosstabs['WEEK'].max()
+        week = existing_crosstabs['WEEK'].max() + 1
         print("Existing crosstabs, latest week in existing data is week {}\n".format(week))
     except:
         print("No existing crosstabs found, generating full dataset starting from week 13\n")
@@ -402,6 +402,7 @@ if __name__=="__main__":
     print("Finished downloading data\n")
 
     ######### Upload full crosstabs and national crosstabs to cloud storage #########
+
     if full_crosstabs:
         print("Creating full crosstabs\n")
         final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
