@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup
 
+import gcsfs
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from google.cloud import storage
@@ -103,9 +104,9 @@ def get_puf_data(data_str: str, wp: int):
     base_url = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
     url = base_url + data_str
     r = requests.get(url)
-    print("Trying: {}".format(url))
+    print("Trying url: {}\n".format(url))
     if not r:
-        print("URL does not exist: {}".format(url))
+        print("URL does not exist, stopping download: {}\n".format(url))
         return None
     read_zip = zipfile.ZipFile(io.BytesIO(r.content))
     data_df = pd.read_csv(read_zip.open(data_file_str(wp, 'd')), dtype={'SCRAM': 'string'})
@@ -316,22 +317,25 @@ if __name__=="__main__":
     label_recode_dict = get_label_recode_dict(response_mapping)
 
     # check for existing crosstabs file and find latest week of data
+    print("\nChecking for existing crosstabs file in cloud storage bucket\n")
     try:
         existing_crosstabs = get_file_from_storage('household-pulse-bucket/crosstabs.csv')
         existing_crosstabs_national = get_file_from_storage('household-pulse-bucket/crosstabs_national.csv')
         week = existing_crosstabs['WEEK'].max()
+        print("Existing crosstabs, latest week in existing data is week {}\n".format(week))
     except:
+        print("No existing crosstabs found, generating full dataset starting from week 13\n")
         existing_crosstabs = pd.DataFrame()
         existing_crosstabs_national = pd.DataFrame()
         week = 13
 
     # download housing data
-    crosstabs_list = []
-    crosstabs_nat_list = []
+    full_crosstabs = []
+    full_crosstabs_national = []
 
     r = True
     while r:
-        print("downloading data: week {}".format(week))
+        print("Downloading data: week {}\n".format(week))
         week_pad = str(week).zfill(2)
         data_str = data_url_str(week, week_pad)
         week_df = get_puf_data(data_str, week_pad)
@@ -352,7 +356,7 @@ if __name__=="__main__":
             recoded_df = bucketize_numeric_cols(recoded_df, question_mapping)
             recoded_df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
 
-            print("generating crosstabs for week {}".format(week))
+            print("Generating crosstabs for week {}".format(week))
             crosstabs_week = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
                                 question_list, select_all_questions,
                                 weight='PWEIGHT', critical_val=1.645), 
@@ -390,16 +394,17 @@ if __name__=="__main__":
             full_crosstabs.append(crosstabs)
             full_crosstabs_national.append(crosstabs_nat)
             week += 1
-    print("Finished downloading data")
+    print("Finished downloading data\n")
 
     ###### upload crosstabs
 
-    print("Creating full crosstabs")
-    final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
-    final_ct_national = pd.concat([existing_crosstabs_national] + full_crosstabs_national)
-    upload_to_cloud_storage("household-pulse-bucket", final_ct, "crosstabs.csv")
-    upload_to_cloud_storage("household-pulse-bucket", final_ct_national, "crosstabs_national.csv")
-    print('Uploaded to cloud storage')
+    if full_crosstabs:
+        print("Creating full crosstabs\n")
+        final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
+        final_ct_national = pd.concat([existing_crosstabs_national] + full_crosstabs_national)
+        upload_to_cloud_storage("household-pulse-bucket", final_ct, "crosstabs.csv")
+        upload_to_cloud_storage("household-pulse-bucket", final_ct_national, "crosstabs_national.csv")
+        print('Uploaded to cloud storage\n')
+    else:
+        print("Existing crosstabs are already up to date, no new data to add\n")
     
-
-filepath = 'household-pulse-bucket/crosstabs.csv'
