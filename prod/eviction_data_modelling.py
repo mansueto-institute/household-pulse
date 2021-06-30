@@ -1,3 +1,4 @@
+# Databricks notebook
 from typing import Dict, Optional, Sequence, Tuple
 
 import zipfile
@@ -13,8 +14,6 @@ from bs4 import BeautifulSoup
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from google.cloud import storage
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
 from oauth2client.service_account import ServiceAccountCredentials
 
 SHEETS_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -96,6 +95,24 @@ def get_crosswalk_sheets():
     spreadsheet_id = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
     # Call the Sheets API
     result_input = sheet.values().batchGet(spreadsheetId=spreadsheet_id,
+                                ranges=CROSSWALK_SHEET_NAMES).execute()
+    ranges = result_input.get('valueRanges', [])
+    data = []
+    for r in ranges[:3]:
+        values_input = r.get('values', [])
+        df = pd.DataFrame(values_input[1:], columns=values_input[0])
+        data.append(df)
+    return data
+
+def LOCAL_get_crosswalk_sheets(service_account_file):
+    '''
+    USE THIS VERSION WHEN TESTING LOCALLY
+    Download data sheets from houehold_pulse_data_dictionary crosswalks
+    '''
+    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
+    service = build('sheets', 'v4', credentials=creds)
+    sheet = service.spreadsheets()
+    result_input = sheet.values().batchGet(spreadsheetId=CROSSWALK_SPREADSHEET_ID,
                                 ranges=CROSSWALK_SHEET_NAMES).execute()
     ranges = result_input.get('valueRanges', [])
     data = []
@@ -219,37 +236,23 @@ def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='
     rv['weight'] = weight
     return rv
 
-def LOCAL_get_crosswalk_sheets(service_account_file):
-    '''
-    USE THIS VERSION WHEN TESTING LOCALLY
-    Download data sheets from houehold_pulse_data_dictionary crosswalks
-    '''
-    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=SHEETS_SCOPES)
-    service = build('sheets', 'v4', credentials=creds)
-    sheet = service.spreadsheets()
-    result_input = sheet.values().batchGet(spreadsheetId=CROSSWALK_SPREADSHEET_ID,
-                                ranges=CROSSWALK_SHEET_NAMES).execute()
-    ranges = result_input.get('valueRanges', [])
-    data = []
-    for r in ranges[:3]:
-        values_input = r.get('values', [])
-        df = pd.DataFrame(values_input[1:], columns=values_input[0])
-        data.append(df)
-    return data
 
 if __name__=="__main__":
 
-    # FOR LOCAL DEV - REMOVE 
-    # SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-
-    # download crosswalk mapping tables
-    question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets()
-    # question_mapping, response_mapping, county_metro_state = LOCAL_get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
-    label_recode_dict = get_label_recode_dict(response_mapping)
-
+    # set up parameters:
+    LOCAL = True
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE']
     # crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
+ 
+    if LOCAL:
+        SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        question_mapping, response_mapping, county_metro_state = LOCAL_get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
+    else:
+        # download crosswalk mapping tables
+        question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets()
+    
+    label_recode_dict = get_label_recode_dict(response_mapping)
 
     # download housing data
     crosstabs_list = []
