@@ -261,7 +261,6 @@ def national_crosstabs(df, col_list, weights, critical_val=1):
             rv = pd.concat([rv,ct])
     return rv
 
-
 def full_crosstab(df, col_list, weight, proportion_level, critical_val=1):
     df1 = df.copy()
     detail = freq_crosstab(df1, col_list, weight, critical_val)
@@ -294,19 +293,26 @@ def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='
 
 def get_file_from_storage(filepath: str):
     '''
+    Download csv in google cloud storage bucket as pandas DataFrame
+
+    inputs: 
+        filepath: str, bucket/file.csv to be downloaded
+    returns: pd DataFrame
     '''
     fs = gcsfs.GCSFileSystem(project='household-pulse') 
     with fs.open(filepath) as f:
         return pd.read_csv(f)
+        
 
 if __name__=="__main__":
 
-    # set up parameters:
-    LOCAL = True
+    ######### Set up parameters #########
+    LOCAL = True  # change this to True when developing locally
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE']
     # crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
  
+    ######## Download google sheets crosswalk tables #########
     if LOCAL:
         SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
         question_mapping, response_mapping, county_metro_state = LOCAL_get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
@@ -316,7 +322,7 @@ if __name__=="__main__":
     
     label_recode_dict = get_label_recode_dict(response_mapping)
 
-    # check for existing crosstabs file and find latest week of data
+    ######### Check for existing crosstabs file and find latest week of data #########
     print("\nChecking for existing crosstabs file in cloud storage bucket\n")
     try:
         existing_crosstabs = get_file_from_storage('household-pulse-bucket/crosstabs.csv')
@@ -329,10 +335,9 @@ if __name__=="__main__":
         existing_crosstabs_national = pd.DataFrame()
         week = 13
 
-    # download housing data
+    ######### Download new Census Household Pulse data and generate crosstab #########
     full_crosstabs = []
     full_crosstabs_national = []
-
     r = True
     while r:
         print("Downloading data: week {}\n".format(week))
@@ -396,8 +401,7 @@ if __name__=="__main__":
             week += 1
     print("Finished downloading data\n")
 
-    ###### upload crosstabs
-
+    ######### Upload full crosstabs and national crosstabs to cloud storage #########
     if full_crosstabs:
         print("Creating full crosstabs\n")
         final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
