@@ -5,6 +5,7 @@ import zipfile
 import io
 import re
 import os
+import sys
 import requests
 import numpy as np
 import pandas as pd
@@ -307,10 +308,13 @@ def get_file_from_storage(filepath: str):
 if __name__=="__main__":
 
     ######### Set up parameters #########
-    LOCAL = True  # change this to True when developing locally
+    LOCAL = False # ensure this parameter is set to True when developing locally
+    if (len(sys.argv[1:]) == 1) and (sys.argv[1] == 'LOCAL'):
+        LOCAL = True
+
+    # Crosstabs variables:
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE']
-    # crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'INCOME']
  
     ######## Download google sheets crosswalk tables #########
     if LOCAL:
