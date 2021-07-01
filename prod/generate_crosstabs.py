@@ -308,6 +308,7 @@ def get_file_from_storage(filepath: str):
 if __name__=="__main__":
 
     ######### Set up parameters #########
+    
     LOCAL = False # ensure this parameter is set to True when developing locally
     if (len(sys.argv[1:]) == 1) and (sys.argv[1] == 'LOCAL'):
         LOCAL = True
@@ -316,7 +317,9 @@ if __name__=="__main__":
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE']
  
+    
     ######## Download google sheets crosswalk tables #########
+
     if LOCAL:
         SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
         question_mapping, response_mapping, county_metro_state = LOCAL_get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
@@ -326,7 +329,9 @@ if __name__=="__main__":
     
     label_recode_dict = get_label_recode_dict(response_mapping)
 
+
     ######### Check for existing crosstabs file and find latest week of data #########
+
     print("\nChecking for existing crosstabs file in cloud storage bucket\n")
     try:
         existing_crosstabs = get_file_from_storage('household-pulse-bucket/crosstabs.csv')
@@ -340,6 +345,7 @@ if __name__=="__main__":
         week = 13
 
     ######### Download new Census Household Pulse data and generate crosstab #########
+
     full_crosstabs = []
     full_crosstabs_national = []
     r = True
@@ -404,6 +410,7 @@ if __name__=="__main__":
             full_crosstabs_national.append(crosstabs_nat)
             week += 1
     print("Finished downloading data\n")
+
 
     ######### Upload full crosstabs and national crosstabs to cloud storage #########
 
