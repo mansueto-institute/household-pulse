@@ -72,4 +72,13 @@ N.B. the `LOCAL` argument is required to make the workflow run locally.
 
 For local development can also change the `LOCAL` parameter manually [here](https://github.com/mansueto-institute/household-pulse/blob/main/prod/generate_crosstabs.py#L311)
 
+## Change crosstabs structure
+
+To change the structure of the outputed crosstabs files (e.g. to add in a new crosstab variable), you can change the specified crosstabs variables here:
+
+**N.B** if you want to keep the existing crosstabs as well, change the name of the crosstabs files here: before running (otherwise the existing files will be overwritten by the new crosstabs)
+
+
 ## Run workflow in DataBricks
+
+> To add...

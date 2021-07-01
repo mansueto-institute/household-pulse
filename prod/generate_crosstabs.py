@@ -104,9 +104,10 @@ def get_puf_data(data_str: str, wp: int):
     '''
     base_url = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
     url = base_url + data_str
-    r = requests.get(url)
     print("Trying url: {}\n".format(url))
-    if not r:
+    try:
+        r = requests.get(url)
+    except:
         print("URL does not exist, stopping download: {}\n".format(url))
         return None
     read_zip = zipfile.ZipFile(io.BytesIO(r.content))
@@ -217,7 +218,7 @@ def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(filename)
     blob.upload_from_string(df.to_csv(index=False), 'text/csv', timeout=450)
-    print('File uploaded to {}:{}.'.format(bucket_name, filename))
+    print('File uploaded to {}:{}\n'.format(bucket_name, filename))
 
 def week_mapper():
     '''
@@ -308,7 +309,7 @@ def get_file_from_storage(filepath: str):
 if __name__=="__main__":
 
     ######### Set up parameters #########
-    
+
     LOCAL = False # ensure this parameter is set to True when developing locally
     if (len(sys.argv[1:]) == 1) and (sys.argv[1] == 'LOCAL'):
         LOCAL = True
@@ -316,6 +317,10 @@ if __name__=="__main__":
     # Crosstabs variables:
     index_list = ['EST_MSA', 'WEEK']
     crosstab_list = ['TOPLINE', 'RRACE']
+
+    # Crosstabs filenames:
+    crosstab_filename = "crosstabs_caitlin_test.csv"
+    crosstab_nat_filename = "crosstabs_national_caitlin_test.csv"
  
     
     ######## Download google sheets crosswalk tables #########
@@ -334,15 +339,16 @@ if __name__=="__main__":
 
     print("\nChecking for existing crosstabs file in cloud storage bucket\n")
     try:
-        existing_crosstabs = get_file_from_storage('household-pulse-bucket/crosstabs.csv')
-        existing_crosstabs_national = get_file_from_storage('household-pulse-bucket/crosstabs_national.csv')
+        existing_crosstabs = get_file_from_storage('household-pulse-bucket/' + crosstab_filename)
+        existing_crosstabs_national = get_file_from_storage('household-pulse-bucket/' + crosstab_nat_filename)
         week = existing_crosstabs['WEEK'].max() + 1
         print("Existing crosstabs, latest week in existing data is week {}\n".format(week))
     except:
-        print("No existing crosstabs found, generating full dataset starting from week 13\n")
         existing_crosstabs = pd.DataFrame()
         existing_crosstabs_national = pd.DataFrame()
-        week = 13
+        week = 30
+        print("No existing crosstabs found, generating full dataset starting from week {}\n".format(week))
+
 
     ######### Download new Census Household Pulse data and generate crosstab #########
 
@@ -371,14 +377,14 @@ if __name__=="__main__":
             recoded_df = bucketize_numeric_cols(recoded_df, question_mapping)
             recoded_df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
 
-            print("Generating crosstabs for week {}".format(week))
-            crosstabs_week = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
+            print("Generating crosstabs for week {}\n".format(week))
+            crosstabs = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
                                 question_list, select_all_questions,
                                 weight='PWEIGHT', critical_val=1.645), 
                                 bulk_crosstabs(recoded_df, index_list, crosstab_list,
                                 question_list, select_all_questions,
                                 weight='HWEIGHT', critical_val=1.645)])
-            crosstabs_nat_week = pd.concat([bulk_crosstabs(recoded_df, ['WEEK'], ['TOPLINE'],
+            crosstabs_nat = pd.concat([bulk_crosstabs(recoded_df, ['WEEK'], ['TOPLINE'],
                                 question_list, select_all_questions,
                                 weight='PWEIGHT', critical_val=1.645),
                                 bulk_crosstabs(recoded_df, ['WEEK'], ['TOPLINE'],
@@ -418,8 +424,8 @@ if __name__=="__main__":
         print("Creating full crosstabs\n")
         final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
         final_ct_national = pd.concat([existing_crosstabs_national] + full_crosstabs_national)
-        upload_to_cloud_storage("household-pulse-bucket", final_ct, "crosstabs.csv")
-        upload_to_cloud_storage("household-pulse-bucket", final_ct_national, "crosstabs_national.csv")
+        upload_to_cloud_storage("household-pulse-bucket", final_ct, crosstab_filename)
+        upload_to_cloud_storage("household-pulse-bucket", final_ct_national, crosstab_nat_filename)
         print('Uploaded to cloud storage\n')
     else:
         print("Existing crosstabs are already up to date, no new data to add\n")
