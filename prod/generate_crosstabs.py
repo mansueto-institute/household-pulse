@@ -13,6 +13,7 @@ import numpy as np
 from bs4 import BeautifulSoup
 
 import gcsfs
+import google.auth
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from google.cloud import storage
@@ -344,7 +345,7 @@ if __name__=="__main__":
         existing_crosstabs = get_file_from_storage('household-pulse-bucket/' + crosstab_filename)
         existing_crosstabs_national = get_file_from_storage('household-pulse-bucket/' + crosstab_nat_filename)
         week = int(existing_crosstabs['WEEK'].max()) + 1
-        print("Existing {} file, latest week in existing data is week {}\n".format(crosstab_filename, week))
+        print("Existing {} file, latest week in existing data is week {}\n".format(crosstab_filename, week-1))
     except:
         existing_crosstabs = pd.DataFrame()
         existing_crosstabs_national = pd.DataFrame()
