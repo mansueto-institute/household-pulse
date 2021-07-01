@@ -74,9 +74,9 @@ For local development can also change the `LOCAL` parameter manually [here](http
 
 ## Change crosstabs structure
 
-To change the structure of the outputed crosstabs files (e.g. to add in a new crosstab variable), you can change the specified crosstabs variables here:
+To change the structure of the outputed crosstabs files (e.g. to add in a new crosstab variable), you can change the specified crosstabs variables [here](https://github.com/mansueto-institute/household-pulse/blob/main/prod/generate_crosstabs.py#L320-L321)
 
-**N.B** if you want to keep the existing crosstabs as well, change the name of the crosstabs files here: before running (otherwise the existing files will be overwritten by the new crosstabs)
+**N.B** make sure you also change the name of the crosstabs files [here](https://github.com/mansueto-institute/household-pulse/blob/main/prod/generate_crosstabs.py#L324-L325) before running otherwise the existing files will be overwritten by the new crosstabs
 
 
 ## Run workflow in DataBricks
