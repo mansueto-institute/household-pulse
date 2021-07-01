@@ -20,7 +20,7 @@ Automates the processing of Census Household Pulse biweekly data into a crosstab
   * Question and response labels are based on Phase 3 December 9-21 dictionary and should be consistent with Week 13 onwards. Note responses that contain `-99` means "Question seen but category not selected" and `-88` means "Missing / Did not report".
   * `county_metro_state` contains a county to metro or state crosswalk
 * [Cloud Drive](https://drive.google.com/drive/u/0/folders/14LK-dEay1G9UpBjXw6Kt9eTXwZjx8rj9)
-* [Databricks project](https://drive.google.com/drive/u/0/folders/14LK-dEay1G9UpBjXw6Kt9eTXwZjx8rj9)
+* [Databricks project](https://4130185475849536.6.gcp.databricks.com/?o=4130185475849536#)
 
 
 ## Run workflow locally 
@@ -81,4 +81,4 @@ To change the structure of the outputed crosstabs files (e.g. to add in a new cr
 
 ## Run workflow in DataBricks
 
-> To add...
+>
