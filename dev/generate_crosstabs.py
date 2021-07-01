@@ -107,13 +107,14 @@ def get_puf_data(data_str: str, wp: int):
     print("Trying url: {}\n".format(url))
     try:
         r = requests.get(url)
+        read_zip = zipfile.ZipFile(io.BytesIO(r.content))
+        data_df = pd.read_csv(read_zip.open(data_file_str(wp, 'd')), dtype={'SCRAM': 'string'})
+        weight_df = pd.read_csv(read_zip.open(data_file_str(wp, 'w')), dtype={'SCRAM': 'string'})
+        return data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
     except:
         print("URL does not exist, stopping download: {}\n".format(url))
         return None
-    read_zip = zipfile.ZipFile(io.BytesIO(r.content))
-    data_df = pd.read_csv(read_zip.open(data_file_str(wp, 'd')), dtype={'SCRAM': 'string'})
-    weight_df = pd.read_csv(read_zip.open(data_file_str(wp, 'w')), dtype={'SCRAM': 'string'})
-    return data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
+
 
 def get_crosswalk_sheets():
     '''
@@ -303,7 +304,8 @@ def get_file_from_storage(filepath: str):
     '''
     fs = gcsfs.GCSFileSystem(project='household-pulse') 
     with fs.open(filepath) as f:
-        return pd.read_csv(f)
+        df = pd.read_csv(f)
+        return df[[x for x in df.columns if not x.startswith("Unnamed:")]]
 
 
 if __name__=="__main__":
@@ -319,8 +321,8 @@ if __name__=="__main__":
     crosstab_list = ['TOPLINE', 'RRACE']
 
     # Crosstabs filenames:
-    crosstab_filename = "crosstabs_caitlin_test.csv"
-    crosstab_nat_filename = "crosstabs_national_caitlin_test.csv"
+    crosstab_filename = "crosstabs.csv"
+    crosstab_nat_filename = "crosstabs_national.csv"
  
     
     ######## Download google sheets crosswalk tables #########
@@ -341,13 +343,13 @@ if __name__=="__main__":
     try:
         existing_crosstabs = get_file_from_storage('household-pulse-bucket/' + crosstab_filename)
         existing_crosstabs_national = get_file_from_storage('household-pulse-bucket/' + crosstab_nat_filename)
-        week = existing_crosstabs['WEEK'].max() + 1
-        print("Existing crosstabs, latest week in existing data is week {}\n".format(week))
+        week = int(existing_crosstabs['WEEK'].max()) + 1
+        print("Existing {} file, latest week in existing data is week {}\n".format(crosstab_filename, week))
     except:
         existing_crosstabs = pd.DataFrame()
         existing_crosstabs_national = pd.DataFrame()
         week = 30
-        print("No existing crosstabs found, generating full dataset starting from week {}\n".format(week))
+        print("No existing {} file found, generating full dataset starting from week {}\n".format(crosstab_filename, week))
 
 
     ######### Download new Census Household Pulse data and generate crosstab #########
@@ -424,9 +426,10 @@ if __name__=="__main__":
         print("Creating full crosstabs\n")
         final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
         final_ct_national = pd.concat([existing_crosstabs_national] + full_crosstabs_national)
+        print("Uploading to cloud storage\n")
         upload_to_cloud_storage("household-pulse-bucket", final_ct, crosstab_filename)
         upload_to_cloud_storage("household-pulse-bucket", final_ct_national, crosstab_nat_filename)
-        print('Uploaded to cloud storage\n')
+        print('Uploaded to cloud storage: {}, {}\n'.format(crosstab_filename, crosstab_nat_filename))
     else:
         print("Existing crosstabs are already up to date, no new data to add\n")
     
