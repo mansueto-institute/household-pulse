@@ -2,6 +2,7 @@
 from typing import Dict, Optional, Sequence, Tuple
 
 import zipfile
+import logging
 import io
 import re
 import os
@@ -105,7 +106,7 @@ def get_puf_data(data_str: str, wp: int):
     '''
     base_url = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
     url = base_url + data_str
-    print("Trying url: {}\n".format(url))
+    logger.info("Trying url: {}".format(url))
     try:
         r = requests.get(url)
         read_zip = zipfile.ZipFile(io.BytesIO(r.content))
@@ -113,9 +114,8 @@ def get_puf_data(data_str: str, wp: int):
         weight_df = pd.read_csv(read_zip.open(data_file_str(wp, 'w')), dtype={'SCRAM': 'string'})
         return data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
     except:
-        print("URL does not exist, stopping download: {}\n".format(url))
+        logger.info("URL does not exist, stopping download: {}".format(url))
         return None
-
 
 def get_crosswalk_sheets():
     '''
@@ -207,7 +207,7 @@ def filter_non_weight_cols(cols_list):
     r = re.compile("(?!.*WEIGHT\d+)")
     return list(filter(r.match, cols_list))
 
-def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
+def upload_to_cloud_storage(bucket_name: str, filename, data=pd.DataFrame):
     '''
     Uploads a dataframe to cloud storage bucket.
     
@@ -219,8 +219,11 @@ def upload_to_cloud_storage(bucket_name: str, df: pd.DataFrame, filename: str):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(filename)
-    blob.upload_from_string(df.to_csv(index=False), 'text/csv', timeout=450)
-    print('File uploaded to {}:{}\n'.format(bucket_name, filename))
+    if not data.empty:
+        blob.upload_from_string(data.to_csv(index=False), 'text/csv', timeout=450)
+    else:
+        with open('logfile.log', 'rb') as logfile:
+            blob.upload_from_file(logfile)
 
 def week_mapper():
     '''
@@ -251,19 +254,6 @@ def freq_crosstab(df, col_list, weight, critical_val=1):
     pt_estimates['mrgn_err'] = pt_estimates.std_err * critical_val
     pt_estimates.rename(columns={weight: 'value'},inplace=True)
     return pt_estimates[['value', 'std_err','mrgn_err']].reset_index()
-
-def national_crosstabs(df, col_list, weights, critical_val=1):
-    rv = pd.DataFrame()
-    for i in col_list:
-        for w in weights:
-            ct = freq_crosstab(df,[i], w,critical_val)
-            total = ct[w].sum()
-            ct['question'] = i
-            ct['proportions'] = ct.apply(lambda x: x[w]/total, axis=1)
-            ct['weight'] = w
-            ct = ct.rename(columns={i:'response',w:'value'})
-            rv = pd.concat([rv,ct])
-    return rv
 
 def full_crosstab(df, col_list, weight, proportion_level, critical_val=1):
     df1 = df.copy()
@@ -311,6 +301,18 @@ def get_file_from_storage(filepath: str):
 
 if __name__=="__main__":
 
+    ######### Set up logging #########
+
+    logger = logging.getLogger()
+    fileHandler = logging.FileHandler("logfile.log")
+    streamHandler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter('\n%(asctime)s - %(message)s')
+    streamHandler.setFormatter(formatter)
+    fileHandler.setFormatter(formatter)
+    logger.addHandler(streamHandler)
+    logger.addHandler(fileHandler)
+    logger.setLevel(logging.INFO)
+
     ######### Set up parameters #########
 
     LOCAL = False # ensure this parameter is set to True when developing locally
@@ -318,119 +320,106 @@ if __name__=="__main__":
         LOCAL = True
 
     # Crosstabs variables:
-    index_list = ['EST_MSA', 'WEEK']
-    crosstab_list = ['TOPLINE', 'RRACE']
+    index_list = ['WEEK']
+    crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA']
 
     # Crosstabs filenames:
-    crosstab_filename = "crosstabs.csv"
-    crosstab_nat_filename = "crosstabs_national.csv"
- 
+    crosstab_filename = "pulse_time_series.csv" 
+    gcp_bucket = "household-pulse-bucket"
     
     ######## Download google sheets crosswalk tables #########
-
-    if LOCAL:
-        SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-        question_mapping, response_mapping, county_metro_state = LOCAL_get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
-    else:
-        # download crosswalk mapping tables
-        question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets()
-    
-    label_recode_dict = get_label_recode_dict(response_mapping)
-
-
-    ######### Check for existing crosstabs file and find latest week of data #########
-
-    print("\nChecking for existing crosstabs file in cloud storage bucket\n")
     try:
-        existing_crosstabs = get_file_from_storage('household-pulse-bucket/' + crosstab_filename)
-        existing_crosstabs_national = get_file_from_storage('household-pulse-bucket/' + crosstab_nat_filename)
-        week = int(existing_crosstabs['WEEK'].max()) + 1
-        print("Existing {} file, latest week in existing data is week {}\n".format(crosstab_filename, week-1))
-    except:
-        existing_crosstabs = pd.DataFrame()
-        existing_crosstabs_national = pd.DataFrame()
-        week = 30
-        print("No existing {} file found, generating full dataset starting from week {}\n".format(crosstab_filename, week))
-
-
-    ######### Download new Census Household Pulse data and generate crosstab #########
-
-    full_crosstabs = []
-    full_crosstabs_national = []
-    r = True
-    while r:
-        print("Downloading data: week {}\n".format(week))
-        week_pad = str(week).zfill(2)
-        data_str = data_url_str(week, week_pad)
-        week_df = get_puf_data(data_str, week_pad)
-
-        if week_df is None:
-            r = False
+        if LOCAL:
+            SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+            question_mapping, response_mapping, county_metro_state = LOCAL_get_crosswalk_sheets(SERVICE_ACCOUNT_FILE)
         else:
-            recoded_df = week_df.replace(label_recode_dict)
-            recoded_df['TOPLINE'] = 1
-            
-            question_cols = list(set(question_mapping['variable'][question_mapping.stacked_question_features=='1']).intersection(set(recoded_df.columns)))
-            question_mapping_usecols = question_mapping[question_mapping['variable'].isin(question_cols)]
-            select_all_questions = list(question_mapping_usecols['variable'][question_mapping_usecols['select_all_that_apply'] == '1'].unique())
-            question_list = [x for x in question_cols if x not in index_list and x not in crosstab_list and not (
-                    len(recoded_df[x].unique())>6)]
-
-            recoded_df[select_all_questions] = recoded_df[select_all_questions].replace(['-99', -99],'0 - not selected')
-            recoded_df = bucketize_numeric_cols(recoded_df, question_mapping)
-            recoded_df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
-
-            print("Generating crosstabs for week {}\n".format(week))
-            crosstabs = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
-                                question_list, select_all_questions,
-                                weight='PWEIGHT', critical_val=1.645), 
-                                bulk_crosstabs(recoded_df, index_list, crosstab_list,
-                                question_list, select_all_questions,
-                                weight='HWEIGHT', critical_val=1.645)])
-            crosstabs_nat = pd.concat([bulk_crosstabs(recoded_df, ['WEEK'], ['TOPLINE'],
-                                question_list, select_all_questions,
-                                weight='PWEIGHT', critical_val=1.645),
-                                bulk_crosstabs(recoded_df, ['WEEK'], ['TOPLINE'],
-                                question_list, select_all_questions,
-                                weight='HWEIGHT', critical_val=1.645)])
-
-            crosstabs['EST_MSA'] = (crosstabs['EST_MSA'].astype(int)).astype(str)
-            
-            crosstabs = crosstabs.merge(
-                county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(),
-                left_on='EST_MSA',
-                right_on='cbsa_fips').iloc[:, :-1]
-            
-            crosstabs = crosstabs.merge(
-                question_mapping[['description_recode', 'variable']],
-                left_on='q_var',
-                right_on='variable').iloc[:,:-1]
-            
-            crosstabs_nat['collection_dates'] = crosstabs_nat.WEEK.map(week_mapper())
-            
-            crosstabs_nat = crosstabs_nat.merge(
-                question_mapping[['description_recode', 'variable']],
-                left_on='q_var',
-                right_on='variable').iloc[:,:-1]
-            
-            crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
-            
-            full_crosstabs.append(crosstabs)
-            full_crosstabs_national.append(crosstabs_nat)
-            week += 1
-    print("Finished downloading data\n")
+            # download crosswalk mapping tables
+            question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets()
+        
+        label_recode_dict = get_label_recode_dict(response_mapping)
+        county_metro_state['cbsa_fips'] = county_metro_state['cbsa_fips'].astype(float).astype(str)
 
 
-    ######### Upload full crosstabs and national crosstabs to cloud storage #########
+        ######### Check for existing crosstabs file and find latest week of data #########
+        logger.info("Checking for existing crosstabs file in cloud storage bucket")
+        try:
+            existing_crosstabs = get_file_from_storage('household-pulse-bucket/' + crosstab_filename)
+            week = int(existing_crosstabs['WEEK'].max()) + 1
+            logger.info("Existing {} file, latest week in existing data is week {}".format(crosstab_filename, week-1))
+        except:
+            existing_crosstabs = pd.DataFrame()
+            week = 13
+            logger.info("No existing {} file found, generating full dataset starting from week {}".format(crosstab_filename, week))
 
-    if full_crosstabs:
-        print("Creating full crosstabs\n")
-        final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
-        final_ct_national = pd.concat([existing_crosstabs_national] + full_crosstabs_national)
-        print("Uploading to cloud storage\n")
-        upload_to_cloud_storage("household-pulse-bucket", final_ct, crosstab_filename)
-        upload_to_cloud_storage("household-pulse-bucket", final_ct_national, crosstab_nat_filename)
-        print('Uploaded to cloud storage: {}, {}\n'.format(crosstab_filename, crosstab_nat_filename))
-    else:
-        print("Existing crosstabs are already up to date, no new data to add\n")
+
+        ######### Download new Census Household Pulse data and generate crosstab #########
+
+        full_crosstabs = []
+        r = True
+        while r:
+            logger.info("Downloading data: week {}".format(week))
+            week_pad = str(week).zfill(2)
+            data_str = data_url_str(week, week_pad)
+            week_df = get_puf_data(data_str, week_pad)
+
+            if week_df is None:
+                r = False
+            else:
+                recoded_df = week_df.replace(label_recode_dict)
+                recoded_df['TOPLINE'] = 1
+                
+                question_cols = list(set(question_mapping['variable'][question_mapping.stacked_question_features=='1']).intersection(set(recoded_df.columns)))
+                question_mapping_usecols = question_mapping[question_mapping['variable'].isin(question_cols)]
+                select_all_questions = list(question_mapping_usecols['variable'][question_mapping_usecols['select_all_that_apply'] == '1'].unique())
+                question_list = [x for x in question_cols if x not in index_list and x not in crosstab_list and not (
+                        len(recoded_df[x].unique())>6)]
+
+                recoded_df[select_all_questions] = recoded_df[select_all_questions].replace(['-99', -99],'0 - not selected')
+                recoded_df = bucketize_numeric_cols(recoded_df, question_mapping)
+                recoded_df.replace(['-88','-99',-88,-99],np.nan,inplace=True)
+
+                logger.info("Generating crosstabs for week {}\n".format(week))
+                crosstabs = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
+                                    question_list, select_all_questions,
+                                    weight='PWEIGHT', critical_val=1.645), 
+                                    bulk_crosstabs(recoded_df, index_list, crosstab_list,
+                                    question_list, select_all_questions,
+                                    weight='HWEIGHT', critical_val=1.645)])
+
+                crosstabs['ct_val'] = crosstabs['ct_val'].astype(str)
+                
+                crosstabs = crosstabs.merge(
+                    county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(),
+                    left_on='ct_val',
+                    right_on='cbsa_fips',
+                    how='left').iloc[:, :-1]
+
+                crosstabs = crosstabs.merge(
+                    question_mapping[['description_recode', 'variable']],
+                    left_on='q_var',
+                    right_on='variable', 
+                    how='left').iloc[:,:-1]
+                
+                crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
+                
+                full_crosstabs.append(crosstabs)
+                week += 1
+        logger.info("Finished downloading data\n")
+
+
+        ######### Upload full crosstabs and national crosstabs to cloud storage #########
+
+        if full_crosstabs:
+            logger.info("Creating full crosstabs")
+            final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
+            logger.info("Uploading to cloud storage")
+            upload_to_cloud_storage(gcp_bucket, crosstab_filename, final_ct)
+            logger.info('File uploaded to {}:{}'.format(gcp_bucket, filename))
+        else:
+            logger.info("Existing crosstabs are already up to date, no new data to add")
     
+    except Exception as Argument:
+        logger.exception("Error occured:") 
+
+    logger.info('Uploading logfile to gcp storage')
+    upload_to_cloud_storage(gcp_bucket, "logfile.log")
