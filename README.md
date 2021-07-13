@@ -81,4 +81,23 @@ To change the structure of the outputed crosstabs files (e.g. to add in a new cr
 
 ## Run workflow in DataBricks
 
+Configure cluster with the following settings
+* 7.3 LTS (includes Apache Spark 3.0.1, Scala 2.12)
+* Enable autoscaling
+* Terminate after 10 minutes of inactivity
+* Worker Type: n1-standard-8 30 GB Memory, 8 Cores, 1.41 DBU Min Workers 1 Max Workers 2
+* Driver Type: n1-standard-8 30 GB Memory, 8 Cores, 1.41 DBU
+* Google Service Account: `dev-103@household-pulse.iam.gserviceaccount.com`
+
+Add libraries from PyPI to cluster:
+
+```
+bs4==0.0.1
+google-cloud-storage==1.39.0
+gcsfs==2021.6.1
+google-api-python-client==1.12.8
+beautifulsoup4==4.9.3
+oauth2client==4.1.3
+```
+
 >
