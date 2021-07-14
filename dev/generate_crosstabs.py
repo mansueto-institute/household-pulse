@@ -304,7 +304,7 @@ if __name__=="__main__":
     ######### Set up logging #########
 
     logger = logging.getLogger()
-    fileHandler = logging.FileHandler("logfile.log")
+    fileHandler = logging.FileHandler("logfile.log", mode='w')
     streamHandler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter('\n%(asctime)s - %(message)s')
     streamHandler.setFormatter(formatter)
@@ -348,13 +348,15 @@ if __name__=="__main__":
             logger.info("Existing {} file, latest week in existing data is week {}".format(crosstab_filename, week-1))
         except:
             existing_crosstabs = pd.DataFrame()
-            week = 13
+            week = 29
             logger.info("No existing {} file found, generating full dataset starting from week {}".format(crosstab_filename, week))
 
 
         ######### Download new Census Household Pulse data and generate crosstab #########
 
         full_crosstabs = []
+        missing_question_vars = {}
+        missing_qs_full_list = []
         r = True
         while r:
             logger.info("Downloading data: week {}".format(week))
@@ -367,6 +369,10 @@ if __name__=="__main__":
             else:
                 recoded_df = week_df.replace(label_recode_dict)
                 recoded_df['TOPLINE'] = 1
+
+                new_questions = filter_non_weight_cols(list(set(recoded_df.columns) - set(question_mapping['variable']))) 
+                missing_question_vars["WEEK " + str(week)] = list(set(new_questions) - set(missing_qs_full_list)) 
+                missing_qs_full_list.extend(new_questions)
                 
                 question_cols = list(set(question_mapping['variable'][question_mapping.stacked_question_features=='1']).intersection(set(recoded_df.columns)))
                 question_mapping_usecols = question_mapping[question_mapping['variable'].isin(question_cols)]
@@ -406,6 +412,8 @@ if __name__=="__main__":
                 week += 1
         logger.info("Finished downloading data\n")
 
+        logger.info("*New columns*: columns in pulse dataset not present in data dictionary: \n\n{}".format(missing_question_vars))
+
 
         ######### Upload full crosstabs and national crosstabs to cloud storage #########
 
@@ -414,7 +422,7 @@ if __name__=="__main__":
             final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
             logger.info("Uploading to cloud storage")
             upload_to_cloud_storage(gcp_bucket, crosstab_filename, final_ct)
-            logger.info('File uploaded to {}:{}'.format(gcp_bucket, filename))
+            logger.info('File uploaded to {}:{}'.format(gcp_bucket, crosstab_filename))
         else:
             logger.info("Existing crosstabs are already up to date, no new data to add")
     
