@@ -1,4 +1,4 @@
-# Housholed Pulse Survey
+# Household Pulse Survey
 
 Automates the processing of Census Household Pulse biweekly data into a crosstabs 
 
