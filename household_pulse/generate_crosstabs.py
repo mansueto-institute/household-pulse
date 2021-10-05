@@ -1,5 +1,13 @@
-# Databricks notebook source
-from typing import Dict, Optional, Sequence, Tuple
+# -*- coding: utf-8 -*-
+"""
+Created on Tuesday, 5th October 2021 1:38:42 pm
+===============================================================================
+@filename:  generate_crosstabs.py
+@author:    Manuel Martinez (manmart@uchicago.edu)
+@project:   household pulse
+@purpose:   enter purpose
+===============================================================================
+"""
 
 import zipfile
 import logging
@@ -10,7 +18,6 @@ import sys
 import requests
 import numpy as np
 import pandas as pd
-import numpy as np
 from bs4 import BeautifulSoup
 
 import gcsfs
@@ -18,7 +25,6 @@ import google.auth
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from google.cloud import storage
-from oauth2client.service_account import ServiceAccountCredentials
 
 SHEETS_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CROSSWALK_SPREADSHEET_ID = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
@@ -52,7 +58,7 @@ NUMERIC_COL_BUCKETS = {
 def bucketize_numeric_cols(df: pd.DataFrame, question_mapping: pd.DataFrame):
     '''
     Bucketize numeric columns using the buckets specified above in NUMERIC_COL_BUCKETS dict
-    
+
     inputs:
         df: pd DataFrame, main dataframe with columns to be bucketized
         question_mapping: pd DataFrame, question mapping crosswalk, which specifies the numeric columns
@@ -62,14 +68,14 @@ def bucketize_numeric_cols(df: pd.DataFrame, question_mapping: pd.DataFrame):
     for col in num_cols:
         if col in df.columns:
             df[col] = pd.cut(df[col],
-                        bins=NUMERIC_COL_BUCKETS[col]['bins'], 
+                        bins=NUMERIC_COL_BUCKETS[col]['bins'],
                         labels=NUMERIC_COL_BUCKETS[col]['labels'], right=False)
     return df
 
 def data_url_str(w: int, wp: int):
     '''
     Helper function to get string for file to download from census api
-    
+
     inputs:
         w: str, the week of data to download
         wp: str, the week of data to download, padded to 2 digits
@@ -82,8 +88,8 @@ def data_url_str(w: int, wp: int):
 def data_file_str(wp: int, f: str):
     '''
     Helper function to get the string names of the files downloaded
-    
-    inputs: 
+
+    inputs:
         wp: str, the week of data downloaded, padded to 2 digits
         f: str, the file to dowload (d: main data file, w: weights file)
     returns: str, name of file downloaded
@@ -97,9 +103,9 @@ def data_file_str(wp: int, f: str):
 def get_puf_data(data_str: str, wp: int):
     '''
     Download Census Household Pulse PUF zip file for the given week and merge weights and PUF dataframes
-    
-    inputs: 
-        data_str: str, the year/month/file.zip string to be downloaded 
+
+    inputs:
+        data_str: str, the year/month/file.zip string to be downloaded
         wp: str, the week of data to be downloaded, padded to 2 digits
     returns:
         pd DataFrame, the weeks census household pulse data merged with the weights csv
@@ -164,7 +170,7 @@ def LOCAL_get_crosswalk_sheets(service_account_file):
 
 def get_label_recode_dict(response_mapping: pd.DataFrame):
     '''
-    Convert question response mapping df into dict to recode labels 
+    Convert question response mapping df into dict to recode labels
 
     inputs:
         response_mapping: pd.DataFrame, the response_mapping df from the household_publse_data_dictionary google sheet
@@ -199,7 +205,7 @@ def get_std_err(df: pd.DataFrame, weight: str):
 def filter_non_weight_cols(cols_list):
     '''
     Helper function to filter columns in dataframe to just variable columns (removes weight columns)
-    
+
     inputs:
         cols_list: list of strings, the column names of the dataframe
     returns: list of strings, the column names with the WEIGHT column names removed
@@ -210,9 +216,9 @@ def filter_non_weight_cols(cols_list):
 def upload_to_cloud_storage(bucket_name: str, filename, data=pd.DataFrame):
     '''
     Uploads a dataframe to cloud storage bucket.
-    
+
     inputs:
-        bucket_name: string, name of the bucket to upload to 
+        bucket_name: string, name of the bucket to upload to
         df: pd.DataFrame to be uploaded to cloud storage
         filename: string, name of file in cloud storage
     '''
@@ -289,11 +295,11 @@ def get_file_from_storage(filepath: str):
     '''
     Download csv in google cloud storage bucket as pandas DataFrame
 
-    inputs: 
+    inputs:
         filepath: str, bucket/file.csv to be downloaded
     returns: pd DataFrame
     '''
-    fs = gcsfs.GCSFileSystem(project='household-pulse') 
+    fs = gcsfs.GCSFileSystem(project='household-pulse')
     with fs.open(filepath) as f:
         df = pd.read_csv(f)
         return df[[x for x in df.columns if not x.startswith("Unnamed:")]]
@@ -324,9 +330,9 @@ if __name__=="__main__":
     crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA']
 
     # Crosstabs filenames:
-    crosstab_filename = "pulse_time_series.csv" 
+    crosstab_filename = "pulse_time_series.csv"
     gcp_bucket = "household-pulse-bucket"
-    
+
     ######## Download google sheets crosswalk tables #########
     try:
         if LOCAL:
@@ -335,7 +341,7 @@ if __name__=="__main__":
         else:
             # download crosswalk mapping tables
             question_mapping, response_mapping, county_metro_state = get_crosswalk_sheets()
-        
+
         label_recode_dict = get_label_recode_dict(response_mapping)
         county_metro_state['cbsa_fips'] = county_metro_state['cbsa_fips'].astype(float).astype(str)
 
@@ -370,10 +376,10 @@ if __name__=="__main__":
                 recoded_df = week_df.replace(label_recode_dict)
                 recoded_df['TOPLINE'] = 1
 
-                new_questions = filter_non_weight_cols(list(set(recoded_df.columns) - set(question_mapping['variable']))) 
-                missing_question_vars["WEEK " + str(week)] = list(set(new_questions) - set(missing_qs_full_list)) 
+                new_questions = filter_non_weight_cols(list(set(recoded_df.columns) - set(question_mapping['variable'])))
+                missing_question_vars["WEEK " + str(week)] = list(set(new_questions) - set(missing_qs_full_list))
                 missing_qs_full_list.extend(new_questions)
-                
+
                 question_cols = list(set(question_mapping['variable'][question_mapping.stacked_question_features=='1']).intersection(set(recoded_df.columns)))
                 question_mapping_usecols = question_mapping[question_mapping['variable'].isin(question_cols)]
                 select_all_questions = list(question_mapping_usecols['variable'][question_mapping_usecols['select_all_that_apply'] == '1'].unique())
@@ -387,13 +393,13 @@ if __name__=="__main__":
                 logger.info("Generating crosstabs for week {}\n".format(week))
                 crosstabs = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
                                     question_list, select_all_questions,
-                                    weight='PWEIGHT', critical_val=1.645), 
+                                    weight='PWEIGHT', critical_val=1.645),
                                     bulk_crosstabs(recoded_df, index_list, crosstab_list,
                                     question_list, select_all_questions,
                                     weight='HWEIGHT', critical_val=1.645)])
 
                 crosstabs['ct_val'] = crosstabs['ct_val'].astype(str)
-                
+
                 crosstabs = crosstabs.merge(
                     county_metro_state[['cbsa_title','cbsa_fips']].drop_duplicates(),
                     left_on='ct_val',
@@ -403,11 +409,11 @@ if __name__=="__main__":
                 crosstabs = crosstabs.merge(
                     question_mapping[['description_recode', 'variable']],
                     left_on='q_var',
-                    right_on='variable', 
+                    right_on='variable',
                     how='left').iloc[:,:-1]
-                
+
                 crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
-                
+
                 full_crosstabs.append(crosstabs)
                 week += 1
         logger.info("Finished downloading data\n")
@@ -425,9 +431,9 @@ if __name__=="__main__":
             logger.info('File uploaded to {}:{}'.format(gcp_bucket, crosstab_filename))
         else:
             logger.info("Existing crosstabs are already up to date, no new data to add")
-    
+
     except Exception as Argument:
-        logger.exception("Error occured:") 
+        logger.exception("Error occured:")
 
     logger.info('Uploading logfile to gcp storage')
     upload_to_cloud_storage(gcp_bucket, "logfile.log")
