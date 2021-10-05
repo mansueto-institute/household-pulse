@@ -1,2 +1,2 @@
 # use Git's automatic detection and enforce LF line endings
-* text=auto eol=crlf
+* text=auto eol=lf
