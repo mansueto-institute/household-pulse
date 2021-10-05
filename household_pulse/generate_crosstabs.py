@@ -9,22 +9,22 @@ Created on Tuesday, 5th October 2021 1:38:42 pm
 ===============================================================================
 """
 
-import zipfile
-import logging
 import io
-import re
+import logging
 import os
+import re
 import sys
-import requests
-import numpy as np
-import pandas as pd
-from bs4 import BeautifulSoup
+import zipfile
 
 import gcsfs
 import google.auth
-from googleapiclient.discovery import build
-from google.oauth2 import service_account
+import numpy as np
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
 from google.cloud import storage
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 SHEETS_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CROSSWALK_SPREADSHEET_ID = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
