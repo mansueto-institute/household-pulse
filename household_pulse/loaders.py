@@ -12,24 +12,35 @@ import io
 from zipfile import ZipFile
 
 import pandas as pd
-import pkg_resources
 import requests
 
 
-def load_crosstab(fname: str) -> pd.DataFrame:
+def load_crosstab(sheetname: str) -> pd.DataFrame:
     """
-    Loads one of the three crosstabs used for mapping responses.
+    Loads one of the three crosstabs used for mapping responses. It has to
+    be one of {'question_mapping', 'response_mapping, 'county_metro_state'}.
 
     Args:
-        fname (str): file name with the suffix included. myfile.csv
+        sheetname (str): sheetname in the data dictionary google sheet
 
     Returns:
         pd.DataFrame: loaded crosstab
     """
-    fpath = pkg_resources.resource_filename(
-        'household_pulse',
-        '/'.join(('crosstabs', fname)))
-    df = pd.read_csv(fpath)
+    baseurl = 'https://docs.google.com/spreadsheets/d'
+    ssid = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
+
+    sheetids = {
+        'question_mapping': '1115503899',
+        'response_mapping': '0',
+        'county_metro_state': '974836931'
+    }
+
+    if sheetname not in sheetids:
+        raise ValueError(f'{sheetname} not in {sheetids.keys()}')
+
+    df = pd.read_csv(
+        f'{baseurl}/{ssid}/export?format=csv&gid={sheetids[sheetname]}'
+    )
 
     return df
 
