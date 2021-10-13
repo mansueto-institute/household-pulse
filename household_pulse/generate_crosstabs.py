@@ -70,14 +70,14 @@ def bucketize_numeric_cols(df: pd.DataFrame,
 
 
 def data_file_str(wp: int, f: str):
-    '''
+    """
     Helper function to get the string names of the files downloaded
 
     inputs:
         wp: str, the week of data downloaded, padded to 2 digits
         f: str, the file to dowload (d: main data file, w: weights file)
     returns: str, name of file downloaded
-    '''
+    """
     year = '2021' if int(wp) > 21 else '2020'
     if f == 'd':
         return f"pulse{year}_puf_{wp}.csv"
@@ -86,7 +86,7 @@ def data_file_str(wp: int, f: str):
 
 
 def get_std_err(df: pd.DataFrame, weight: str):
-    '''
+    """
     Calculate standard error of dataframe
 
     inputs:
@@ -94,7 +94,7 @@ def get_std_err(df: pd.DataFrame, weight: str):
         weight: str, specify whether person ('PWEIGHT') or household ('HWEIGHT') weight
     returns:
         float, the standard error
-    '''
+    """
     # make 1d array of weight col
     obs_wgts = df[weight].to_numpy().reshape(len(df), 1)
     # make 80d array of replicate weights
@@ -105,12 +105,12 @@ def get_std_err(df: pd.DataFrame, weight: str):
 
 
 def week_mapper():
-    '''
+    """
     Scrapes date range meta data for each release of the Household Pulse data
 
     returns:
         dict, {week int: dates}
-    '''
+    """
     URL = 'https://www.census.gov/programs-surveys/household-pulse-survey/data.html'
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
