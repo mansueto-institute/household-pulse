@@ -13,12 +13,10 @@ import re
 import numpy as np
 import pandas as pd
 import requests
+from bs4 import BeautifulSoup
 
 from household_pulse.loaders import (download_puf, load_crosstab,
                                      make_recode_map)
-
-# from bs4 import BeautifulSoup
-
 
 NUMERIC_COL_BUCKETS = {
     'TBIRTH_YEAR': {'bins': [1920, 1957, 1972, 1992, 2003],
@@ -85,23 +83,29 @@ def data_file_str(wp: int, f: str):
         return f"pulse{year}_repwgt_puf_{wp}.csv"
 
 
-def get_std_err(df: pd.DataFrame, weight: str):
+def get_std_err(df: pd.DataFrame, weight_col: str) -> list[float]:
     """
     Calculate standard error of dataframe
 
-    inputs:
-        df: pd DataFrame
-        weight: str, specify whether person ('PWEIGHT') or household ('HWEIGHT') weight
-    returns:
-        float, the standard error
+    Args:
+        df (pd.DataFrame): point estimates from freq_crosstab
+        weight_col (str): specify whether person ('PWEIGHT') or household
+            ('HWEIGHT') weight
+
+    Returns:
+        float: the standard error
     """
-    # make 1d array of weight col
-    obs_wgts = df[weight].to_numpy().reshape(len(df), 1)
-    # make 80d array of replicate weights
-    rep_wgts = df[[
-        i for i in df.columns if weight in i and not i == weight]].to_numpy()
-    # return standard error of estimate
-    return np.sqrt((np.sum(np.square(rep_wgts-obs_wgts), axis=1)*(4/80)))
+    # only keep passed weight types
+    df = df.loc[:, df.columns.str.contains(weight_col)].copy()
+    # here we subtract the replicate weights from the main weight col
+    # broadcasting across the columns
+    wgtdf = df.loc[:, df.columns != weight_col].sub(
+        df[weight_col],
+        axis=0,
+        level=2)
+    result: pd.Series = (wgtdf.pow(2).sum(axis=1) * (4/80)).pow(1/2)
+
+    return result.values.tolist()
 
 
 def week_mapper():
@@ -111,7 +115,14 @@ def week_mapper():
     returns:
         dict, {week int: dates}
     """
-    URL = 'https://www.census.gov/programs-surveys/household-pulse-survey/data.html'
+    URL = '/'.join(
+        (
+            'https://www.census.gov',
+            'programs-surveys',
+            'household-pulse-survey',
+            'data.html'
+        )
+    )
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
     week_dict = {}
@@ -128,69 +139,110 @@ def week_mapper():
     return week_dict
 
 
-def freq_crosstab(df, col_list, weight, critical_val=1):
-    pt_estimates = df.groupby(col_list, as_index=True)[
-        [i for i in df.columns if weight in i]].agg('sum')
-    pt_estimates['std_err'] = get_std_err(pt_estimates, weight)
-    pt_estimates['mrgn_err'] = pt_estimates.std_err * critical_val
-    pt_estimates.rename(columns={weight: 'value'}, inplace=True)
+def freq_crosstab(df: pd.DataFrame,
+                  col_list: list[str],
+                  weight_col: str,
+                  critical_val: float = 1.0) -> pd.DataFrame:
+    """
+    [summary]
+
+    Args:
+        df (pd.DataFrame): [description]
+        col_list (list[str]): [description]
+        weight_col (str): [description]
+        critical_val (int, optional): [description]. Defaults to 1.
+
+    Returns:
+        pd.DataFrame: [description]
+    """
+    w_cols = df.columns[df.columns.str.contains(weight_col)]
+    pt_estimates = df.groupby(col_list)[w_cols].sum()
+    pt_estimates['std_err'] = get_std_err(pt_estimates, weight_col)
+    pt_estimates['mrgn_err'] = pt_estimates['std_err'] * critical_val
+    pt_estimates.rename(columns={weight_col: 'value'}, inplace=True)
     return pt_estimates[['value', 'std_err', 'mrgn_err']].reset_index()
 
 
-def full_crosstab(df, col_list, weight, proportion_level, critical_val=1):
-    df1 = df.copy()
-    detail = freq_crosstab(df1, col_list, weight, critical_val)
-    top = freq_crosstab(df1, proportion_level, weight, critical_val)
-    rv = detail.merge(top, 'left', proportion_level,
-                      suffixes=('_full', '_demo'))
+def full_crosstab(df: pd.DataFrame,
+                  col_list: list[str],
+                  weight_col: str,
+                  abstract: list[str],
+                  critical_val: float = 1.0) -> pd.DataFrame:
+    """
+    [summary]
+
+    Args:
+        df (pd.DataFrame): [description]
+        col_list (list[str]): [description]
+        weight_col (str): [description]
+        abstract (list[str]): [description]
+        critical_val (int, optional): [description]. Defaults to 1.
+
+    Returns:
+        pd.DataFrame: [description]
+    """
+    detail = freq_crosstab(df, col_list, weight_col, critical_val)
+    top = freq_crosstab(df, abstract, weight_col, critical_val)
+    rv = detail.merge(
+        right=top,
+        how='left',
+        on=abstract,
+        suffixes=('_full', '_demo'))
     rv['proportions'] = rv['value_full']/rv['value_demo']
     return rv
 
 
-def bulk_crosstabs(df, idx_list, ct_list, q_list, select_all_questions, weight='PWEIGHT', critical_val=1):
-    rv = pd.DataFrame()
+def bulk_crosstabs(df: pd.DataFrame,
+                   idxlist: list[str],
+                   ctablist: list[str],
+                   qstnlist: list[str],
+                   sallqs: list[str],
+                   weight_col: str = 'PWEIGHT',
+                   critical_val: float = 1) -> pd.DataFrame:
+    auxs = []
     input_df = df.copy()
-    for ct in ct_list:
-        for q in q_list:
-            full = idx_list + [ct, q]
-            abstract = idx_list + [ct]
-            temp = input_df[-input_df[full].isna().any(axis=1)]
-            if q in select_all_questions:
-                all_q = [i for i in select_all_questions if q[:-1] in i]
-                temp = temp[-(temp[all_q].iloc[:, :] ==
-                              '0 - not selected').all(1)]
-            curr_bin = full_crosstab(temp, full,
-                                     weight,
-                                     abstract,
-                                     critical_val=critical_val)
-            curr_bin.rename(columns={q: 'q_val', ct: 'ct_val'}, inplace=True)
-            curr_bin['ct_var'] = ct
-            curr_bin['q_var'] = q
-            rv = pd.concat([rv, curr_bin])
-    rv['weight'] = weight
+    for ct in ctablist:
+        for q in qstnlist:
+            col_list = idxlist + [ct, q]
+            abstract = idxlist + [ct]
+            tempdf = input_df.dropna(axis=0, how='any', subset=col_list)
+            if q in sallqs:
+                all_q = [x for x in sallqs if x.startswith(q[:-1])]
+                sallmask = (tempdf[all_q] == '0 - not selected').all(axis=1)
+                tempdf = tempdf[~sallmask]
+            auxdf = full_crosstab(
+                df=tempdf,
+                col_list=col_list,
+                weight_col=weight_col,
+                abstract=abstract,
+                critical_val=critical_val)
+            auxdf.rename(columns={q: 'q_val', ct: 'ct_val'}, inplace=True)
+            auxdf['ct_var'] = ct
+            auxdf['q_var'] = q
+            auxs.append(auxdf)
+    rv = pd.concat(auxs)
+    rv['weight'] = weight_col
     return rv
 
 
 if __name__ == "__main__":
     # Crosstabs variables:
-    index_list = ['WEEK']
-    crosstab_list = ['TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA']
+    idxlist = ['WEEK']
+    ctablist = ['TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA']
 
     # Crosstabs filenames:
     crosstab_filename = "pulse_time_series.csv"
-    gcp_bucket = "household-pulse-bucket"
 
-    qumdf = load_crosstab('question_mapping.csv')
-    resdf = load_crosstab('response_mapping.csv')
-    cmsdf = load_crosstab('county_metro_state.csv')
+    qumdf = load_crosstab('question_mapping')
+    resdf = load_crosstab('response_mapping')
+    cmsdf = load_crosstab('county_metro_state')
 
     labelmap = make_recode_map(resdf)
     cmsdf['cbsa_fips'] = cmsdf['cbsa_fips'].astype(float).astype(str)
 
     week = 29
-    full_crosstabs = []
     missing_question_vars = {}
-    missing_qs_full_list = []
+    missing_qs_full_list: list[str] = []
 
     df = download_puf(week=week)
     df = df.replace(labelmap).copy()
@@ -207,60 +259,55 @@ if __name__ == "__main__":
     qcols = qcols[qcols.isin(df.columns)]
     qumdf = qumdf[qumdf['variable'].isin(qcols)].copy()
 
-    allqs = qumdf[qumdf['select_all_that_apply'] == 1]['variable'].unique()
+    sallqs = (
+        qumdf[qumdf['select_all_that_apply'] == 1]['variable']
+        .unique()
+        .tolist())
 
-    question_list = []
+    qstnlist = []
     for qcol in qcols:
-        if qcol in index_list or qcol in crosstab_list:
+        if qcol in idxlist or qcol in ctablist:
             continue
         elif df[qcol].nunique() > 6:
             continue
         else:
-            question_list.append(qcol)
+            qstnlist.append(qcol)
 
-    df[allqs] = df[allqs].replace(['-99', -99], '0 - not selected')
+    df[sallqs] = df[sallqs].replace(['-99', -99], '0 - not selected')
     df = bucketize_numeric_cols(df, qumdf)
     df.replace(['-88', '-99', -88, -99], np.nan, inplace=True)
 
-    crosstabs = pd.concat([bulk_crosstabs(recoded_df, index_list, crosstab_list,
-                                          question_list, select_all_questions,
-                                          weight='PWEIGHT', critical_val=1.645),
-                           bulk_crosstabs(recoded_df, index_list, crosstab_list,
-                                          question_list, select_all_questions,
-                                          weight='HWEIGHT', critical_val=1.645)])
+    crtdf1 = bulk_crosstabs(
+        df,
+        idxlist,
+        ctablist,
+        qstnlist,
+        sallqs,
+        weight_col='PWEIGHT',
+        critical_val=1.645)
 
-    crosstabs['ct_val'] = crosstabs['ct_val'].astype(str)
+    crtdf2 = bulk_crosstabs(
+        df,
+        idxlist,
+        ctablist,
+        qstnlist,
+        sallqs,
+        weight_col='HWEIGHT',
+        critical_val=1.645)
 
-    crosstabs = crosstabs.merge(
+    ctabdf = pd.concat((crtdf1, crtdf2))
+    ctabdf['ct_val'] = ctabdf['ct_val'].astype(str)
+
+    ctabdf = ctabdf.merge(
         cmsdf[['cbsa_title', 'cbsa_fips']].drop_duplicates(),
         left_on='ct_val',
         right_on='cbsa_fips',
         how='left').iloc[:, :-1]
 
-    crosstabs = crosstabs.merge(
+    ctabdf = ctabdf.merge(
         qumdf[['description_recode', 'variable']],
         left_on='q_var',
         right_on='variable',
-                how='left').iloc[:, :-1]
+        how='left').iloc[:, :-1]
 
-    crosstabs['collection_dates'] = crosstabs.WEEK.map(week_mapper())
-
-    full_crosstabs.append(crosstabs)
-    week += 1
-
-    if full_crosstabs:
-        logger.info("Creating full crosstabs")
-        final_ct = pd.concat([existing_crosstabs] + full_crosstabs)
-        logger.info("Uploading to cloud storage")
-        upload_to_cloud_storage(gcp_bucket, crosstab_filename, final_ct)
-        logger.info('File uploaded to {}:{}'.format(
-            gcp_bucket, crosstab_filename))
-        else:
-            logger.info(
-                "Existing crosstabs are already up to date, no new data to add")
-
-    except Exception as Argument:
-        logger.exception("Error occured:")
-
-    logger.info('Uploading logfile to gcp storage')
-    upload_to_cloud_storage(gcp_bucket, "logfile.log")
+    ctabdf['collection_dates'] = ctabdf.WEEK.map(week_mapper())
