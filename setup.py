@@ -6,7 +6,12 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="household_pulse",
-    install_requires=[],
+    install_requires=[
+        'numpy>=1.21.2',
+        'pandas>=1.3.3',
+        'requests>=2.26.0',
+        'beautifulsoup4>=4.10.0'
+    ],
     version='0.0.1',
     author="Manuel Martinez",
     author_email="manmart@uchicago.edu",
