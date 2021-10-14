@@ -5,7 +5,7 @@ Created on Tuesday, 5th October 2021 1:38:42 pm
 @filename:  generate_crosstabs.py
 @author:    Manuel Martinez (manmart@uchicago.edu)
 @project:   household pulse
-@purpose:   enter purpose
+@purpose:   generate all crosstabs for a single week
 ===============================================================================
 """
 import re
