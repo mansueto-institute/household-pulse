@@ -22,7 +22,6 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/mansueto-institute/household-pulse",
     packages=setuptools.find_packages(),
-    package_data={'household_pulse': ['crosstabs/*.csv']},
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
