@@ -199,6 +199,21 @@ def bulk_crosstabs(df: pd.DataFrame,
                    sallqs: list[str],
                    weight_col: str = 'PWEIGHT',
                    critical_val: float = 1) -> pd.DataFrame:
+    """
+    [summary]
+
+    Args:
+        df (pd.DataFrame): [description]
+        idxlist (list[str]): [description]
+        ctablist (list[str]): [description]
+        qstnlist (list[str]): [description]
+        sallqs (list[str]): [description]
+        weight_col (str, optional): [description]. Defaults to 'PWEIGHT'.
+        critical_val (float, optional): [description]. Defaults to 1.
+
+    Returns:
+        pd.DataFrame: [description]
+    """
     auxs = []
     input_df = df.copy()
     for ct in ctablist:
@@ -278,20 +293,20 @@ if __name__ == "__main__":
     df.replace(['-88', '-99', -88, -99], np.nan, inplace=True)
 
     crtdf1 = bulk_crosstabs(
-        df,
-        idxlist,
-        ctablist,
-        qstnlist,
-        sallqs,
+        df=df,
+        idxlist=idxlist,
+        ctablist=ctablist,
+        qstnlist=qstnlist,
+        sallqs=sallqs,
         weight_col='PWEIGHT',
         critical_val=1.645)
 
     crtdf2 = bulk_crosstabs(
-        df,
-        idxlist,
-        ctablist,
-        qstnlist,
-        sallqs,
+        df=df,
+        idxlist=idxlist,
+        ctablist=ctablist,
+        qstnlist=qstnlist,
+        sallqs=sallqs,
         weight_col='HWEIGHT',
         critical_val=1.645)
 
