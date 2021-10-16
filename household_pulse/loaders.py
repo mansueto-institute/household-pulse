@@ -9,9 +9,11 @@ Created on Sunday, 10th October 2021 9:04:41 pm
 ===============================================================================
 """
 import io
+import json
 from zipfile import ZipFile
 
 import pandas as pd
+import pkg_resources
 import requests
 
 
@@ -128,3 +130,18 @@ def download_puf(week: int) -> pd.DataFrame:
     df = data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
 
     return df
+
+
+def load_rds_creds() -> dict[str, str]:
+    """
+    Loads credentials for RDS MySQL DB from local secrets file
+
+    Returns:
+        dict[str, str]: connection config dict
+    """
+    fname = pkg_resources.resource_filename(
+        'household_pulse',
+        'rds-mysql.json'
+    )
+    with open(fname, 'r') as file:
+        return json.loads(file.read())
