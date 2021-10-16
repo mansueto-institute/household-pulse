@@ -10,7 +10,8 @@ setuptools.setup(
         'numpy>=1.21.2',
         'pandas>=1.3.3',
         'requests>=2.26.0',
-        'beautifulsoup4>=4.10.0'
+        'beautifulsoup4>=4.10.0',
+        'mysql-connector-python>=8.0.26'
     ],
     version='0.0.1',
     author="Manuel Martinez",
