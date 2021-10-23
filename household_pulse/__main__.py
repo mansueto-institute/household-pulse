@@ -12,6 +12,7 @@ import argparse
 
 from household_pulse.loaders import load_census_weeks
 from household_pulse.mysql_wrapper import PulseSQL
+from household_pulse.pulse import Pulse
 
 
 def get_latest_week_census() -> int:
@@ -45,6 +46,11 @@ if __name__ == "__main__":
             '{"rds", "census"}'),
         type=str,
         metavar='target')
+    execgroup.add_argument(
+        '--run-single-week',
+        help='Runs the entire pipeline for the specified week.',
+        type=int,
+        metavar='week')
 
     args = parser.parse_args()
 
@@ -72,3 +78,8 @@ if __name__ == "__main__":
             sql.close_connection()
         elif args.get_all_weeks == 'census':
             print(f'Weeks on census: {tuple(sorted(load_census_weeks()))}')
+
+    elif args.run_single_week:
+        pulse = Pulse(week=args.run_single_week)
+        pulse.process_data()
+        pulse.upload_data()
