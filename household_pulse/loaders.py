@@ -18,6 +18,29 @@ import pkg_resources
 import requests
 from bs4 import BeautifulSoup
 
+NUMERIC_COL_BUCKETS = {
+    'TBIRTH_YEAR': {'bins': [1920, 1957, 1972, 1992, 2003],
+                    'labels': ['65+', '50-64', '30-49', '18-29']},
+    'THHLD_NUMPER': {'bins': [0, 3, 6, 10, 99],
+                     'labels': ['1-2', '3-5', '6-9', '10+']},
+    'THHLD_NUMKID': {'bins': [0, 1, 3, 6, 10, 40],
+                     'labels': ['0', '1-2', '3-5', '6-9', '10+']},
+    'THHLD_NUMADLT': {'bins': [0, 2, 6, 9, 40],
+                      'labels': ['1-2', '3-5', '6-9', '10+']},
+    'TSPNDFOOD': {'bins': [0, 100, 300, 500, 800, 1000],
+                  'labels': ['0-99', '100-299', '300-499', '500-799', '800+']},
+    'TSPNDPRPD': {'bins': [0, 100, 200, 300, 400, 1000],
+                  'labels': ['0-99', '100-199', '200-299', '300-399', '400+']},
+    'TSTDY_HRS': {'bins': [0, 5, 10, 15, 20, 50],
+                  'labels': ['0-4', '5-9', '10-14', '15-19', '20+']},
+    'TNUM_PS': {'bins': [0, 1, 2, 3, 4, 99],
+                'labels': ['0', '1', '2', '3', '4+']},
+    'TBEDROOMS': {'bins': [0, 1, 2, 3, 4, 99],
+                  'labels': ['0', '1', '2', '3', '4+']},
+    'TUI_NUMPER': {'bins': [0, 1, 2, 3, 4, 99],
+                   'labels': ['0', '1', '2', '3', '4+']}
+}
+
 
 def load_crosstab(sheetname: str) -> pd.DataFrame:
     """
@@ -82,27 +105,6 @@ def make_data_fname(week: int, fname: str) -> str:
         return f"pulse{year}_puf_{week}.csv"
     else:
         return f"pulse{year}_repwgt_puf_{week}.csv"
-
-
-def make_recode_map(resdf: pd.DataFrame) -> dict:
-    """
-    Convert question response mapping df into dict to recode labels
-
-    Args:
-        resdf (pd.DataFrame): The response_mapping df from the
-            household_pulse_data_dictionary google sheet
-
-    Returns:
-        dict: {variable: {value: label_recode}}
-    """
-    resdf = resdf[resdf['do_not_join'] == 0].copy()
-    resdf['value'] = resdf['value'].astype('float64')
-    result: dict[str, dict] = {}
-    for row in resdf.itertuples():
-        if row.variable not in result.keys():
-            result[row.variable] = {}
-        result[row.variable][row.value] = row.label_recode
-    return result
 
 
 def download_puf(week: int) -> pd.DataFrame:
