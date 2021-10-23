@@ -8,15 +8,12 @@ Created on Tuesday, 5th October 2021 1:38:42 pm
 @purpose:   generate all crosstabs for a single week
 ===============================================================================
 """
-import re
 
 import numpy as np
 import pandas as pd
-import requests
-from bs4 import BeautifulSoup
 
-from household_pulse.loaders import (download_puf, load_crosstab,
-                                     make_recode_map)
+from household_pulse.loaders import (download_puf, load_census_weeks,
+                                     load_crosstab, make_recode_map)
 
 NUMERIC_COL_BUCKETS = {
     'TBIRTH_YEAR': {'bins': [1920, 1957, 1972, 1992, 2003],
@@ -106,37 +103,6 @@ def get_std_err(df: pd.DataFrame, weight_col: str) -> list[float]:
     result: pd.Series = (wgtdf.pow(2).sum(axis=1) * (4/80)).pow(1/2)
 
     return result.values.tolist()
-
-
-def week_mapper():
-    """
-    Scrapes date range meta data for each release of the Household Pulse data
-
-    returns:
-        dict, {week int: dates}
-    """
-    URL = '/'.join(
-        (
-            'https://www.census.gov',
-            'programs-surveys',
-            'household-pulse-survey',
-            'data.html'
-        )
-    )
-    page = requests.get(URL)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    week_dict = {}
-    for i in soup.find_all("p", class_="uscb-margin-TB-02 uscb-title-3"):
-        label = i.text.strip('\n\t\t\t')
-        if 'Week' in label:
-            kv_pair = label.split(':')
-            week_int = int(re.sub("[^0-9]", "", kv_pair[0]))
-            if week_int > 21:
-                dates = kv_pair[1][1:] + ' 2021'
-            else:
-                dates = kv_pair[1][1:] + ' 2020'
-            week_dict[week_int] = dates
-    return week_dict
 
 
 def freq_crosstab(df: pd.DataFrame,
@@ -325,4 +291,4 @@ if __name__ == "__main__":
         right_on='variable',
         how='left').iloc[:, :-1]
 
-    ctabdf['collection_dates'] = ctabdf.WEEK.map(week_mapper())
+    ctabdf['collection_dates'] = ctabdf.WEEK.map(load_census_weeks())
