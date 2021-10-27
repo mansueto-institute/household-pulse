@@ -105,6 +105,24 @@ class PulseSQL:
         self._delete_week(week=df['WEEK'].min())
         self.append_values(table=table, df=df)
 
+    def get_latest_week(self) -> int:
+        """
+        Gets latest week available in RDS.
+
+        Returns:
+            int: latest week loaded into RDS
+        """
+        self.cur.execute('SELECT MAX(WEEK) FROM pulse;')
+        result = int(self.cur.fetchone()[0])
+
+        return result
+
+    def get_available_weeks(self) -> tuple[int, ...]:
+        self.cur.execute('SELECT DISTINCT(WEEK) FROM pulse ORDER BY WEEK')
+        result = tuple(int(x[0]) for x in self.cur.fetchall())
+
+        return result
+
     def close_connection(self) -> None:
         """
         Closes the connection to the DB
