@@ -60,6 +60,12 @@ if __name__ == "__main__":
         type=int,
         default=[],
         metavar='WEEKS')
+    execgroup.add_argument(
+        '--backfill',
+        help='Runs all weeks in the census that are not in the RDS DB',
+        action='store_true',
+        default=False
+    )
 
     args = parser.parse_args()
 
@@ -96,6 +102,19 @@ if __name__ == "__main__":
     elif args.run_multiple_weeks:
         weeks = args.run_multiple_weeks
         for week in weeks:
+            pulse = Pulse(week=week)
+            pulse.process_data()
+            pulse.upload_data()
+
+    elif args.backfill:
+        cenweeks = load_census_weeks()
+
+        sql = PulseSQL()
+        rdsweeks = sql.get_available_weeks()
+        sql.close_connection()
+
+        missingweeks = set(cenweeks) - set(rdsweeks)
+        for week in missingweeks:
             pulse = Pulse(week=week)
             pulse.process_data()
             pulse.upload_data()
