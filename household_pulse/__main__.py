@@ -38,19 +38,28 @@ if __name__ == "__main__":
             'Returns the latest available week on the passed target. Must be '
             'one of {"rds", "census"}'),
         type=str,
-        metavar='target')
+        metavar='TARGET')
     execgroup.add_argument(
         '--get-all-weeks',
         help=(
             'Returns all available weeks on the passed target. Must be one of '
             '{"rds", "census"}'),
         type=str,
-        metavar='target')
+        metavar='TARGET')
     execgroup.add_argument(
         '--run-single-week',
         help='Runs the entire pipeline for the specified week.',
         type=int,
-        metavar='week')
+        metavar='WEEK')
+    execgroup.add_argument(
+        '--run-multiple-weeks',
+        help=(
+            'Runs the entire pipeline for one more more weeks passed as a '
+            'space separated list of integers'),
+        nargs='*',
+        type=int,
+        default=[],
+        metavar='WEEKS')
 
     args = parser.parse_args()
 
@@ -83,3 +92,10 @@ if __name__ == "__main__":
         pulse = Pulse(week=args.run_single_week)
         pulse.process_data()
         pulse.upload_data()
+
+    elif args.run_multiple_weeks:
+        weeks = args.run_multiple_weeks
+        for week in weeks:
+            pulse = Pulse(week=week)
+            pulse.process_data()
+            pulse.upload_data()
