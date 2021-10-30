@@ -15,14 +15,50 @@ from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.pulse import Pulse
 
 
-def get_latest_week_census() -> int:
+def get_latest_week(target: str) -> int:
     """
-    Gets the latest available week from the census' website
+    Fetches the latest week available on the passet target.
+
+    Args:
+        target (str): The remote target. Must be either `census` or `rds`.
 
     Returns:
-        int: latest week
+        int: The latest week value as an integer.
     """
-    return max(load_census_weeks())
+    if target not in {'rds', 'census'}:
+        raise ValueError(f'{target} must be one of {{"rds", "census"}}')
+
+    if target == 'rds':
+        sql = PulseSQL()
+        week = sql.get_latest_week()
+        sql.close_connection()
+    elif target == 'census':
+        week = max(load_census_weeks())
+
+    return week
+
+
+def get_all_weeks(target: str) -> tuple[int, ...]:
+    """
+    Fetches all available weeks on the passed target.
+
+    Args:
+        target (str): The remote target. Must be either `census` or `rds`
+
+    Returns:
+        tuple[int]: The set of available weeks as a tuple
+    """
+    if target not in {'rds', 'census'}:
+        raise ValueError(f'{target} must be one of {{"rds", "census"}}')
+
+    if target == 'rds':
+        sql = PulseSQL()
+        weeks = sql.get_available_weeks()
+        sql.close_connection()
+    elif target == 'census':
+        weeks = tuple(sorted(load_census_weeks()))
+
+    return weeks
 
 
 if __name__ == "__main__":
@@ -70,29 +106,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.get_latest_week:
-        if args.get_latest_week not in {'rds', 'census'}:
-            raise ValueError(
-                f'{args.get_latest_week} must be one of {{"rds", "census"}}')
-
-        if args.get_latest_week == 'rds':
-            sql = PulseSQL()
-            print(f'Latest week available on RDS is {sql.get_latest_week()}')
-            sql.close_connection()
-        elif args.get_latest_week == 'census':
-            week = get_latest_week_census()
-            print(f'Latest week available on the census website is {week}')
+        week = get_latest_week(target=args.get_latest_week)
+        print(f'Latest week available on {args.get_latest_week} is {week}')
 
     elif args.get_all_weeks:
-        if args.get_all_weeks not in {'rds', 'census'}:
-            raise ValueError(
-                f'{args.get_latest_week} must be one of {{"rds", "census"}}')
-
-        if args.get_all_weeks == 'rds':
-            sql = PulseSQL()
-            print(f'Weeks on RDS: {sql.get_available_weeks()}')
-            sql.close_connection()
-        elif args.get_all_weeks == 'census':
-            print(f'Weeks on census: {tuple(sorted(load_census_weeks()))}')
+        weeks = get_all_weeks(target=args.get_all_weeks)
+        print(f'Available weeks on {args.get_all_weeks} are {weeks}')
 
     elif args.run_single_week:
         pulse = Pulse(week=args.run_single_week)
