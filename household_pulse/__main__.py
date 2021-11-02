@@ -88,6 +88,11 @@ if __name__ == "__main__":
         type=int,
         metavar='WEEK')
     execgroup.add_argument(
+        '--run-latest-week',
+        help='Runs the entire pipeline for the latest census week',
+        action='store_true',
+        default=False)
+    execgroup.add_argument(
         '--run-multiple-weeks',
         help=(
             'Runs the entire pipeline for one more more weeks passed as a '
@@ -115,6 +120,11 @@ if __name__ == "__main__":
 
     elif args.run_single_week:
         pulse = Pulse(week=args.run_single_week)
+        pulse.process_data()
+        pulse.upload_data()
+
+    elif args.run_latest_week:
+        pulse = Pulse(week=get_latest_week(target='census'))
         pulse.process_data()
         pulse.upload_data()
 
