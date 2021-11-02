@@ -102,8 +102,13 @@ class PulseSQL:
         if df['WEEK'].nunique() != 1:
             raise ValueError(
                 'the number of unique values for WEEK in `df` must be unique')
-        self._delete_week(week=int(df['WEEK'].min()))
-        self.append_values(table=table, df=df)
+        try:
+            self._delete_week(week=int(df['WEEK'].min()))
+            self.append_values(table=table, df=df)
+        except DatabaseError as e:
+            self.con.rollback()
+            self.close_connection()
+            raise DatabaseError(e)
 
     def get_latest_week(self) -> int:
         """
