@@ -1,5 +1,6 @@
 name: household-pulse
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - autopep8=1.5.7
@@ -8,22 +9,23 @@ dependencies:
   - blas=1.0
   - bottleneck=1.3.2
   - brotlipy=0.7.0
+  - bump2version=1.0.1
   - ca-certificates=2021.10.26
   - certifi=2021.10.8
   - cffi=1.14.6
   - charset-normalizer=2.0.4
   - colorama=0.4.4
-  - cryptography=3.4.8
+  - cryptography=35.0.0
   - decorator=5.1.0
   - flake8=3.9.2
   - idna=3.2
   - importlib-metadata=4.8.1
-  - intel-openmp=2021.3.0
+  - intel-openmp=2021.4.0
   - ipython=7.27.0
   - jedi=0.18.0
   - matplotlib-inline=0.1.2
   - mccabe=0.6.1
-  - mkl=2021.3.0
+  - mkl=2021.4.0
   - mkl-service=2.4.0
   - mkl_fft=1.3.1
   - mkl_random=1.2.2
@@ -33,7 +35,7 @@ dependencies:
   - numpy=1.21.2
   - numpy-base=1.21.2
   - openssl=1.1.1l
-  - pandas=1.3.3
+  - pandas=1.3.4
   - parso=0.8.2
   - pickleshare=0.7.5
   - pip=21.2.4
@@ -67,6 +69,8 @@ dependencies:
   - wincertstore=0.2
   - zipp=3.6.0
   - pip:
+    - mysql-connector-python==8.0.27
+    - protobuf==3.19.1
     - types-requests==2.25.9
     - types-setuptools==57.4.0
 prefix: C:\Users\manma\miniconda3\envs\household-pulse
