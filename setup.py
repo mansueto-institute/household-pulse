@@ -13,7 +13,7 @@ setuptools.setup(
         'beautifulsoup4>=4.10.0',
         'mysql-connector-python>=8.0.26'
     ],
-    version='0.1.1',
+    version='0.2.0',
     author="Manuel Martinez",
     author_email="manmart@uchicago.edu",
     description=(
