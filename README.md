@@ -20,93 +20,46 @@ Automates the processing of Census Household Pulse biweekly data into a crosstab
     * `do_not_join` is a flag for variables that do not have a categorical response label
   * Question and response labels are based on Phase 3 December 9-21 dictionary and should be consistent with Week 13 onwards. Note responses that contain `-99` means "Question seen but category not selected" and `-88` means "Missing / Did not report".
   * `county_metro_state` contains a county to metro or state crosswalk
-* [Cloud Drive](https://drive.google.com/drive/u/0/folders/14LK-dEay1G9UpBjXw6Kt9eTXwZjx8rj9)
-* [Databricks project](https://4130185475849536.6.gcp.databricks.com/?o=4130185475849536#)
 
 ## Run workflow locally
 
 ### Setup
 
-#### 1. Create a virtual environment and install packages from `requirements.txt`
+#### 1. Install the `household_pulse` package
 
-(Run at the root of the project directory)
+You can do this two ways. You can either clone the repo and install the project locally, or you can install directly from GitHub.
 
-```bash
-python3 -m venv env
-source env/bin/activate
-pip install -r requirements.txt
-```
-
-#### 2. Setup Google Cloud Project authentication
-
-To run the workflow locally you need to create a GCP authentication key that you store locally.
-
-First, download service account key:
-
-* Navigate [here](https://console.cloud.google.com/iam-admin/serviceaccounts/details/108375930580289490888;edit=true?previousPage=%2Fapis%2Fcredentials%3Fauthuser%3D1%26project%3Dhousehold-pulse&authuser=1&folder=&organizationId=&project=household-pulse)
-* Click on the `KEYS` tab along the top
-* Click the `ADD KEY` dropdown, and select `Create new key`
-* Select the `JSON (recommended)` option, and it should download a JSON file
-* Save this file somewhere secure on your local machine
-
-Save the path to the file as an environmental variable:
-
-* Add the following line to your `.bash_profile` or `bashrc` file:
-
-  ```bash
-  export GOOGLE_APPLICATION_CREDENTIALS="<path to JSON key on your machine>"
-  ```
-
-* Start a new terminal and check it worked by running the following:
+To clone and install:
 
 ```bash
-$GOOGLE_APPLICATION_CREDENTIALS
+git clone https://github.com/mansueto-institute/household-pulse
+pip install -e household-pulse/
 ```
 
-You should see the path to the JSON file returned
+If you would like to install directly:
+
+``` bash
+pip install git+https://github.com/mansueto-institute/household-pulse
+```
+
+In order to upload the results to our database you will need the RDS credentials; ask your supervisor for them.
 
 ### Run
 
-Make sure your virtual environment is activated, and then from the root of the repository run:
-
-```bash
-python3 prod/generate_crosstabs.py LOCAL
-```
-
-N.B. the `LOCAL` argument is required to make the workflow run locally.
-
-For local development can also change the `LOCAL` parameter manually [here](https://github.com/mansueto-institute/household-pulse/blob/main/prod/generate_crosstabs.py#L311)
-
-## Change crosstabs structure
-
-To change the structure of the outputted crosstabs files (e.g. to add in a new crosstab variable), you can change the specified crosstabs variables [here](https://github.com/mansueto-institute/household-pulse/blob/main/prod/generate_crosstabs.py#L320-L321)
-
-**N.B** make sure you also change the name of the crosstabs files [here](https://github.com/mansueto-institute/household-pulse/blob/main/prod/generate_crosstabs.py#L324-L325) before running otherwise the existing files will be overwritten by the new crosstabs
-
-## Run workflow in DataBricks
-
-Sync with [GitHub](https://docs.databricks.com/repos.html#sync-a-repo-with-git)
-
-Configure cluster with the following settings
-
-* 7.3 LTS (includes Apache Spark 3.0.1, Scala 2.12)
-* Enable autoscaling
-* Terminate after 10 minutes of inactivity
-* Worker Type: n1-standard-8 30 GB Memory, 8 Cores, 1.41 DBU Min Workers 1 Max Workers 2
-* Driver Type: n1-standard-8 30 GB Memory, 8 Cores, 1.41 DBU
-* Google Service Account: `dev-103@household-pulse.iam.gserviceaccount.com`
-
-Add libraries from PyPI to cluster:
+The `household_pulse` package has a CLI that you can access like any other CLI package in Python. In order to see what you can do via the CLI, you can type:
 
 ``` bash
-bs4==0.0.1
-google-cloud-storage==1.39.0
-gcsfs==2021.6.1
-google-api-python-client==1.12.8
-beautifulsoup4==4.9.3
-oauth2client==4.1.3
+python -m household_pulse --help
 ```
 
-Access logs and data from GCP [here](https://console.cloud.google.com/storage/browser/household-pulse-bucket)
+## Run workflow on AWS
 
->
+The workflow can be run on AWS in many different ways, depending on the need. We chose to create a Docker file that can be uploaded to ECR and then mounted as a Lambda function on AWS. The lambda function can be triggered remotely via an API, or can be scheduled to be triggered via CloudWatch as an event.
+
+### Updating the Docker file
+
+In order to push updates do ECR, you can do so via the AWS CLI following [this](https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html) guide.
+
+### Updating the Lambda function
+
+In order to deploy the Docker image into the Lambda service, or simply to push an updated Docker image into Lambda, you can follow [this](https://docs.aws.amazon.com/lambda/latest/dg/configuration-images.html) guide.
