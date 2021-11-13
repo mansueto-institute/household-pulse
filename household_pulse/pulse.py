@@ -182,16 +182,19 @@ class Pulse:
                        weight_col: str,
                        critical_val: float = 1.0) -> pd.DataFrame:
         """
-        [summary]
+        sums across each passed column in col_list and then calculates
+        the standard errors for those estimates.
 
         Args:
-            df (pd.DataFrame): temp dataframe
-            col_list (list[str]): [description]
-            weight_col (str): [description]
-            critical_val (int, optional): [description]. Defaults to 1.
+            df (pd.DataFrame): pulse data
+            col_list (list[str]): the list of columns to group by
+            weight_col (str): weight column to use
+            critical_val (int, optional): the critical value for
+                the confidence intervals. Defaults to 1.
 
         Returns:
-            pd.DataFrame: [description]
+            pd.DataFrame: a dataframe with the grouped estimates of the
+                means with their corresponding standard errors
         """
         w_cols = df.columns[df.columns.str.contains(weight_col)]
         pt_estimates = df.groupby(col_list)[w_cols].sum()
@@ -207,17 +210,21 @@ class Pulse:
                        abstract: list[str],
                        critical_val: float = 1.0) -> pd.DataFrame:
         """
-        [summary]
+        performs a frequency crosstab at the col_list level and the
+        abstract level
 
         Args:
             df (pd.DataFrame): temp dataframe
-            col_list (list[str]): [description]
-            weight_col (str): [description]
-            abstract (list[str]): [description]
-            critical_val (int, optional): [description]. Defaults to 1.
+            col_list (list[str]): question columns
+            weight_col (str): weight column
+            abstract (list[str]): abstract level (aggregation level)
+            critical_val (int, optional): critical value for confidence
+                intervals. Defaults to 1.
 
         Returns:
-            pd.DataFrame: [description]
+            pd.DataFrame: dataframe that returns the ratio between the
+                base level and the abstract level for each of the response
+                proportions.
         """
         detail = self._freq_crosstab(df, col_list, weight_col, critical_val)
         top = self._freq_crosstab(df, abstract, weight_col, critical_val)
@@ -226,21 +233,24 @@ class Pulse:
             how='left',
             on=abstract,
             suffixes=('_full', '_demo'))
-        rv['proportions'] = rv['value_full']/rv['value_demo']
+        rv['proportions'] = rv['value_full'] / rv['value_demo']
         return rv
 
     def _bulk_crosstabs(self,
                         weight_col: str = 'PWEIGHT',
                         critical_val: float = 1) -> pd.DataFrame:
         """
-        [summary]
+        performs crosstabs on each of the questions of interest
 
         Args:
-            weight_col (str, optional): [description]. Defaults to 'PWEIGHT'.
-            critical_val (float, optional): [description]. Defaults to 1.
+            weight_col (str, optional): the weight column to use for
+                estimating the standard errors. Defaults to 'PWEIGHT'.
+            critical_val (float, optional): the critical value to use when
+                estimating standard errors. Defaults to 1.
 
         Returns:
-            pd.DataFrame: [description]
+            pd.DataFrame: a long format dataframe with each combination of
+                question and answer as a row.
         """
         df = self.df
         auxs = []
