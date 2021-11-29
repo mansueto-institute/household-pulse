@@ -82,7 +82,7 @@ def make_data_url(week: int) -> str:
     Returns:
         str: the year/week/file.zip to be downloaded
     """
-    year = '2021' if int(week) > 21 else '2020'
+    year: int = 2021 if week > 21 else 2020
     return f"{year}/wk{week}/HPS_Week{week}_PUF_CSV.zip"
 
 

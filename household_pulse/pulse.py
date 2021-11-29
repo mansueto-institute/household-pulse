@@ -31,8 +31,6 @@ class Pulse:
             week (int): specifies which week to run the data for.
         """
         self.week = week
-        self.missing_qs_vars: dict = {}
-        self.missing_qs_full_list: list[str] = []
         self.cmsdf = load_crosstab('county_metro_state')
         self.qumdf = load_crosstab('question_mapping')
 
@@ -125,13 +123,6 @@ class Pulse:
         """
         df = self.df
         qumdf = self.qumdf
-        # get questions in downloaded data but not in crosstab
-        new_qs: pd.Index = df.columns[~df.columns.isin(qumdf['variable'])]
-        # filter non weight cols
-        new_qs = new_qs[~new_qs.str.contains('WEIGHT')]
-        self.missing_qs_vars[self.week] = new_qs[
-            ~new_qs.isin(self.missing_qs_full_list)]
-        self.missing_qs_full_list.extend(new_qs.tolist())
 
         qcols = qumdf[qumdf['stacked_question_features'] == 1]['variable']
         qcols = qcols[qcols.isin(df.columns)]
