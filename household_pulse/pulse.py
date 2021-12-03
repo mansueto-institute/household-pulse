@@ -142,7 +142,9 @@ class Pulse:
             else:
                 qstnlist.append(qcol)
 
-        df[sallqs] = df[sallqs].replace(['-99', -99], '0 - not selected')
+        df[sallqs] = df[sallqs].replace(
+            ['-99', -99],
+            'Question seen but category not selected')
 
         self.qstnlist = qstnlist
         self.sallqs = sallqs
@@ -253,8 +255,9 @@ class Pulse:
                 tempdf = input_df.dropna(axis=0, how='any', subset=col_list)
                 if q in self.sallqs:
                     all_q = [x for x in self.sallqs if x.startswith(q[:-1])]
-                    sallmask = (tempdf[all_q] ==
-                                '0 - not selected').all(axis=1)
+                    sallmask = (
+                        tempdf[all_q] ==
+                        'Question seen but category not selected').all(axis=1)
                     tempdf = tempdf[~sallmask]
                 auxdf = self._full_crosstab(
                     df=tempdf,
