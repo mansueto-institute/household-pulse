@@ -124,12 +124,14 @@ class Pulse:
         df = self.df
         qumdf = self.qumdf
 
-        qcols = qumdf[qumdf['stacked_question_features'] == 1]['variable']
+        qcols = qumdf.loc[
+            qumdf['question_type'].isin(['Select one', 'Yes / No']),
+            'variable']
         qcols = qcols[qcols.isin(df.columns)]
         qumdf = qumdf[qumdf['variable'].isin(qcols)].copy()
 
         sallqs = (
-            qumdf[qumdf['select_all_that_apply'] == 1]['variable']
+            qumdf[qumdf['question_type'] == 'Select all']['variable']
             .unique()
             .tolist())
 
