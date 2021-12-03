@@ -157,7 +157,7 @@ class Pulse:
         """
         df = self.df
         qumdf = load_crosstab('question_mapping')
-        num_cols = qumdf[qumdf['type_of_variable'] == 'NUMERIC']['variable']
+        num_cols = qumdf[qumdf['question_type'] == 'Input value']['variable']
         for col in num_cols:
             if col in df.columns:
                 df[col] = pd.cut(
