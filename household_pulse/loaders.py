@@ -57,8 +57,8 @@ def load_crosstab(sheetname: str) -> pd.DataFrame:
     ssid = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
 
     sheetids = {
-        'question_mapping': '1115503899',
-        'response_mapping': '0',
+        'question_mapping': '34639438',
+        'response_mapping': '1561671071',
         'county_metro_state': '974836931'
     }
 
