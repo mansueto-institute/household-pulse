@@ -43,7 +43,8 @@ class Pulse:
         qumdf = self.qumdf
 
         self._download_data()
-        self._replace_labels()
+        self._extract_replicate_wgts()
+        # self._replace_labels()
         self._parse_question_cols()
         self._bucketize_numeric_cols()
 
@@ -119,36 +120,28 @@ class Pulse:
     def _parse_question_cols(self) -> None:
         """
         parses the types of questions in the data (select all vs select one)
-        and transforms the data to reflect these types
+        and stores the list of questions of each type for further use
+        downstream
         """
         df = self.df
         qumdf = self.qumdf
 
-        qcols = qumdf.loc[
+        # first we get the select one question
+        soneqs: pd.Series = qumdf.loc[
             qumdf['question_type'].isin(['Select one', 'Yes / No']),
             'variable']
-        qcols = qcols[qcols.isin(df.columns)]
-        qumdf = qumdf[qumdf['variable'].isin(qcols)].copy()
+        soneqs = soneqs[soneqs.isin(df.columns)]
+        soneqs = soneqs[~soneqs.isin(self.ctablist)]
 
-        sallqs = (
-            qumdf[qumdf['question_type'] == 'Select all']['variable']
-            .unique()
-            .tolist())
-
-        qstnlist = []
-        for qcol in qcols:
-            if qcol in Pulse.idxlist or qcol in Pulse.ctablist:
-                continue
-            elif df[qcol].nunique() > 6:
-                continue
-            else:
-                qstnlist.append(qcol)
+        # next we get the select all questions
+        sallqs = qumdf.loc[qumdf['question_type'] == 'Select all', 'variable']
+        sallqs = sallqs[sallqs.isin(df.columns)]
 
         df[sallqs] = df[sallqs].replace(
             ['-99', -99],
             'Question seen but category not selected')
 
-        self.qstnlist = qstnlist
+        self.soneqs = soneqs
         self.sallqs = sallqs
 
     def _bucketize_numeric_cols(self) -> pd.DataFrame:
@@ -170,6 +163,18 @@ class Pulse:
                     labels=NUMERIC_COL_BUCKETS[col]['labels'],
                     right=False)
         df.replace(['-88', '-99', -88, -99], np.nan, inplace=True)
+
+    def _extract_replicate_wgts(self) -> None:
+        """
+        separates all replicate weights from microdata into its own dataframe
+        """
+        if hasattr(self, '_wgtdf'):
+            pass
+        else:
+            self._wgtdf = (self.df
+                           .set_index('SCRAM')
+                           .filter(regex=r'[A-z]WEIGHT\d{1,2}'))
+            self.df.drop(columns=self._wgtdf.columns, inplace=True)
 
     def _freq_crosstab(self,
                        df: pd.DataFrame,
@@ -251,7 +256,7 @@ class Pulse:
         auxs = []
         input_df = df.copy()
         for ct in Pulse.ctablist:
-            for q in self.qstnlist:
+            for q in self.soneqs:
                 col_list = Pulse.idxlist + [ct, q]
                 abstract = Pulse.idxlist + [ct]
                 tempdf = input_df.dropna(axis=0, how='any', subset=col_list)
