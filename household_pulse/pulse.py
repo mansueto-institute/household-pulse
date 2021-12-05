@@ -20,8 +20,8 @@ from household_pulse.mysql_wrapper import PulseSQL
 
 
 class Pulse:
-    idxlist = ['WEEK']
-    ctablist = ['TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA']
+    meltvars = ('SCRAM', 'WEEK')
+    xtabs = ('TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA')
 
     def __init__(self, week: int) -> None:
         """
@@ -44,9 +44,11 @@ class Pulse:
 
         self._download_data()
         self._extract_replicate_wgts()
-        # self._replace_labels()
         self._parse_question_cols()
         self._bucketize_numeric_cols()
+        self._reshape_long()
+        self._drop_missing_responses()
+        # self._replace_labels()
 
         crtdf1 = self._bulk_crosstabs(weight_col='PWEIGHT', critical_val=1.645)
         crtdf2 = self._bulk_crosstabs(weight_col='HWEIGHT', critical_val=1.645)
@@ -115,6 +117,9 @@ class Pulse:
         replaces all values in the survey data with the labels from gsheets
         """
         self.df = self.df.replace(self._recode_map).copy()
+        self.df[self.sallqs] = self.df[self.sallqs].replace(
+            ['-99', -99],
+            'Question seen but category not selected')
         self.df['TOPLINE'] = 1
 
     def _parse_question_cols(self) -> None:
@@ -131,18 +136,20 @@ class Pulse:
             qumdf['question_type'].isin(['Select one', 'Yes / No']),
             'variable']
         soneqs = soneqs[soneqs.isin(df.columns)]
-        soneqs = soneqs[~soneqs.isin(self.ctablist)]
+        # here we just drop grouping variables from actual questions
+        soneqs = soneqs[~soneqs.isin(self.xtabs + self.meltvars)]
 
         # next we get the select all questions
-        sallqs = qumdf.loc[qumdf['question_type'] == 'Select all', 'variable']
+        sallqs: pd.Series = qumdf.loc[
+            qumdf['question_type'] == 'Select all',
+            'variable']
         sallqs = sallqs[sallqs.isin(df.columns)]
 
-        df[sallqs] = df[sallqs].replace(
-            ['-99', -99],
-            'Question seen but category not selected')
-
-        self.soneqs = soneqs
-        self.sallqs = sallqs
+        self.soneqs = soneqs.tolist()
+        self.sallqs = sallqs.tolist()
+        self.allqs = qumdf.loc[
+            qumdf['variable'].isin(self.df.columns),
+            'variable'].tolist()
 
     def _bucketize_numeric_cols(self) -> pd.DataFrame:
         """
@@ -162,7 +169,6 @@ class Pulse:
                     bins=NUMERIC_COL_BUCKETS[col]['bins'],
                     labels=NUMERIC_COL_BUCKETS[col]['labels'],
                     right=False)
-        df.replace(['-88', '-99', -88, -99], np.nan, inplace=True)
 
     def _extract_replicate_wgts(self) -> None:
         """
@@ -175,6 +181,52 @@ class Pulse:
                            .set_index('SCRAM')
                            .filter(regex=r'[A-z]WEIGHT\d{1,2}'))
             self.df.drop(columns=self._wgtdf.columns, inplace=True)
+
+    def _reshape_long(self) -> None:
+        """
+        reshapes the raw microdata into a long format where each row is a
+        question/response combination
+        """
+        self.df['TOPLINE'] = 1
+        self.longdf = self.df.melt(
+            id_vars=self.meltvars + self.xtabs + ('PWEIGHT', 'HWEIGHT'),
+            value_vars=self.allqs,
+            var_name='variable',
+            value_name='question_val')
+
+    def _drop_missing_responses(self) -> None:
+        """
+        drops missing responses depending on the type of question (select all
+        vs select one) since they are encoded differently.
+        """
+        longdf = self.longdf
+        qumdf = self.qumdf
+        longdf = longdf.merge(
+            qumdf[['variable', 'question_type']],
+            how='left',
+            on='variable')
+
+        # drop skipped select all
+        longdf = longdf[
+            ~((longdf['question_type'] == 'Select all') &
+              (longdf['question_val'] == -88))]
+
+        # drop skipped select one
+        longdf = longdf[
+            ~((longdf['question_type'] == 'Select one') &
+              (longdf['question_val'].isin((-88, -99))))]
+
+        # drop skipped yes/no
+        longdf = longdf[
+            ~((longdf['question_type'] == 'Yes / No') &
+              (longdf['question_val'].isin((-88, -99))))]
+
+        # drop skipped input value questions
+        longdf = longdf[
+            ~((longdf['question_type'] == 'Input value') &
+              (longdf['question_val'].isnull()))]
+
+        self.longdf = longdf
 
     def _freq_crosstab(self,
                        df: pd.DataFrame,
