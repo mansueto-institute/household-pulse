@@ -124,12 +124,14 @@ class Pulse:
         df = self.df
         qumdf = self.qumdf
 
-        qcols = qumdf[qumdf['stacked_question_features'] == 1]['variable']
+        qcols = qumdf.loc[
+            qumdf['question_type'].isin(['Select one', 'Yes / No']),
+            'variable']
         qcols = qcols[qcols.isin(df.columns)]
         qumdf = qumdf[qumdf['variable'].isin(qcols)].copy()
 
         sallqs = (
-            qumdf[qumdf['select_all_that_apply'] == 1]['variable']
+            qumdf[qumdf['question_type'] == 'Select all']['variable']
             .unique()
             .tolist())
 
@@ -142,7 +144,9 @@ class Pulse:
             else:
                 qstnlist.append(qcol)
 
-        df[sallqs] = df[sallqs].replace(['-99', -99], '0 - not selected')
+        df[sallqs] = df[sallqs].replace(
+            ['-99', -99],
+            'Question seen but category not selected')
 
         self.qstnlist = qstnlist
         self.sallqs = sallqs
@@ -157,7 +161,7 @@ class Pulse:
         """
         df = self.df
         qumdf = load_crosstab('question_mapping')
-        num_cols = qumdf[qumdf['type_of_variable'] == 'NUMERIC']['variable']
+        num_cols = qumdf[qumdf['question_type'] == 'Input value']['variable']
         for col in num_cols:
             if col in df.columns:
                 df[col] = pd.cut(
@@ -253,8 +257,9 @@ class Pulse:
                 tempdf = input_df.dropna(axis=0, how='any', subset=col_list)
                 if q in self.sallqs:
                     all_q = [x for x in self.sallqs if x.startswith(q[:-1])]
-                    sallmask = (tempdf[all_q] ==
-                                '0 - not selected').all(axis=1)
+                    sallmask = (
+                        tempdf[all_q] ==
+                        'Question seen but category not selected').all(axis=1)
                     tempdf = tempdf[~sallmask]
                 auxdf = self._full_crosstab(
                     df=tempdf,
