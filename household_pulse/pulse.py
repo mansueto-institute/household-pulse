@@ -49,6 +49,8 @@ class Pulse:
         self._reshape_long()
         self._drop_missing_responses()
         # self._replace_labels()
+        self._melt_to_ctab()
+        self._calculate_shares()
 
         crtdf1 = self._bulk_crosstabs(weight_col='PWEIGHT', critical_val=1.645)
         crtdf2 = self._bulk_crosstabs(weight_col='HWEIGHT', critical_val=1.645)
@@ -228,6 +230,44 @@ class Pulse:
 
         self.longdf = longdf
 
+    def _melt_to_ctab(self) -> None:
+        """
+        duplicates each row in `longdf` for each of the crosstab values in
+        self.xtabs
+        """
+        self.longdf = self.longdf.melt(
+            id_vars=[
+                'SCRAM',
+                'variable',
+                'question_val',
+                'PWEIGHT',
+                'HWEIGHT'
+            ],
+            value_vars=self.xtabs,
+            var_name='xtab_group',
+            value_name='xtab_val'
+        )
+
+    def _calculate_shares(self) -> None:
+        """
+        calculate the response shares for each of the subcategories of each
+        of the cross tab categories using both pweights and hweights
+        """
+        shardf = (
+            self.longdf
+            .groupby(
+                ['variable', 'question_val', 'xtab_group', 'xtab_val'],
+                as_index=False)
+            .agg(pweight=('PWEIGHT', 'sum'), hweight=('HWEIGHT', 'sum')))
+        shardf[['pweight_tot', 'hweight_tot']] = (
+            shardf
+            .groupby(['variable', 'xtab_group', 'xtab_val'])
+            [['pweight', 'hweight']]
+            .transform('sum'))
+        shardf['pshare'] = shardf['pweight'] / shardf['pweight_tot']
+        shardf['hshare'] = shardf['hweight'] / shardf['hweight_tot']
+        self.shardf = shardf
+
     def _freq_crosstab(self,
                        df: pd.DataFrame,
                        col_list: list[str],
@@ -332,7 +372,7 @@ class Pulse:
         rv['weight'] = weight_col
         return rv
 
-    @staticmethod
+    @ staticmethod
     def _get_std_err(df: pd.DataFrame, weight_col: str) -> list[float]:
         """
         Calculate standard error of dataframe
