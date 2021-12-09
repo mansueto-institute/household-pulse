@@ -11,8 +11,8 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
             end.
 ===============================================================================
 """
-import numpy as np
 import pandas as pd
+from dask import dataframe as dd
 
 from household_pulse.loaders import (NUMERIC_COL_BUCKETS, download_puf,
                                      load_census_weeks, load_crosstab)
@@ -231,37 +231,56 @@ class Pulse:
         self.xtabs
         """
         self.longdf = self.longdf.melt(
-            id_vars=[
-                'SCRAM',
-                'variable',
-                'question_val',
-                'PWEIGHT',
-                'HWEIGHT'
-            ],
+            id_vars=['SCRAM', 'qvar', 'qval'],
             value_vars=self.xtabs,
             var_name='xtab_group',
             value_name='xtab_val'
         )
 
-    def _calculate_shares(self) -> None:
+    def _aggregate_counts(self,
+                          weight_type: str,
+                          as_share: bool = False) -> None:
         """
-        calculate the response shares for each of the subcategories of each
-        of the cross tab categories using both pweights and hweights
+        aggregates all weights at the level of `longdf`. that is each
+        question by each crosstab and sums the weights within each group.
+
+        Args:
+            weight_type (str): {'PWEIGHT', 'HWEIGHT'}
+            as_share (bool): normalize the weights by the totals in each
+
         """
-        shardf = (
-            self.longdf
-            .groupby(
-                ['variable', 'question_val', 'xtab_group', 'xtab_val'],
-                as_index=False)
-            .agg(pweight=('PWEIGHT', 'sum'), hweight=('HWEIGHT', 'sum')))
-        shardf[['pweight_tot', 'hweight_tot']] = (
-            shardf
-            .groupby(['variable', 'xtab_group', 'xtab_val'])
-            [['pweight', 'hweight']]
-            .transform('sum'))
-        shardf['pshare'] = shardf['pweight'] / shardf['pweight_tot']
-        shardf['hshare'] = shardf['hweight'] / shardf['hweight_tot']
-        self.shardf = shardf
+        allowed = {'PWEIGHT', 'HWEIGHT'}
+        if weight_type not in allowed:
+            raise ValueError(f'{weight_type} must be in {allowed}')
+
+        # we fetch the passed weight type
+        wgtdf = self.df.set_index('SCRAM').filter(like=weight_type)
+        # we cast into a dask dataframe so with a high number of partitions
+        # so that we don't run out of memory because of the large number of
+        # groups in the groupby operation
+        ddf: dd = dd.from_pandas(self.longdf, npartitions=100)
+        ddf = ddf.merge(wgtdf, how='left', on='SCRAM')
+
+        sumdf: pd.DataFrame
+        sumdf = (ddf
+                 .groupby(['qvar', 'qval', 'xtab_group', 'xtab_val'])
+                 [wgtdf.columns]
+                 .sum()
+                 .compute())
+
+        if as_share:
+            totdf = (sumdf
+                     .groupby(['qvar', 'xtab_group', 'xtab_val'])
+                     .transform('sum'))
+            sumdf = sumdf / totdf
+            sumdf.columns = sumdf.columns.str.replace(
+                weight_type,
+                f'{weight_type}_SHARE')
+            weight_type = f'{weight_type}_SHARE'
+
+        self._get_conf_intervals(sumdf, weight_type)
+
+        return sumdf
 
     def _freq_crosstab(self,
                        df: pd.DataFrame,
@@ -368,25 +387,33 @@ class Pulse:
         return rv
 
     @ staticmethod
-    def _get_std_err(df: pd.DataFrame, weight_col: str) -> list[float]:
+    def _get_conf_intervals(df: pd.DataFrame,
+                            weight_type: str,
+                            cval: float = 1.645) -> None:
         """
-        Calculate standard error of dataframe
+        Generate the upper and lower confidence intervals of the passed
+        weights using the replicate weights to calculate their standard error.
+        It edits `df` in place by removing the replicate weights and adding
+        the lower and upper confidence level bounds.
 
         Args:
-            weight_col (str): specify whether person ('PWEIGHT') or household
-                ('HWEIGHT') weight
-
-        Returns:
-            list[float]: the standard errors
+            df (pd.DataFrame): a dataframe with aggregations as an index
+                and weights as columns.
+            weight_type (str): {'PWEIGHT', 'HWEIGHT'}
+            cval (float): the critical value for the confidence interval.
+                Defaults to 1.645,
         """
-        # only keep passed weight types
-        df = df.loc[:, df.columns.str.contains(weight_col)].copy()
         # here we subtract the replicate weights from the main weight col
         # broadcasting across the columns
-        wgtdf = df.loc[:, df.columns != weight_col].sub(
-            df[weight_col],
-            axis=0,
-            level=2)
-        result: pd.Series = (wgtdf.pow(2).sum(axis=1) * (4/80)).pow(1/2)
+        diffdf = df.filter(regex=fr'{weight_type}.*\d{{1,2}}').sub(
+            df[weight_type],
+            axis=0)
+        df[f'{weight_type}_SE'] = (diffdf.pow(2).sum(axis=1) * (4/80)).pow(1/2)
+        df[f'{weight_type}_LOWER'] = (
+            df[weight_type] - (cval * df[f'{weight_type}_SE']))
+        df[f'{weight_type}_UPPER'] = (
+            df[weight_type] + (cval * df[f'{weight_type}_SE']))
 
-        return result.values.tolist()
+        # drop the replicate weights and the standard error column
+        repcols = df.columns[df.columns.str.match(r'.*\d{1,2}')]
+        df.drop(columns=repcols.tolist() + [f'{weight_type}_SE'], inplace=True)
