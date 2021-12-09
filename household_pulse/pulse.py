@@ -280,111 +280,30 @@ class Pulse:
 
         return sumdf
 
-    def _freq_crosstab(self,
-                       df: pd.DataFrame,
-                       col_list: list[str],
-                       weight_col: str,
-                       critical_val: float = 1.0) -> pd.DataFrame:
+    def _aggregate(self) -> pd.DataFrame:
         """
-        sums across each passed column in col_list and then calculates
-        the standard errors for those estimates.
-
-        Args:
-            df (pd.DataFrame): pulse data
-            col_list (list[str]): the list of columns to group by
-            weight_col (str): weight column to use
-            critical_val (int, optional): the critical value for
-                the confidence intervals. Defaults to 1.
+        Aggregates all weights at the crosstab level with their confidence
+        intervals for each weight. For each weight type we also calculate the
+        weights as shares with their respective confidence intervals.
 
         Returns:
-            pd.DataFrame: a dataframe with the grouped estimates of the
-                means with their corresponding standard errors
+            pd.DataFrame: aggregated xtabs for all questions and weight types
         """
-        w_cols = df.columns[df.columns.str.contains(weight_col)]
-        pt_estimates = df.groupby(col_list)[w_cols].sum()
-        pt_estimates['std_err'] = self._get_std_err(pt_estimates, weight_col)
-        pt_estimates['mrgn_err'] = pt_estimates['std_err'] * critical_val
-        pt_estimates.rename(columns={weight_col: 'value'}, inplace=True)
-        return pt_estimates[['value', 'std_err', 'mrgn_err']].reset_index()
-
-    def _full_crosstab(self,
-                       df: pd.DataFrame,
-                       col_list: list[str],
-                       weight_col: str,
-                       abstract: list[str],
-                       critical_val: float = 1.0) -> pd.DataFrame:
-        """
-        performs a frequency crosstab at the col_list level and the
-        abstract level
-
-        Args:
-            df (pd.DataFrame): temp dataframe
-            col_list (list[str]): question columns
-            weight_col (str): weight column
-            abstract (list[str]): abstract level (aggregation level)
-            critical_val (int, optional): critical value for confidence
-                intervals. Defaults to 1.
-
-        Returns:
-            pd.DataFrame: dataframe that returns the ratio between the
-                base level and the abstract level for each of the response
-                proportions.
-        """
-        detail = self._freq_crosstab(df, col_list, weight_col, critical_val)
-        top = self._freq_crosstab(df, abstract, weight_col, critical_val)
-        rv = detail.merge(
-            right=top,
-            how='left',
-            on=abstract,
-            suffixes=('_full', '_demo'))
-        rv['proportions'] = rv['value_full'] / rv['value_demo']
-        return rv
-
-    def _bulk_crosstabs(self,
-                        weight_col: str = 'PWEIGHT',
-                        critical_val: float = 1) -> pd.DataFrame:
-        """
-        performs crosstabs on each of the questions of interest
-
-        Args:
-            weight_col (str, optional): the weight column to use for
-                estimating the standard errors. Defaults to 'PWEIGHT'.
-            critical_val (float, optional): the critical value to use when
-                estimating standard errors. Defaults to 1.
-
-        Returns:
-            pd.DataFrame: a long format dataframe with each combination of
-                question and answer as a row.
-        """
-        df = self.df
+        aggs = [
+            ('PWEIGHT', False),
+            ('PWEIGHT', True),
+            ('HWEIGHT', False),
+            ('HWEIGHT', True)]
         auxs = []
-        input_df = df.copy()
-        for ct in Pulse.ctablist:
-            for q in self.soneqs:
-                col_list = Pulse.idxlist + [ct, q]
-                abstract = Pulse.idxlist + [ct]
-                tempdf = input_df.dropna(axis=0, how='any', subset=col_list)
-                if q in self.sallqs:
-                    all_q = [x for x in self.sallqs if x.startswith(q[:-1])]
-                    sallmask = (
-                        tempdf[all_q] ==
-                        'Question seen but category not selected').all(axis=1)
-                    tempdf = tempdf[~sallmask]
-                auxdf = self._full_crosstab(
-                    df=tempdf,
-                    col_list=col_list,
-                    weight_col=weight_col,
-                    abstract=abstract,
-                    critical_val=critical_val)
-                auxdf.rename(columns={q: 'q_val', ct: 'ct_val'}, inplace=True)
-                auxdf['ct_var'] = ct
-                auxdf['q_var'] = q
-                auxs.append(auxdf)
-        rv = pd.concat(auxs)
-        rv['weight'] = weight_col
-        return rv
+        for weight_type, as_share in aggs:
+            auxs.append(self._aggregate_counts(weight_type, as_share))
+        ctabdf = pd.concat(auxs, axis=1)
+        ctabdf.columns = ctabdf.columns.str.lower()
+        ctabdf = ctabdf.round(5)
+        ctabdf.reset_index(inplace=True)
+        return ctabdf
 
-    @ staticmethod
+    @staticmethod
     def _get_conf_intervals(df: pd.DataFrame,
                             weight_type: str,
                             cval: float = 1.645) -> None:
