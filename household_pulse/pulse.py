@@ -113,6 +113,7 @@ class Pulse:
         downloads puf data and stores it into the class' state
         """
         self.df = download_puf(week=self.week)
+        self.df['TOPLINE'] = 1
 
     def _replace_labels(self) -> None:
         """
@@ -122,7 +123,6 @@ class Pulse:
         self.df[self.sallqs] = self.df[self.sallqs].replace(
             ['-99', -99],
             'Question seen but category not selected')
-        self.df['TOPLINE'] = 1
 
     def _parse_question_cols(self) -> None:
         """
@@ -151,7 +151,13 @@ class Pulse:
         self.sallqs = sallqs.tolist()
         self.allqs = qumdf.loc[
             qumdf['variable'].isin(self.df.columns),
-            'variable'].tolist()
+            'variable']
+        self.allqs = self.allqs[~self.allqs.str.contains('WEIGHT')]
+        self.allqs = self.allqs.tolist()
+
+        # finally we get the all the weight columns
+        self.wgtcols = self.df.columns[self.df.columns.str.contains('WEIGHT')]
+        self.wgtcols = self.wgtcols.tolist()
 
     def _bucketize_numeric_cols(self) -> pd.DataFrame:
         """
@@ -172,29 +178,16 @@ class Pulse:
                     labels=NUMERIC_COL_BUCKETS[col]['labels'],
                     right=False)
 
-    def _extract_replicate_wgts(self) -> None:
-        """
-        separates all replicate weights from microdata into its own dataframe
-        """
-        if hasattr(self, '_wgtdf'):
-            pass
-        else:
-            self._wgtdf = (self.df
-                           .set_index('SCRAM')
-                           .filter(regex=r'[A-z]WEIGHT\d{1,2}'))
-            self.df.drop(columns=self._wgtdf.columns, inplace=True)
-
     def _reshape_long(self) -> None:
         """
         reshapes the raw microdata into a long format where each row is a
         question/response combination
         """
-        self.df['TOPLINE'] = 1
         self.longdf = self.df.melt(
-            id_vars=self.meltvars + self.xtabs + ('PWEIGHT', 'HWEIGHT'),
+            id_vars=self.meltvars + self.xtabs,
             value_vars=self.allqs,
-            var_name='variable',
-            value_name='question_val')
+            var_name='qvar',
+            value_name='qval')
 
     def _drop_missing_responses(self) -> None:
         """
@@ -204,29 +197,31 @@ class Pulse:
         longdf = self.longdf
         qumdf = self.qumdf
         longdf = longdf.merge(
-            qumdf[['variable', 'question_type']],
+            qumdf[['variable', 'question_type']].rename(
+                columns={'variable': 'qvar'}
+            ),
             how='left',
-            on='variable')
+            on='qvar')
 
         # drop skipped select all
         longdf = longdf[
             ~((longdf['question_type'] == 'Select all') &
-              (longdf['question_val'] == -88))]
+              (longdf['qval'] == -88))]
 
         # drop skipped select one
         longdf = longdf[
             ~((longdf['question_type'] == 'Select one') &
-              (longdf['question_val'].isin((-88, -99))))]
+              (longdf['qval'].isin((-88, -99))))]
 
         # drop skipped yes/no
         longdf = longdf[
             ~((longdf['question_type'] == 'Yes / No') &
-              (longdf['question_val'].isin((-88, -99))))]
+              (longdf['qval'].isin((-88, -99))))]
 
         # drop skipped input value questions
         longdf = longdf[
             ~((longdf['question_type'] == 'Input value') &
-              (longdf['question_val'].isnull()))]
+              (longdf['qval'].isnull()))]
 
         self.longdf = longdf
 
