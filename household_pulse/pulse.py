@@ -43,25 +43,21 @@ class Pulse:
         qumdf = self.qumdf
 
         self._download_data()
-        self._extract_replicate_wgts()
         self._parse_question_cols()
         self._bucketize_numeric_cols()
         self._reshape_long()
         self._drop_missing_responses()
         # self._replace_labels()
         self._melt_to_ctab()
-        self._calculate_shares()
 
-        crtdf1 = self._bulk_crosstabs(weight_col='PWEIGHT', critical_val=1.645)
-        crtdf2 = self._bulk_crosstabs(weight_col='HWEIGHT', critical_val=1.645)
+        ctabdf = self._aggregate()
 
-        ctabdf = pd.concat((crtdf1, crtdf2))
         ctabdf['ct_val'] = ctabdf['ct_val'].astype(str)
 
         cmsdf['cbsa_fips'] = cmsdf['cbsa_fips'].astype(float).astype(str)
         ctabdf = ctabdf.merge(
             cmsdf[['cbsa_title', 'cbsa_fips']].drop_duplicates(),
-            left_on='ct_val',
+            left_on='xtab_val',
             right_on='cbsa_fips',
             how='left').iloc[:, :-1]
 
@@ -186,8 +182,8 @@ class Pulse:
         self.longdf = self.df.melt(
             id_vars=self.meltvars + self.xtabs,
             value_vars=self.allqs,
-            var_name='qvar',
-            value_name='qval')
+            var_name='q_var',
+            value_name='q_val')
 
     def _drop_missing_responses(self) -> None:
         """
@@ -198,30 +194,30 @@ class Pulse:
         qumdf = self.qumdf
         longdf = longdf.merge(
             qumdf[['variable', 'question_type']].rename(
-                columns={'variable': 'qvar'}
+                columns={'variable': 'q_var'}
             ),
             how='left',
-            on='qvar')
+            on='q_var')
 
         # drop skipped select all
         longdf = longdf[
             ~((longdf['question_type'] == 'Select all') &
-              (longdf['qval'] == -88))]
+              (longdf['q_val'] == -88))]
 
         # drop skipped select one
         longdf = longdf[
             ~((longdf['question_type'] == 'Select one') &
-              (longdf['qval'].isin((-88, -99))))]
+              (longdf['q_val'].isin((-88, -99))))]
 
         # drop skipped yes/no
         longdf = longdf[
             ~((longdf['question_type'] == 'Yes / No') &
-              (longdf['qval'].isin((-88, -99))))]
+              (longdf['q_val'].isin((-88, -99))))]
 
         # drop skipped input value questions
         longdf = longdf[
             ~((longdf['question_type'] == 'Input value') &
-              (longdf['qval'].isnull()))]
+              (longdf['q_val'].isnull()))]
 
         self.longdf = longdf
 
@@ -231,15 +227,15 @@ class Pulse:
         self.xtabs
         """
         self.longdf = self.longdf.melt(
-            id_vars=['SCRAM', 'qvar', 'qval'],
+            id_vars=['SCRAM', 'q_var', 'q_val'],
             value_vars=self.xtabs,
-            var_name='xtab_group',
+            var_name='xtab_var',
             value_name='xtab_val'
         )
 
     def _aggregate_counts(self,
                           weight_type: str,
-                          as_share: bool = False) -> None:
+                          as_share: bool = False) -> pd.DataFrame:
         """
         aggregates all weights at the level of `longdf`. that is each
         question by each crosstab and sums the weights within each group.
@@ -248,6 +244,8 @@ class Pulse:
             weight_type (str): {'PWEIGHT', 'HWEIGHT'}
             as_share (bool): normalize the weights by the totals in each
 
+        Returns:
+            pd.DataFrame: aggregated weights with confidence intervals
         """
         allowed = {'PWEIGHT', 'HWEIGHT'}
         if weight_type not in allowed:
@@ -255,7 +253,7 @@ class Pulse:
 
         # we fetch the passed weight type
         wgtdf = self.df.set_index('SCRAM').filter(like=weight_type)
-        # we cast into a dask dataframe so with a high number of partitions
+        # we cast into a dask dataframe with a high number of partitions
         # so that we don't run out of memory because of the large number of
         # groups in the groupby operation
         ddf: dd = dd.from_pandas(self.longdf, npartitions=100)
@@ -263,14 +261,14 @@ class Pulse:
 
         sumdf: pd.DataFrame
         sumdf = (ddf
-                 .groupby(['qvar', 'qval', 'xtab_group', 'xtab_val'])
+                 .groupby(['q_var', 'q_val', 'xtab_var', 'xtab_val'])
                  [wgtdf.columns]
                  .sum()
                  .compute())
 
         if as_share:
             totdf = (sumdf
-                     .groupby(['qvar', 'xtab_group', 'xtab_val'])
+                     .groupby(['q_var', 'xtab_var', 'xtab_val'])
                      .transform('sum'))
             sumdf = sumdf / totdf
             sumdf.columns = sumdf.columns.str.replace(
