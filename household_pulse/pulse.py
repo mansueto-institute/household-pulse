@@ -11,6 +11,7 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
             end.
 ===============================================================================
 """
+import numpy as np
 import pandas as pd
 from dask import dataframe as dd
 
@@ -33,6 +34,7 @@ class Pulse:
         self.week = week
         self.cmsdf = load_crosstab('county_metro_state')
         self.qumdf = load_crosstab('question_mapping')
+        self.resdf = load_crosstab('response_mapping')
 
     def process_data(self) -> None:
         """
@@ -47,6 +49,7 @@ class Pulse:
         self._bucketize_numeric_cols()
         self._reshape_long()
         self._drop_missing_responses()
+        self._recode_values()
         # self._replace_labels()
         self._melt_to_ctab()
 
@@ -232,6 +235,34 @@ class Pulse:
             var_name='xtab_var',
             value_name='xtab_val'
         )
+
+    def _recode_values(self) -> None:
+        """
+        recodes the numeric values from the original data into new categories
+        (fewer) for each question in the data
+        """
+        resdf = self.resdf
+        longdf = self.longdf
+
+        resdf.rename(
+            columns={'variable': 'q_var', 'value': 'q_val'},
+            inplace=True)
+        resdf['q_var'] = resdf['q_var'].astype(str)
+        resdf['q_val'] = resdf['q_val'].astype(str)
+        longdf['q_var'] = longdf['q_var'].astype(str)
+        longdf['q_val'] = longdf['q_val'].astype(str)
+        longdf = longdf.merge(
+            resdf[['q_var', 'q_val', 'value_recode']],
+            how='left',
+            on=['q_var', 'q_val'],
+            copy=False)
+        # coalesce old values and new values
+        longdf['value_recode'] = longdf['value_recode'].where(
+            longdf['value_recode'].notnull(),
+            longdf['q_val'])
+        longdf['q_val'] = longdf['value_recode']
+        longdf.drop(columns='value_recode', inplace=True)
+        self.longdf = longdf
 
     def _aggregate_counts(self,
                           weight_type: str,
