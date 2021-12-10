@@ -4,7 +4,7 @@ Created on Saturday, 16th October 2021 1:35:51 pm
 ===============================================================================
 @filename:  mysql_wrapper.py
 @author:    Manuel Martinez (manmart@uchicago.edu)
-@project:   household-pulse
+@project:   household-pulsenew
 @purpose:   mysql wrapper that extends functionality for pushing data
             into the project table
 ===============================================================================
@@ -52,8 +52,8 @@ class PulseSQL:
             df (pd.DataFrame): [description]
         """
         query = '''
-            DELETE FROM pulse
-            WHERE WEEK = %s
+            DELETE FROM pulsenew
+            WHERE week = %s
         '''
         try:
             self.cur.execute(query, (week, ))
@@ -90,7 +90,7 @@ class PulseSQL:
                       table: str,
                       df: pd.DataFrame) -> None:
         """
-        deletes old values from the passed `df` WEEK and inserts the new
+        deletes old values from the passed `df` week and inserts the new
         values passed in `df`
 
         Args:
@@ -99,11 +99,11 @@ class PulseSQL:
         Raises:
             DatabaseError: any issues with the DB connection
         """
-        if df['WEEK'].nunique() != 1:
+        if df['week'].nunique() != 1:
             raise ValueError(
-                'the number of unique values for WEEK in `df` must be unique')
+                'the number of unique values for week in `df` must be unique')
         try:
-            self._delete_week(week=int(df['WEEK'].min()))
+            self._delete_week(week=int(df['week'].min()))
             self.append_values(table=table, df=df)
         except DatabaseError as e:
             self.con.rollback()
@@ -117,13 +117,13 @@ class PulseSQL:
         Returns:
             int: latest week loaded into RDS
         """
-        self.cur.execute('SELECT MAX(WEEK) FROM pulse;')
+        self.cur.execute('SELECT MAX(week) FROM pulsenew;')
         result = int(self.cur.fetchone()[0])
 
         return result
 
     def get_available_weeks(self) -> tuple[int, ...]:
-        self.cur.execute('SELECT DISTINCT(WEEK) FROM pulse ORDER BY WEEK')
+        self.cur.execute('SELECT DISTINCT(week) FROM pulsenew ORDER BY week')
         result = tuple(int(x[0]) for x in self.cur.fetchall())
 
         return result
