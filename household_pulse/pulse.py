@@ -11,7 +11,6 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
             end.
 ===============================================================================
 """
-import numpy as np
 import pandas as pd
 from dask import dataframe as dd
 
@@ -88,40 +87,12 @@ class Pulse:
         sql.update_values(table='pulse', df=self.ctabdf)
         sql.close_connection()
 
-    @property
-    def _recode_map(self) -> dict:
-        """
-        Converts the response_mapping df from the
-        household_pulse_data_dictionary google sheet into dict to recode labels
-
-        Returns:
-            dict: {variable: {value: label_recode}}
-        """
-        resdf = load_crosstab('response_mapping')
-        resdf = resdf[resdf['do_not_join'] == 0].copy()
-        resdf['value'] = resdf['value'].astype('float64')
-        result: dict[str, dict] = {}
-        for row in resdf.itertuples():
-            if row.variable not in result.keys():
-                result[row.variable] = {}
-            result[row.variable][row.value] = row.label_recode
-        return result
-
     def _download_data(self) -> None:
         """
         downloads puf data and stores it into the class' state
         """
         self.df = download_puf(week=self.week)
         self.df['TOPLINE'] = 1
-
-    def _replace_labels(self) -> None:
-        """
-        replaces all values in the survey data with the labels from gsheets
-        """
-        self.df = self.df.replace(self._recode_map).copy()
-        self.df[self.sallqs] = self.df[self.sallqs].replace(
-            ['-99', -99],
-            'Question seen but category not selected')
 
     def _parse_question_cols(self) -> None:
         """
@@ -249,6 +220,8 @@ class Pulse:
             inplace=True)
         resdf['q_var'] = resdf['q_var'].astype(str)
         resdf['q_val'] = resdf['q_val'].astype(str)
+        resdf['value_recode'] = resdf['value_recode'].astype(str)
+        resdf['value_recode'] = resdf['value_recode'].str.split('.').str.get(0)
         longdf['q_var'] = longdf['q_var'].astype(str)
         longdf['q_val'] = longdf['q_val'].astype(str)
         longdf = longdf.merge(
@@ -263,6 +236,32 @@ class Pulse:
         longdf['q_val'] = longdf['value_recode']
         longdf.drop(columns='value_recode', inplace=True)
         self.longdf = longdf
+
+    def _merge_labels(self) -> None:
+        """
+        merges both the question and response labels from the data dictionary
+        """
+        ctabdf = self.ctabdf
+        resdf = self.resdf
+        qumdf = self.qumdf
+
+        ctabdf = ctabdf.merge(
+            resdf[['q_var', 'q_val', 'label_recode']],
+            how='left',
+            on=['q_var', 'q_val'])
+        ctabdf.rename(columns={'label_recode': 'q_val_label'}, inplace=True)
+
+        ctabdf = ctabdf.merge(
+            qumdf[['variable', 'question_clean']],
+            how='left',
+            left_on='q_var',
+            right_on='variable',
+            copy=False)
+
+        ctabdf.drop(columns='variable', inplace=True)
+        ctabdf.rename(columns={'question_clean': 'q_var_label'}, inplace=True)
+
+        self.ctabdf = ctabdf
 
     def _aggregate_counts(self,
                           weight_type: str,
@@ -311,7 +310,7 @@ class Pulse:
 
         return sumdf
 
-    def _aggregate(self) -> pd.DataFrame:
+    def _aggregate(self) -> None:
         """
         Aggregates all weights at the crosstab level with their confidence
         intervals for each weight. For each weight type we also calculate the
@@ -332,7 +331,7 @@ class Pulse:
         ctabdf.columns = ctabdf.columns.str.lower()
         ctabdf = ctabdf.round(5)
         ctabdf.reset_index(inplace=True)
-        return ctabdf
+        self.ctabdf = ctabdf
 
     @staticmethod
     def _get_conf_intervals(df: pd.DataFrame,
