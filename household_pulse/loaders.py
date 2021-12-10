@@ -172,10 +172,6 @@ def download_puf(week: int) -> pd.DataFrame:
         dtype={'SCRAM': 'string'})
 
     df = data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
-
-    # convert 64 bit floats to 32 bit floats to save memory space
-    floatcols = df.select_dtypes('float64').columns
-    df.loc[:, floatcols] = df[floatcols].astype('float32')
     df = df.copy()
 
     return df
