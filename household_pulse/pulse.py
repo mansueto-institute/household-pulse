@@ -65,7 +65,7 @@ class Pulse:
                 'this should be only run after running the '
                 '.process_pulse_data() method')
         sql = PulseSQL()
-        sql.update_values(table='pulse', df=self.ctabdf)
+        sql.update_values(table='pulsenew', df=self.ctabdf)
         sql.close_connection()
 
     def _download_data(self) -> None:
@@ -316,10 +316,9 @@ class Pulse:
 
         # we fetch the passed weight type
         wgtdf = self.df.set_index('SCRAM').filter(like=weight_type)
-        # we cast into a dask dataframe with a high number of partitions
-        # so that we don't run out of memory because of the large number of
-        # groups in the groupby operation
-        ddf: dd = dd.from_pandas(self.longdf, npartitions=100)
+        # the 250000 number is set up so that the memory usage does not
+        # exceed ~8GB in total
+        ddf: dd = dd.from_pandas(self.longdf, chunksize=250000)
         ddf = ddf.merge(wgtdf, how='left', on='SCRAM')
 
         sumdf: pd.DataFrame
