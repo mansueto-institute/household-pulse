@@ -34,44 +34,25 @@ class Pulse:
         self.cmsdf = load_crosstab('county_metro_state')
         self.qumdf = load_crosstab('question_mapping')
         self.resdf = load_crosstab('response_mapping')
+        self.ctabdf: pd.DataFrame
 
     def process_data(self) -> None:
         """
         Runs the entire pipeline from downloading data, right until before
         upload
         """
-        cmsdf = self.cmsdf
-        qumdf = self.qumdf
-
         self._download_data()
         self._parse_question_cols()
         self._bucketize_numeric_cols()
         self._reshape_long()
         self._drop_missing_responses()
         self._recode_values()
-        # self._replace_labels()
         self._melt_to_ctab()
-
-        ctabdf = self._aggregate()
-
-        ctabdf['ct_val'] = ctabdf['ct_val'].astype(str)
-
-        cmsdf['cbsa_fips'] = cmsdf['cbsa_fips'].astype(float).astype(str)
-        ctabdf = ctabdf.merge(
-            cmsdf[['cbsa_title', 'cbsa_fips']].drop_duplicates(),
-            left_on='xtab_val',
-            right_on='cbsa_fips',
-            how='left').iloc[:, :-1]
-
-        ctabdf = ctabdf.merge(
-            qumdf[['description_recode', 'variable']],
-            left_on='q_var',
-            right_on='variable',
-            how='left').iloc[:, :-1]
-
-        ctabdf['collection_dates'] = ctabdf.WEEK.map(load_census_weeks())
-
-        self.ctabdf = ctabdf.copy()
+        self._aggregate()
+        self._merge_labels()
+        self._merge_cbsa_info()
+        self._add_week_collection_dates()
+        self._reorganize_cols()
 
     def upload_data(self) -> None:
         """
@@ -261,6 +242,58 @@ class Pulse:
         ctabdf.drop(columns='variable', inplace=True)
         ctabdf.rename(columns={'question_clean': 'q_var_label'}, inplace=True)
 
+        self.ctabdf = ctabdf
+
+    def _merge_cbsa_info(self) -> None:
+        """
+        Merges core-based statistical area information to the crosstab that
+        uses this information.
+        """
+        ctabdf = self.ctabdf
+        cmsdf = self.cmsdf
+
+        ctabdf['xtab_val'] = ctabdf['xtab_val'].astype(int)
+        cmsdf.drop_duplicates(subset='cbsa_fips', inplace=True)
+
+        ctabdf = ctabdf.merge(
+            cmsdf[['cbsa_title', 'cbsa_fips']],
+            how='left',
+            left_on='xtab_val',
+            right_on='cbsa_fips')
+
+        ctabdf.drop(columns='cbsa_fips', inplace=True)
+        self.ctabdf = ctabdf
+
+    def _add_week_collection_dates(self) -> None:
+        """
+        simply add the week number to the crosstabbed data and add the
+        collection date range for the particular week
+        """
+        self.ctabdf['collection_dates'] = load_census_weeks()[self.week]
+        self.ctabdf['week'] = self.week
+
+    def _reorganize_cols(self) -> None:
+        """
+        reorganize columns before upload for easier inspection
+        """
+        ctabdf = self.ctabdf
+        wgtcols = ctabdf.columns[ctabdf.columns.str.contains('weight')]
+
+        colorder = [
+            'week',
+            'collection_dates',
+            'xtab_var',
+            'xtab_val',
+            'cbsa_title',
+            'q_var',
+            'q_var_label',
+            'q_val',
+            'q_val_label'
+        ]
+        colorder.extend(wgtcols.tolist())
+        assert ctabdf.columns.isin(colorder).all(), 'missing a column'
+        ctabdf = ctabdf[colorder]
+        ctabdf.sort_values(by=['q_var', 'xtab_var'], inplace=True)
         self.ctabdf = ctabdf
 
     def _aggregate_counts(self,
