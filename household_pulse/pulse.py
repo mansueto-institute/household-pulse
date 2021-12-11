@@ -11,8 +11,8 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
             end.
 ===============================================================================
 """
-import numpy as np
 import pandas as pd
+from dask import dataframe as dd
 
 from household_pulse.loaders import (NUMERIC_COL_BUCKETS, download_puf,
                                      load_census_weeks, load_crosstab)
@@ -20,8 +20,8 @@ from household_pulse.mysql_wrapper import PulseSQL
 
 
 class Pulse:
-    idxlist = ['WEEK']
-    ctablist = ['TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA']
+    meltvars = ('SCRAM', 'WEEK')
+    xtabs = ('TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA')
 
     def __init__(self, week: int) -> None:
         """
@@ -33,42 +33,26 @@ class Pulse:
         self.week = week
         self.cmsdf = load_crosstab('county_metro_state')
         self.qumdf = load_crosstab('question_mapping')
+        self.resdf = load_crosstab('response_mapping')
+        self.ctabdf: pd.DataFrame
 
     def process_data(self) -> None:
         """
         Runs the entire pipeline from downloading data, right until before
         upload
         """
-        cmsdf = self.cmsdf
-        qumdf = self.qumdf
-
         self._download_data()
-        self._replace_labels()
         self._parse_question_cols()
         self._bucketize_numeric_cols()
-
-        crtdf1 = self._bulk_crosstabs(weight_col='PWEIGHT', critical_val=1.645)
-        crtdf2 = self._bulk_crosstabs(weight_col='HWEIGHT', critical_val=1.645)
-
-        ctabdf = pd.concat((crtdf1, crtdf2))
-        ctabdf['ct_val'] = ctabdf['ct_val'].astype(str)
-
-        cmsdf['cbsa_fips'] = cmsdf['cbsa_fips'].astype(float).astype(str)
-        ctabdf = ctabdf.merge(
-            cmsdf[['cbsa_title', 'cbsa_fips']].drop_duplicates(),
-            left_on='ct_val',
-            right_on='cbsa_fips',
-            how='left').iloc[:, :-1]
-
-        ctabdf = ctabdf.merge(
-            qumdf[['description_recode', 'variable']],
-            left_on='q_var',
-            right_on='variable',
-            how='left').iloc[:, :-1]
-
-        ctabdf['collection_dates'] = ctabdf.WEEK.map(load_census_weeks())
-
-        self.ctabdf = ctabdf.copy()
+        self._reshape_long()
+        self._drop_missing_responses()
+        self._recode_values()
+        self._melt_to_ctab()
+        self._aggregate()
+        self._merge_labels()
+        self._merge_cbsa_info()
+        self._add_week_collection_dates()
+        self._reorganize_cols()
 
     def upload_data(self) -> None:
         """
@@ -81,75 +65,50 @@ class Pulse:
                 'this should be only run after running the '
                 '.process_pulse_data() method')
         sql = PulseSQL()
-        sql.update_values(table='pulse', df=self.ctabdf)
+        sql.update_values(table='pulsenew', df=self.ctabdf)
         sql.close_connection()
-
-    @property
-    def _recode_map(self) -> dict:
-        """
-        Converts the response_mapping df from the
-        household_pulse_data_dictionary google sheet into dict to recode labels
-
-        Returns:
-            dict: {variable: {value: label_recode}}
-        """
-        resdf = load_crosstab('response_mapping')
-        resdf = resdf[resdf['do_not_join'] == 0].copy()
-        resdf['value'] = resdf['value'].astype('float64')
-        result: dict[str, dict] = {}
-        for row in resdf.itertuples():
-            if row.variable not in result.keys():
-                result[row.variable] = {}
-            result[row.variable][row.value] = row.label_recode
-        return result
 
     def _download_data(self) -> None:
         """
         downloads puf data and stores it into the class' state
         """
         self.df = download_puf(week=self.week)
-
-    def _replace_labels(self) -> None:
-        """
-        replaces all values in the survey data with the labels from gsheets
-        """
-        self.df = self.df.replace(self._recode_map).copy()
         self.df['TOPLINE'] = 1
 
     def _parse_question_cols(self) -> None:
         """
         parses the types of questions in the data (select all vs select one)
-        and transforms the data to reflect these types
+        and stores the list of questions of each type for further use
+        downstream
         """
         df = self.df
         qumdf = self.qumdf
 
-        qcols = qumdf.loc[
+        # first we get the select one question
+        soneqs: pd.Series = qumdf.loc[
             qumdf['question_type'].isin(['Select one', 'Yes / No']),
             'variable']
-        qcols = qcols[qcols.isin(df.columns)]
-        qumdf = qumdf[qumdf['variable'].isin(qcols)].copy()
+        soneqs = soneqs[soneqs.isin(df.columns)]
+        # here we just drop grouping variables from actual questions
+        soneqs = soneqs[~soneqs.isin(self.xtabs + self.meltvars)]
 
-        sallqs = (
-            qumdf[qumdf['question_type'] == 'Select all']['variable']
-            .unique()
-            .tolist())
+        # next we get the select all questions
+        sallqs: pd.Series = qumdf.loc[
+            qumdf['question_type'] == 'Select all',
+            'variable']
+        sallqs = sallqs[sallqs.isin(df.columns)]
 
-        qstnlist = []
-        for qcol in qcols:
-            if qcol in Pulse.idxlist or qcol in Pulse.ctablist:
-                continue
-            elif df[qcol].nunique() > 6:
-                continue
-            else:
-                qstnlist.append(qcol)
+        self.soneqs = soneqs.tolist()
+        self.sallqs = sallqs.tolist()
+        self.allqs = qumdf.loc[
+            qumdf['variable'].isin(self.df.columns),
+            'variable']
+        self.allqs = self.allqs[~self.allqs.str.contains('WEIGHT')]
+        self.allqs = self.allqs.tolist()
 
-        df[sallqs] = df[sallqs].replace(
-            ['-99', -99],
-            'Question seen but category not selected')
-
-        self.qstnlist = qstnlist
-        self.sallqs = sallqs
+        # finally we get the all the weight columns
+        self.wgtcols = self.df.columns[self.df.columns.str.contains('WEIGHT')]
+        self.wgtcols = self.wgtcols.tolist()
 
     def _bucketize_numeric_cols(self) -> pd.DataFrame:
         """
@@ -169,132 +128,271 @@ class Pulse:
                     bins=NUMERIC_COL_BUCKETS[col]['bins'],
                     labels=NUMERIC_COL_BUCKETS[col]['labels'],
                     right=False)
-        df.replace(['-88', '-99', -88, -99], np.nan, inplace=True)
 
-    def _freq_crosstab(self,
-                       df: pd.DataFrame,
-                       col_list: list[str],
-                       weight_col: str,
-                       critical_val: float = 1.0) -> pd.DataFrame:
+    def _reshape_long(self) -> None:
         """
-        sums across each passed column in col_list and then calculates
-        the standard errors for those estimates.
-
-        Args:
-            df (pd.DataFrame): pulse data
-            col_list (list[str]): the list of columns to group by
-            weight_col (str): weight column to use
-            critical_val (int, optional): the critical value for
-                the confidence intervals. Defaults to 1.
-
-        Returns:
-            pd.DataFrame: a dataframe with the grouped estimates of the
-                means with their corresponding standard errors
+        reshapes the raw microdata into a long format where each row is a
+        question/response combination
         """
-        w_cols = df.columns[df.columns.str.contains(weight_col)]
-        pt_estimates = df.groupby(col_list)[w_cols].sum()
-        pt_estimates['std_err'] = self._get_std_err(pt_estimates, weight_col)
-        pt_estimates['mrgn_err'] = pt_estimates['std_err'] * critical_val
-        pt_estimates.rename(columns={weight_col: 'value'}, inplace=True)
-        return pt_estimates[['value', 'std_err', 'mrgn_err']].reset_index()
+        self.longdf = self.df.melt(
+            id_vars=self.meltvars + self.xtabs,
+            value_vars=self.allqs,
+            var_name='q_var',
+            value_name='q_val')
 
-    def _full_crosstab(self,
-                       df: pd.DataFrame,
-                       col_list: list[str],
-                       weight_col: str,
-                       abstract: list[str],
-                       critical_val: float = 1.0) -> pd.DataFrame:
+    def _drop_missing_responses(self) -> None:
         """
-        performs a frequency crosstab at the col_list level and the
-        abstract level
-
-        Args:
-            df (pd.DataFrame): temp dataframe
-            col_list (list[str]): question columns
-            weight_col (str): weight column
-            abstract (list[str]): abstract level (aggregation level)
-            critical_val (int, optional): critical value for confidence
-                intervals. Defaults to 1.
-
-        Returns:
-            pd.DataFrame: dataframe that returns the ratio between the
-                base level and the abstract level for each of the response
-                proportions.
+        drops missing responses depending on the type of question (select all
+        vs select one) since they are encoded differently.
         """
-        detail = self._freq_crosstab(df, col_list, weight_col, critical_val)
-        top = self._freq_crosstab(df, abstract, weight_col, critical_val)
-        rv = detail.merge(
-            right=top,
+        longdf = self.longdf
+        qumdf = self.qumdf
+        longdf = longdf.merge(
+            qumdf[['variable', 'question_type']].rename(
+                columns={'variable': 'q_var'}
+            ),
             how='left',
-            on=abstract,
-            suffixes=('_full', '_demo'))
-        rv['proportions'] = rv['value_full'] / rv['value_demo']
-        return rv
+            on='q_var')
 
-    def _bulk_crosstabs(self,
-                        weight_col: str = 'PWEIGHT',
-                        critical_val: float = 1) -> pd.DataFrame:
+        # drop skipped select all
+        longdf = longdf[
+            ~((longdf['question_type'] == 'Select all') &
+              (longdf['q_val'] == -88))]
+
+        # drop skipped select one
+        longdf = longdf[
+            ~((longdf['question_type'] == 'Select one') &
+              (longdf['q_val'].isin((-88, -99))))]
+
+        # drop skipped yes/no
+        longdf = longdf[
+            ~((longdf['question_type'] == 'Yes / No') &
+              (longdf['q_val'].isin((-88, -99))))]
+
+        # drop skipped input value questions
+        longdf = longdf[
+            ~((longdf['question_type'] == 'Input value') &
+              (longdf['q_val'].isnull()))]
+
+        self.longdf = longdf
+
+    def _melt_to_ctab(self) -> None:
         """
-        performs crosstabs on each of the questions of interest
+        duplicates each row in `longdf` for each of the crosstab values in
+        self.xtabs
+        """
+        self.longdf = self.longdf.melt(
+            id_vars=['SCRAM', 'q_var', 'q_val'],
+            value_vars=self.xtabs,
+            var_name='xtab_var',
+            value_name='xtab_val'
+        )
+
+    def _recode_values(self) -> None:
+        """
+        recodes the numeric values from the original data into new categories
+        (fewer) for each question in the data
+        """
+        resdf = self.resdf
+        longdf = self.longdf
+
+        resdf.rename(
+            columns={'variable': 'q_var', 'value': 'q_val'},
+            inplace=True)
+        resdf['q_var'] = resdf['q_var'].astype(str)
+        resdf['q_val'] = resdf['q_val'].astype(str)
+        resdf['value_recode'] = resdf['value_recode'].astype(str)
+        resdf['value_recode'] = resdf['value_recode'].str.split('.').str.get(0)
+        longdf['q_var'] = longdf['q_var'].astype(str)
+        longdf['q_val'] = longdf['q_val'].astype(str)
+        longdf = longdf.merge(
+            resdf[['q_var', 'q_val', 'value_recode']],
+            how='left',
+            on=['q_var', 'q_val'],
+            copy=False)
+        # coalesce old values and new values
+        longdf['value_recode'] = longdf['value_recode'].where(
+            longdf['value_recode'].notnull(),
+            longdf['q_val'])
+        longdf['q_val'] = longdf['value_recode']
+        longdf.drop(columns='value_recode', inplace=True)
+        self.longdf = longdf
+
+    def _merge_labels(self) -> None:
+        """
+        merges both the question and response labels from the data dictionary
+        """
+        ctabdf = self.ctabdf
+        resdf = self.resdf
+        qumdf = self.qumdf
+
+        ctabdf = ctabdf.merge(
+            resdf[['q_var', 'q_val', 'label_recode']],
+            how='left',
+            on=['q_var', 'q_val'])
+        ctabdf.rename(columns={'label_recode': 'q_val_label'}, inplace=True)
+
+        ctabdf = ctabdf.merge(
+            qumdf[['variable', 'question_clean']],
+            how='left',
+            left_on='q_var',
+            right_on='variable',
+            copy=False)
+
+        ctabdf.drop(columns='variable', inplace=True)
+        ctabdf.rename(columns={'question_clean': 'q_var_label'}, inplace=True)
+
+        self.ctabdf = ctabdf
+
+    def _merge_cbsa_info(self) -> None:
+        """
+        Merges core-based statistical area information to the crosstab that
+        uses this information.
+        """
+        ctabdf = self.ctabdf
+        cmsdf = self.cmsdf
+
+        ctabdf['xtab_val'] = ctabdf['xtab_val'].astype(int)
+        cmsdf.drop_duplicates(subset='cbsa_fips', inplace=True)
+
+        ctabdf = ctabdf.merge(
+            cmsdf[['cbsa_title', 'cbsa_fips']],
+            how='left',
+            left_on='xtab_val',
+            right_on='cbsa_fips')
+
+        ctabdf.drop(columns='cbsa_fips', inplace=True)
+        self.ctabdf = ctabdf
+
+    def _add_week_collection_dates(self) -> None:
+        """
+        simply add the week number to the crosstabbed data and add the
+        collection date range for the particular week
+        """
+        self.ctabdf['collection_dates'] = load_census_weeks()[self.week]
+        self.ctabdf['week'] = self.week
+
+    def _reorganize_cols(self) -> None:
+        """
+        reorganize columns before upload for easier inspection
+        """
+        ctabdf = self.ctabdf
+        wgtcols = ctabdf.columns[ctabdf.columns.str.contains('weight')]
+
+        colorder = [
+            'week',
+            'collection_dates',
+            'xtab_var',
+            'xtab_val',
+            'cbsa_title',
+            'q_var',
+            'q_var_label',
+            'q_val',
+            'q_val_label'
+        ]
+        colorder.extend(wgtcols.tolist())
+        assert ctabdf.columns.isin(colorder).all(), 'missing a column'
+        ctabdf = ctabdf[colorder]
+        ctabdf.sort_values(by=['q_var', 'xtab_var'], inplace=True)
+        self.ctabdf = ctabdf
+
+    def _aggregate_counts(self,
+                          weight_type: str,
+                          as_share: bool = False) -> pd.DataFrame:
+        """
+        aggregates all weights at the level of `longdf`. that is each
+        question by each crosstab and sums the weights within each group.
 
         Args:
-            weight_col (str, optional): the weight column to use for
-                estimating the standard errors. Defaults to 'PWEIGHT'.
-            critical_val (float, optional): the critical value to use when
-                estimating standard errors. Defaults to 1.
+            weight_type (str): {'PWEIGHT', 'HWEIGHT'}
+            as_share (bool): normalize the weights by the totals in each
 
         Returns:
-            pd.DataFrame: a long format dataframe with each combination of
-                question and answer as a row.
+            pd.DataFrame: aggregated weights with confidence intervals
         """
-        df = self.df
+        allowed = {'PWEIGHT', 'HWEIGHT'}
+        if weight_type not in allowed:
+            raise ValueError(f'{weight_type} must be in {allowed}')
+
+        # we fetch the passed weight type
+        wgtdf = self.df.set_index('SCRAM').filter(like=weight_type)
+        # the 250000 number is set up so that the memory usage does not
+        # exceed ~8GB in total
+        ddf: dd = dd.from_pandas(self.longdf, chunksize=250000)
+        ddf = ddf.merge(wgtdf, how='left', on='SCRAM')
+
+        sumdf: pd.DataFrame
+        sumdf = (ddf
+                 .groupby(['q_var', 'q_val', 'xtab_var', 'xtab_val'])
+                 [wgtdf.columns]
+                 .sum()
+                 .compute())
+
+        if as_share:
+            totdf = (sumdf
+                     .groupby(['q_var', 'xtab_var', 'xtab_val'])
+                     .transform('sum'))
+            sumdf = sumdf / totdf
+            sumdf.columns = sumdf.columns.str.replace(
+                weight_type,
+                f'{weight_type}_SHARE')
+            weight_type = f'{weight_type}_SHARE'
+
+        self._get_conf_intervals(sumdf, weight_type)
+
+        return sumdf
+
+    def _aggregate(self) -> None:
+        """
+        Aggregates all weights at the crosstab level with their confidence
+        intervals for each weight. For each weight type we also calculate the
+        weights as shares with their respective confidence intervals.
+
+        Returns:
+            pd.DataFrame: aggregated xtabs for all questions and weight types
+        """
+        aggs = [
+            ('PWEIGHT', False),
+            ('PWEIGHT', True),
+            ('HWEIGHT', False),
+            ('HWEIGHT', True)]
         auxs = []
-        input_df = df.copy()
-        for ct in Pulse.ctablist:
-            for q in self.qstnlist:
-                col_list = Pulse.idxlist + [ct, q]
-                abstract = Pulse.idxlist + [ct]
-                tempdf = input_df.dropna(axis=0, how='any', subset=col_list)
-                if q in self.sallqs:
-                    all_q = [x for x in self.sallqs if x.startswith(q[:-1])]
-                    sallmask = (
-                        tempdf[all_q] ==
-                        'Question seen but category not selected').all(axis=1)
-                    tempdf = tempdf[~sallmask]
-                auxdf = self._full_crosstab(
-                    df=tempdf,
-                    col_list=col_list,
-                    weight_col=weight_col,
-                    abstract=abstract,
-                    critical_val=critical_val)
-                auxdf.rename(columns={q: 'q_val', ct: 'ct_val'}, inplace=True)
-                auxdf['ct_var'] = ct
-                auxdf['q_var'] = q
-                auxs.append(auxdf)
-        rv = pd.concat(auxs)
-        rv['weight'] = weight_col
-        return rv
+        for weight_type, as_share in aggs:
+            auxs.append(self._aggregate_counts(weight_type, as_share))
+        ctabdf = pd.concat(auxs, axis=1)
+        ctabdf.columns = ctabdf.columns.str.lower()
+        ctabdf = ctabdf.round(5)
+        ctabdf.reset_index(inplace=True)
+        self.ctabdf = ctabdf
 
     @staticmethod
-    def _get_std_err(df: pd.DataFrame, weight_col: str) -> list[float]:
+    def _get_conf_intervals(df: pd.DataFrame,
+                            weight_type: str,
+                            cval: float = 1.645) -> None:
         """
-        Calculate standard error of dataframe
+        Generate the upper and lower confidence intervals of the passed
+        weights using the replicate weights to calculate their standard error.
+        It edits `df` in place by removing the replicate weights and adding
+        the lower and upper confidence level bounds.
 
         Args:
-            weight_col (str): specify whether person ('PWEIGHT') or household
-                ('HWEIGHT') weight
-
-        Returns:
-            list[float]: the standard errors
+            df (pd.DataFrame): a dataframe with aggregations as an index
+                and weights as columns.
+            weight_type (str): {'PWEIGHT', 'HWEIGHT'}
+            cval (float): the critical value for the confidence interval.
+                Defaults to 1.645,
         """
-        # only keep passed weight types
-        df = df.loc[:, df.columns.str.contains(weight_col)].copy()
         # here we subtract the replicate weights from the main weight col
         # broadcasting across the columns
-        wgtdf = df.loc[:, df.columns != weight_col].sub(
-            df[weight_col],
-            axis=0,
-            level=2)
-        result: pd.Series = (wgtdf.pow(2).sum(axis=1) * (4/80)).pow(1/2)
+        diffdf = df.filter(regex=fr'{weight_type}.*\d{{1,2}}').sub(
+            df[weight_type],
+            axis=0)
+        df[f'{weight_type}_SE'] = (diffdf.pow(2).sum(axis=1) * (4/80)).pow(1/2)
+        df[f'{weight_type}_LOWER'] = (
+            df[weight_type] - (cval * df[f'{weight_type}_SE']))
+        df[f'{weight_type}_UPPER'] = (
+            df[weight_type] + (cval * df[f'{weight_type}_SE']))
 
-        return result.values.tolist()
+        # drop the replicate weights and the standard error column
+        repcols = df.columns[df.columns.str.match(r'.*\d{1,2}')]
+        df.drop(columns=repcols.tolist() + [f'{weight_type}_SE'], inplace=True)

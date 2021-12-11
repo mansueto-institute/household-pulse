@@ -172,6 +172,7 @@ def download_puf(week: int) -> pd.DataFrame:
         dtype={'SCRAM': 'string'})
 
     df = data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
+    df = df.copy()
 
     return df
 
