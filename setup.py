@@ -14,7 +14,7 @@ setuptools.setup(
         'mysql-connector-python>=8.0.26',
         'dask-core>=0.0.7'
     ],
-    version='0.2.0',
+    version='0.2.1',
     author="Manuel Martinez",
     author_email="manmart@uchicago.edu",
     description=(
