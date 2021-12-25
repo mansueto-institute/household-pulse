@@ -78,6 +78,10 @@ NUMERIC_COL_BUCKETS = {
     'TTCH_HRS': {
         'bins': [0, 10, 20, 30, 48],
         'labels': ['0-9', '10-19', '20-29', '30+']
+    },
+    'TSCHLHRS': {
+        'bins': [0, 10, 20, 30, 48],
+        'labels': ['0-9', '10-19', '20-29', '30+']
     }
 }
 
@@ -138,7 +142,7 @@ def make_data_fname(week: int, fname: str) -> str:
         str: name of file downloaded
     """
     if fname not in {'d', 'w'}:
-        raise ValueError(f"fname muts be in {'d', 'w'}")
+        raise ValueError("fname muts be in {'d', 'w'}")
 
     year = '2021' if int(week) > 21 else '2020'
     if fname == 'd':
