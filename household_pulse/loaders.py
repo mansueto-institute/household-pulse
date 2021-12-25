@@ -154,9 +154,9 @@ def make_data_fname(week: int, fname: str) -> str:
 
     year = '2021' if int(week) > 21 else '2020'
     if fname == 'd':
-        return f"pulse{year}_puf_{week}.csv"
+        return f"pulse{year}_puf_{str(week).zfill(2)}.csv"
     else:
-        return f"pulse{year}_repwgt_puf_{week}.csv"
+        return f"pulse{year}_repwgt_puf_{str(week).zfill(2)}.csv"
 
 
 def download_puf(week: int) -> pd.DataFrame:
