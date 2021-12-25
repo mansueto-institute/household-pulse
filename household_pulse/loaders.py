@@ -132,10 +132,11 @@ def make_data_url(week: int, hweights: bool = False) -> str:
         raise ValueError('hweights can only be passed for weeks 1-12')
 
     year: int = 2021 if week > 21 else 2020
+    weekstr: str = str(week).zfill(2)
     if hweights:
-        return f'{year}/wk{week}/pulse{year}_puf_hhwgt_{week}.csv'
+        return f'{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv'
     else:
-        return f"{year}/wk{week}/HPS_Week{str(week).zfill(2)}_PUF_CSV.zip"
+        return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
 
 
 def make_data_fname(week: int, fname: str) -> str:
@@ -153,10 +154,11 @@ def make_data_fname(week: int, fname: str) -> str:
         raise ValueError("fname muts be in {'d', 'w'}")
 
     year = '2021' if int(week) > 21 else '2020'
+    weekstr: str = str(week).zfill(2)
     if fname == 'd':
-        return f"pulse{year}_puf_{str(week).zfill(2)}.csv"
+        return f"pulse{year}_puf_{weekstr}.csv"
     else:
-        return f"pulse{year}_repwgt_puf_{str(week).zfill(2)}.csv"
+        return f"pulse{year}_repwgt_puf_{weekstr}.csv"
 
 
 def download_puf(week: int) -> pd.DataFrame:
