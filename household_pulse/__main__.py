@@ -10,6 +10,8 @@ Created on Saturday, 23rd October 2021 1:57:08 pm
 """
 import argparse
 
+from tqdm import tqdm
+
 from household_pulse.loaders import load_census_weeks
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.pulse import Pulse
@@ -130,7 +132,7 @@ if __name__ == "__main__":
 
     elif args.run_multiple_weeks:
         weeks = args.run_multiple_weeks
-        for week in weeks:
+        for week in tqdm(weeks, desc='Processing weeks'):
             pulse = Pulse(week=week)
             pulse.process_data()
             pulse.upload_data()

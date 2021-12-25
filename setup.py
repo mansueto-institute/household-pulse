@@ -12,7 +12,8 @@ setuptools.setup(
         'requests>=2.26.0',
         'beautifulsoup4>=4.10.0',
         'mysql-connector-python>=8.0.26',
-        'dask>=0.0.7'
+        'dask>=0.0.7',
+        'tqdm'
     ],
     version='0.2.1',
     author="Manuel Martinez",
