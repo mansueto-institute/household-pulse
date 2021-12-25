@@ -135,7 +135,7 @@ def make_data_url(week: int, hweights: bool = False) -> str:
     if hweights:
         return f'{year}/wk{week}/pulse{year}_puf_hhwgt_{week}.csv'
     else:
-        return f"{year}/wk{week}/HPS_Week{week}_PUF_CSV.zip"
+        return f"{year}/wk{week}/HPS_Week{str(week).zfill(2)}_PUF_CSV.zip"
 
 
 def make_data_fname(week: int, fname: str) -> str:
