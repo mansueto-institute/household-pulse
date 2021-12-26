@@ -78,6 +78,10 @@ NUMERIC_COL_BUCKETS = {
     'TTCH_HRS': {
         'bins': [0, 10, 20, 30, 48],
         'labels': ['0-9', '10-19', '20-29', '30+']
+    },
+    'TSCHLHRS': {
+        'bins': [0, 10, 20, 30, 48],
+        'labels': ['0-9', '10-19', '20-29', '30+']
     }
 }
 
@@ -112,18 +116,27 @@ def load_crosstab(sheetname: str) -> pd.DataFrame:
     return df
 
 
-def make_data_url(week: int) -> str:
+def make_data_url(week: int, hweights: bool = False) -> str:
     """
     Helper function to get string for file to download from census api
 
     Args:
         week (int): the week of data to download
+        hweights (bool): make url for household weights that for weeks < 13
+            are in a separate file in the census' ftp.
 
     Returns:
         str: the year/week/file.zip to be downloaded
     """
+    if hweights and week > 12:
+        raise ValueError('hweights can only be passed for weeks 1-12')
+
     year: int = 2021 if week > 21 else 2020
-    return f"{year}/wk{week}/HPS_Week{week}_PUF_CSV.zip"
+    weekstr: str = str(week).zfill(2)
+    if hweights:
+        return f'{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv'
+    else:
+        return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
 
 
 def make_data_fname(week: int, fname: str) -> str:
@@ -138,13 +151,14 @@ def make_data_fname(week: int, fname: str) -> str:
         str: name of file downloaded
     """
     if fname not in {'d', 'w'}:
-        raise ValueError(f"fname muts be in {'d', 'w'}")
+        raise ValueError("fname muts be in {'d', 'w'}")
 
     year = '2021' if int(week) > 21 else '2020'
+    weekstr: str = str(week).zfill(2)
     if fname == 'd':
-        return f"pulse{year}_puf_{week}.csv"
+        return f"pulse{year}_puf_{weekstr}.csv"
     else:
-        return f"pulse{year}_repwgt_puf_{week}.csv"
+        return f"pulse{year}_repwgt_puf_{weekstr}.csv"
 
 
 def download_puf(week: int) -> pd.DataFrame:
@@ -170,6 +184,13 @@ def download_puf(week: int) -> pd.DataFrame:
     weight_df: pd.DataFrame = pd.read_csv(
         read_zip.open(make_data_fname(week, 'w')),
         dtype={'SCRAM': 'string'})
+
+    if week < 13:
+        hweight_url = ''.join((
+            base_url,
+            make_data_url(week=week, hweights=True)))
+        hwgdf = pd.read_csv(hweight_url)
+        weight_df = weight_df.merge(hwgdf, how='inner', on=['SCRAM', 'WEEK'])
 
     df = data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
     df = df.copy()
