@@ -65,7 +65,7 @@ class Pulse:
                 'this should be only run after running the '
                 '.process_pulse_data() method')
         sql = PulseSQL()
-        sql.update_values(table='pulsenew', df=self.ctabdf)
+        sql.update_values(table='pulse', df=self.ctabdf)
         sql.close_connection()
 
     def _download_data(self) -> None:

@@ -4,7 +4,7 @@ Created on Saturday, 16th October 2021 1:35:51 pm
 ===============================================================================
 @filename:  mysql_wrapper.py
 @author:    Manuel Martinez (manmart@uchicago.edu)
-@project:   household-pulsenew
+@project:   household-pulse
 @purpose:   mysql wrapper that extends functionality for pushing data
             into the project table
 ===============================================================================
@@ -52,7 +52,7 @@ class PulseSQL:
             df (pd.DataFrame): [description]
         """
         query = '''
-            DELETE FROM pulsenew
+            DELETE FROM pulse
             WHERE week = %s
         '''
         try:
@@ -117,13 +117,13 @@ class PulseSQL:
         Returns:
             int: latest week loaded into RDS
         """
-        self.cur.execute('SELECT MAX(week) FROM pulsenew;')
+        self.cur.execute('SELECT MAX(week) FROM pulse;')
         result = int(self.cur.fetchone()[0])
 
         return result
 
     def get_available_weeks(self) -> tuple[int, ...]:
-        self.cur.execute('SELECT DISTINCT(week) FROM pulsenew ORDER BY week')
+        self.cur.execute('SELECT DISTINCT(week) FROM pulse ORDER BY week')
         result = tuple(int(x[0]) for x in self.cur.fetchall())
 
         return result

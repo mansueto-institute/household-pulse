@@ -1,4 +1,4 @@
-CREATE TABLE `pulse`.`pulsenew` (
+CREATE TABLE `pulse`.`pulse` (
   `idpulsenew` INT NOT NULL AUTO_INCREMENT,
   `week` INT NOT NULL,
   `collection_dates` VARCHAR(255) NOT NULL,
