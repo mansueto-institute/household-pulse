@@ -12,7 +12,7 @@ import argparse
 
 from tqdm import tqdm
 
-from household_pulse.loaders import load_census_weeks
+from household_pulse.loaders import load_census_weeks, load_gsheet
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.pulse import Pulse
 

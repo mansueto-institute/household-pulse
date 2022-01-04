@@ -86,7 +86,7 @@ NUMERIC_COL_BUCKETS = {
 }
 
 
-def load_crosstab(sheetname: str) -> pd.DataFrame:
+def load_gsheet(sheetname: str) -> pd.DataFrame:
     """
     Loads one of the three crosstabs used for mapping responses. It has to
     be one of {'question_mapping', 'response_mapping, 'county_metro_state'}.

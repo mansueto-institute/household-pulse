@@ -15,7 +15,7 @@ import pandas as pd
 from dask import dataframe as dd
 
 from household_pulse.loaders import (NUMERIC_COL_BUCKETS, download_puf,
-                                     load_census_weeks, load_crosstab)
+                                     load_census_weeks, load_gsheet)
 from household_pulse.mysql_wrapper import PulseSQL
 
 
@@ -31,9 +31,9 @@ class Pulse:
             week (int): specifies which week to run the data for.
         """
         self.week = week
-        self.cmsdf = load_crosstab('county_metro_state')
-        self.qumdf = load_crosstab('question_mapping')
-        self.resdf = load_crosstab('response_mapping')
+        self.cmsdf = load_gsheet('county_metro_state')
+        self.qumdf = load_gsheet('question_mapping')
+        self.resdf = load_gsheet('response_mapping')
         self.ctabdf: pd.DataFrame
 
     def process_data(self) -> None:
@@ -119,7 +119,7 @@ class Pulse:
             pd.DataFrame: with the numeric columns bucketized
         """
         df = self.df
-        qumdf = load_crosstab('question_mapping')
+        qumdf = load_gsheet('question_mapping')
         num_cols = qumdf[qumdf['question_type'] == 'Input value']['variable']
         for col in num_cols:
             if col in df.columns:
