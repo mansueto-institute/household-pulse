@@ -63,6 +63,31 @@ def get_all_weeks(target: str) -> tuple[int, ...]:
     return weeks
 
 
+def update_gsheet(target: str) -> None:
+    """
+    pushes one of the tables in google sheets to the MySQL DB
+
+    Args:
+        target (str): {'question_mapping', 'response_mapping'}
+    """
+    allowed_targets = {'question_mapping', 'response_mapping'}
+    if target not in allowed_targets:
+        raise ValueError(
+            f'{target} is not in allowed targets: {allowed_targets}')
+
+    df = load_gsheet(target)
+
+    if target == 'response_mapping':
+        df['value_recode'] = df['value_recode'].astype('Int32')
+        df['value_binary'] = df['value_binary'].astype('Int32')
+        df = df.astype('object')
+
+    sql = PulseSQL()
+    sql.cur.execute(f'DELETE FROM {target}')
+    sql.append_values(table=target, df=df)
+    sql.close_connection()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Basic CLI for managing the Household Pulse ETL'
@@ -109,6 +134,12 @@ if __name__ == "__main__":
         action='store_true',
         default=False
     )
+    execgroup.add_argument(
+        '--update-gsheet',
+        help='uploads a google sheets table to the SQL DB',
+        type=str,
+        metavar='GSHEET TABLE NAME'
+    )
 
     args = parser.parse_args()
 
@@ -149,3 +180,7 @@ if __name__ == "__main__":
             pulse = Pulse(week=week)
             pulse.process_data()
             pulse.upload_data()
+
+    elif args.update_gsheet:
+        target = args.update_gsheet
+        update_gsheet(target=target)
