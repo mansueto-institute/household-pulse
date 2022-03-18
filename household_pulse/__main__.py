@@ -26,27 +26,20 @@ class PulseCLI:
 
         subparsers = parser.add_subparsers(
             dest='subcommand',
-            help='The different sub-commands available')
+            help='The different sub-commands available'
+        )
 
         etlparser = subparsers.add_parser(
             name='etl',
-            help='Subcommands for managing / running the main ETL process')
+            help='Subcommands for managing / running the main ETL process'
+        )
         self._etlparser(etlparser)
 
-        # download = execgroup.add_argument_group('download')
-
-        # download.add_argument(
-        #     '--download-pulse',
-        #     help='Downloads the processed pulse table into a .csv file',
-        #     action='store_true',
-        #     default=False
-        # )
-        # download.add_argument(
-        #     '--week',
-        #     help='Desired week to download. If not passed, gets all weeks',
-        #     required=False,
-        #     type=int,
-        #     default=None)
+        dataparser = subparsers.add_parser(
+            name='fetch',
+            help='Subcommands for fetching different data from the ETL process'
+        )
+        self._dataparser(dataparser)
 
         self.args = parser.parse_args()
 
@@ -100,6 +93,35 @@ class PulseCLI:
             elif self.args.update_gsheet:
                 target = self.args.update_gsheet
                 self.update_gsheet(target=target)
+        elif self.args.subcommand == 'fetch':
+            if self.args.download_pulse:
+                self.download_pulse()
+
+    def download_pulse(self) -> None:
+        """
+        _summary_
+        """
+        path: Path = Path(self.args.output)
+        path = path.resolve()
+
+        if not path.exists():
+            raise FileNotFoundError(f'directory {path} does not exist')
+
+        if self.args.week is None:
+            outfile = path.joinpath('pulse-data.csv')
+        else:
+            outfile = path.joinpath(f'pulse-data-{self.args.week}.csv')
+
+        sql = PulseSQL()
+
+        if self.args.week is None:
+            df = sql.get_pulse_table()
+        else:
+            query = f'SELECT * FROM pulse.pulse WHERE week = {self.args.week}'
+            df = sql.get_pulse_table(query)
+
+        df.to_csv(outfile, index=False)
+        sql.close_connection()
 
     def _etlparser(self, parser: ArgumentParser) -> None:
         """
@@ -154,6 +176,32 @@ class PulseCLI:
             help='uploads a google sheets table to the SQL DB',
             type=str,
             metavar='GSHEET TABLE NAME'
+        )
+
+    def _dataparser(self, parser: ArgumentParser) -> None:
+        """
+        constructs the data fetcher subparser
+
+        Args:
+            parser (ArgumentParser): the edited subparser
+        """
+        parser.add_argument(
+            '--download-pulse',
+            help='Downloads the processed pulse table into a .csv file',
+            action='store_true',
+            default=False
+        )
+        parser.add_argument(
+            '--week',
+            help='Desired week to download. If not passed, gets all weeks',
+            type=int,
+            required=False,
+            default=None
+        )
+        parser.add_argument(
+            'output',
+            help='The target directory for the .csv file.',
+            type=str
         )
 
     @staticmethod
