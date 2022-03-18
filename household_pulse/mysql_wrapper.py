@@ -9,6 +9,9 @@ Created on Saturday, 16th October 2021 1:35:51 pm
             into the project table
 ===============================================================================
 """
+import warnings
+from typing import Optional
+
 import mysql.connector
 import pandas as pd
 from mysql.connector import MySQLConnection
@@ -21,47 +24,6 @@ from household_pulse.loaders import load_rds_creds
 class PulseSQL:
     def __init__(self) -> None:
         self._establish_connection()
-
-    def _establish_connection(self) -> None:
-        """
-        starts connection to the DB. gets called automatically when the class
-        is instantiated, ability to re run it to reconnect if needed.
-        """
-        self.con: MySQLConnection = mysql.connector.connect(**load_rds_creds())
-        self.cur: MySQLCursor = self.con.cursor()
-
-    def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        converts all nan values to `None`, which are understood by the SQL
-        engine as NULL
-
-        Args:
-            df (pd.DataFrame): data with nans
-
-        Returns:
-            pd.DataFrame: data with nans as Nones
-        """
-        return df.where(df.notnull(), None)
-
-    def _delete_week(self, week: int) -> None:
-        """
-        deletes all records that match the passed week value
-
-        Args:
-            table (str): [description]
-            df (pd.DataFrame): [description]
-        """
-        query = '''
-            DELETE FROM pulse
-            WHERE week = %s
-        '''
-        try:
-            self.cur.execute(query, (week, ))
-            self.con.commit()
-        except DatabaseError as error:
-            self.con.rollback()
-            self.close_connection()
-            raise error
 
     def append_values(self, table: str, df: pd.DataFrame) -> None:
         """
@@ -133,3 +95,75 @@ class PulseSQL:
         Closes the connection to the DB
         """
         self.con.close()
+
+    def get_pulse_table(self, query: Optional[str] = None) -> pd.DataFrame:
+        """
+        gets the entire pulse database with the timeseries of the survey
+        responses.
+
+        Args:
+            query (str, optional): The SQL query to run against the pulse
+                table. Defaults to None, and it gets the entire table by
+                default.
+
+        Returns:
+            pd.DataFrame: the entire table as a dataframe object
+        """
+        try:
+            if query is None:
+                query = '''
+                    SELECT * FROM pulse.pulse;
+                '''
+
+            with warnings.catch_warnings():
+                # we ignore the warning that pandas gives us for not using
+                # sql alchemy
+                warnings.simplefilter('ignore')
+                df = pd.read_sql(sql=query, con=self.con)
+        except DatabaseError as e:
+            self.con.rollback()
+            self.close_connection()
+            raise DatabaseError(e)
+
+        return df
+
+    def _establish_connection(self) -> None:
+        """
+        starts connection to the DB. gets called automatically when the class
+        is instantiated, ability to re run it to reconnect if needed.
+        """
+        self.con: MySQLConnection = mysql.connector.connect(**load_rds_creds())
+        self.cur: MySQLCursor = self.con.cursor()
+
+    def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        converts all nan values to `None`, which are understood by the SQL
+        engine as NULL
+
+        Args:
+            df (pd.DataFrame): data with nans
+
+        Returns:
+            pd.DataFrame: data with nans as Nones
+        """
+        return df.where(df.notnull(), None)
+
+    def _delete_week(self, week: int) -> None:
+        """
+        deletes all records that match the passed week value
+
+        Args:
+            table (str): [description]
+            df (pd.DataFrame): [description]
+        """
+        query = '''
+            DELETE FROM pulse
+            WHERE week = %s
+        '''
+        try:
+            self.cur.execute(query, (week, ))
+            self.con.commit()
+        except DatabaseError as error:
+            self.con.rollback()
+            self.close_connection()
+            raise error
