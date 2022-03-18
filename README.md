@@ -52,6 +52,24 @@ The `household_pulse` package has a CLI that you can access like any other CLI p
 python -m household_pulse --help
 ```
 
+#### Subcommands
+
+##### ETL
+
+The main ETL actions are grouped under a CLI subcommand. You can read more about what features this has by running:
+
+```bash
+python -m household_pulse etl --help
+```
+
+##### Downloading Data
+
+Another of the features that the CLI has is the ability to download the processed data to a local file in case you need to work on it locally. The best idea would be to fetch the data directly from our SQL database, but this is not always possible. You can explore which datasets you can download by running:
+
+```bash
+python -m household_pulse fetch --help
+```
+
 ## Run workflow on AWS
 
 The workflow can be run on AWS in many different ways, depending on the need. We chose to create a Docker file that can be uploaded to ECR and then mounted as a Lambda function on AWS. The lambda function can be triggered remotely via an API, or can be scheduled to be triggered via CloudWatch as an event.
