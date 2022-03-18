@@ -109,16 +109,21 @@ class PulseSQL:
         Returns:
             pd.DataFrame: the entire table as a dataframe object
         """
-        if query is None:
-            query = '''
-                SELECT * FROM pulse.pulse;
-            '''
+        try:
+            if query is None:
+                query = '''
+                    SELECT * FROM pulse.pulse;
+                '''
 
-        with warnings.catch_warnings():
-            # we ignore the warning that pandas gives us for not using
-            # sql alchemy
-            warnings.simplefilter('ignore')
-            df = pd.read_sql(sql=query, con=self.con)
+            with warnings.catch_warnings():
+                # we ignore the warning that pandas gives us for not using
+                # sql alchemy
+                warnings.simplefilter('ignore')
+                df = pd.read_sql(sql=query, con=self.con)
+        except DatabaseError as e:
+            self.con.rollback()
+            self.close_connection()
+            raise DatabaseError(e)
 
         return df
 
