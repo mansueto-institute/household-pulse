@@ -8,7 +8,8 @@ Created on Saturday, 23rd October 2021 1:57:08 pm
 @purpose:   main cli for household pulse ETLs
 ===============================================================================
 """
-import argparse
+from argparse import ArgumentParser
+from pathlib import Path
 
 from tqdm import tqdm
 
@@ -19,10 +20,94 @@ from household_pulse.pulse import Pulse
 
 class PulseCLI:
     def __init__(self) -> None:
-        parser = argparse.ArgumentParser(
+        parser = ArgumentParser(
             description='Basic CLI for managing the Household Pulse ETL'
         )
 
+        subparsers = parser.add_subparsers(
+            dest='subcommand',
+            help='The different sub-commands available')
+
+        etlparser = subparsers.add_parser(
+            name='etl',
+            help='Subcommands for managing / running the main ETL process')
+        self._etlparser(etlparser)
+
+        # download = execgroup.add_argument_group('download')
+
+        # download.add_argument(
+        #     '--download-pulse',
+        #     help='Downloads the processed pulse table into a .csv file',
+        #     action='store_true',
+        #     default=False
+        # )
+        # download.add_argument(
+        #     '--week',
+        #     help='Desired week to download. If not passed, gets all weeks',
+        #     required=False,
+        #     type=int,
+        #     default=None)
+
+        self.args = parser.parse_args()
+
+    def main(self) -> None:
+        """
+        Main command distributor for the CLI
+        """
+        if self.args.subcommand == 'etl':
+            if self.args.get_latest_week:
+                week = self.get_latest_week(target=self.args.get_latest_week)
+                print(
+                    f'Latest week available on {self.args.get_latest_week} '
+                    f'is {week}')
+
+            elif self.args.get_all_weeks:
+                weeks = self.get_all_weeks(target=self.args.get_all_weeks)
+                print(
+                    f'Available weeks on {self.args.get_all_weeks} are '
+                    f'{weeks}')
+
+            elif self.args.run_single_week:
+                pulse = Pulse(week=self.args.run_single_week)
+                pulse.process_data()
+                pulse.upload_data()
+
+            elif self.args.run_latest_week:
+                pulse = Pulse(week=self.get_latest_week(target='census'))
+                pulse.process_data()
+                pulse.upload_data()
+
+            elif self.args.run_multiple_weeks:
+                weeks = self.args.run_multiple_weeks
+                for week in tqdm(weeks, desc='Processing weeks'):
+                    pulse = Pulse(week=week)
+                    pulse.process_data()
+                    pulse.upload_data()
+
+            elif self.args.backfill:
+                cenweeks = load_census_weeks()
+
+                sql = PulseSQL()
+                rdsweeks = sql.get_available_weeks()
+                sql.close_connection()
+
+                missingweeks = set(cenweeks) - set(rdsweeks)
+                for week in missingweeks:
+                    pulse = Pulse(week=week)
+                    pulse.process_data()
+                    pulse.upload_data()
+
+            elif self.args.update_gsheet:
+                target = self.args.update_gsheet
+                self.update_gsheet(target=target)
+
+    def _etlparser(self, parser: ArgumentParser) -> None:
+        """
+        constructs the ETL subparser
+
+        Args:
+            parser (ArgumentParser): the subparser to edit
+        """
         execgroup = parser.add_mutually_exclusive_group()
 
         execgroup.add_argument(
@@ -70,56 +155,6 @@ class PulseCLI:
             type=str,
             metavar='GSHEET TABLE NAME'
         )
-
-        self.args = parser.parse_args()
-
-    def main(self) -> None:
-        """
-        Main command distributor for the CLI
-        """
-        if self.args.get_latest_week:
-            week = self.get_latest_week(target=self.args.get_latest_week)
-            print(
-                f'Latest week available on {self.args.get_latest_week} '
-                f'is {week}')
-
-        elif self.args.get_all_weeks:
-            weeks = self.get_all_weeks(target=self.args.get_all_weeks)
-            print(f'Available weeks on {self.args.get_all_weeks} are {weeks}')
-
-        elif self.args.run_single_week:
-            pulse = Pulse(week=self.args.run_single_week)
-            pulse.process_data()
-            pulse.upload_data()
-
-        elif self.args.run_latest_week:
-            pulse = Pulse(week=self.get_latest_week(target='census'))
-            pulse.process_data()
-            pulse.upload_data()
-
-        elif self.args.run_multiple_weeks:
-            weeks = self.args.run_multiple_weeks
-            for week in tqdm(weeks, desc='Processing weeks'):
-                pulse = Pulse(week=week)
-                pulse.process_data()
-                pulse.upload_data()
-
-        elif self.args.backfill:
-            cenweeks = load_census_weeks()
-
-            sql = PulseSQL()
-            rdsweeks = sql.get_available_weeks()
-            sql.close_connection()
-
-            missingweeks = set(cenweeks) - set(rdsweeks)
-            for week in missingweeks:
-                pulse = Pulse(week=week)
-                pulse.process_data()
-                pulse.upload_data()
-
-        elif self.args.update_gsheet:
-            target = self.args.update_gsheet
-            self.update_gsheet(target=target)
 
     @staticmethod
     def get_latest_week(target: str) -> int:
