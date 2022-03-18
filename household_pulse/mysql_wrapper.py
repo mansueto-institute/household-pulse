@@ -22,47 +22,6 @@ class PulseSQL:
     def __init__(self) -> None:
         self._establish_connection()
 
-    def _establish_connection(self) -> None:
-        """
-        starts connection to the DB. gets called automatically when the class
-        is instantiated, ability to re run it to reconnect if needed.
-        """
-        self.con: MySQLConnection = mysql.connector.connect(**load_rds_creds())
-        self.cur: MySQLCursor = self.con.cursor()
-
-    def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        converts all nan values to `None`, which are understood by the SQL
-        engine as NULL
-
-        Args:
-            df (pd.DataFrame): data with nans
-
-        Returns:
-            pd.DataFrame: data with nans as Nones
-        """
-        return df.where(df.notnull(), None)
-
-    def _delete_week(self, week: int) -> None:
-        """
-        deletes all records that match the passed week value
-
-        Args:
-            table (str): [description]
-            df (pd.DataFrame): [description]
-        """
-        query = '''
-            DELETE FROM pulse
-            WHERE week = %s
-        '''
-        try:
-            self.cur.execute(query, (week, ))
-            self.con.commit()
-        except DatabaseError as error:
-            self.con.rollback()
-            self.close_connection()
-            raise error
-
     def append_values(self, table: str, df: pd.DataFrame) -> None:
         """
         appends an entire dataframe to an existing table
@@ -133,3 +92,44 @@ class PulseSQL:
         Closes the connection to the DB
         """
         self.con.close()
+
+    def _establish_connection(self) -> None:
+        """
+        starts connection to the DB. gets called automatically when the class
+        is instantiated, ability to re run it to reconnect if needed.
+        """
+        self.con: MySQLConnection = mysql.connector.connect(**load_rds_creds())
+        self.cur: MySQLCursor = self.con.cursor()
+
+    def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        converts all nan values to `None`, which are understood by the SQL
+        engine as NULL
+
+        Args:
+            df (pd.DataFrame): data with nans
+
+        Returns:
+            pd.DataFrame: data with nans as Nones
+        """
+        return df.where(df.notnull(), None)
+
+    def _delete_week(self, week: int) -> None:
+        """
+        deletes all records that match the passed week value
+
+        Args:
+            table (str): [description]
+            df (pd.DataFrame): [description]
+        """
+        query = '''
+            DELETE FROM pulse
+            WHERE week = %s
+        '''
+        try:
+            self.cur.execute(query, (week, ))
+            self.con.commit()
+        except DatabaseError as error:
+            self.con.rollback()
+            self.close_connection()
+            raise error
