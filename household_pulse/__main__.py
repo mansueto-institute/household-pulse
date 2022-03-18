@@ -74,6 +74,9 @@ class PulseCLI:
         self.args = parser.parse_args()
 
     def main(self) -> None:
+        """
+        Main command distributor for the CLI
+        """
         if self.args.get_latest_week:
             week = self.get_latest_week(target=self.args.get_latest_week)
             print(
