@@ -9,6 +9,9 @@ Created on Saturday, 16th October 2021 1:35:51 pm
             into the project table
 ===============================================================================
 """
+import warnings
+from typing import Optional
+
 import mysql.connector
 import pandas as pd
 from mysql.connector import MySQLConnection
@@ -92,6 +95,32 @@ class PulseSQL:
         Closes the connection to the DB
         """
         self.con.close()
+
+    def get_pulse_table(self, query: Optional[str] = None) -> pd.DataFrame:
+        """
+        gets the entire pulse database with the timeseries of the survey
+        responses.
+
+        Args:
+            query (str, optional): The SQL query to run against the pulse
+                table. Defaults to None, and it gets the entire table by
+                default.
+
+        Returns:
+            pd.DataFrame: the entire table as a dataframe object
+        """
+        if query is None:
+            query = '''
+                SELECT * FROM pulse.pulse;
+            '''
+
+        with warnings.catch_warnings():
+            # we ignore the warning that pandas gives us for not using
+            # sql alchemy
+            warnings.simplefilter('ignore')
+            df = pd.read_sql(sql=query, con=self.con)
+
+        return df
 
     def _establish_connection(self) -> None:
         """
