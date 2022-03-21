@@ -1,32 +1,30 @@
 name: household-pulse
 channels:
-  - conda-forge
   - defaults
 dependencies:
-  - autopep8=1.5.7
+  - asttokens=2.0.5
+  - autopep8=1.6.0
   - backcall=0.2.0
   - beautifulsoup4=4.10.0
   - blas=1.0
+  - boto3=1.20.24
+  - botocore=1.23.24
   - bottleneck=1.3.2
   - brotlipy=0.7.0
-  - bump2version=1.0.1
-  - ca-certificates=2021.10.26
+  - ca-certificates=2022.2.1
   - certifi=2021.10.8
   - cffi=1.15.0
   - charset-normalizer=2.0.4
-  - cloudpickle=2.0.0
   - colorama=0.4.4
-  - cryptography=35.0.0
-  - dask-core=2021.10.0
-  - decorator=5.1.0
-  - flake8=3.9.2
-  - fsspec=2021.10.1
+  - cryptography=36.0.0
+  - decorator=5.1.1
+  - executing=0.8.3
+  - flake8=4.0.1
   - idna=3.3
-  - importlib-metadata=4.8.2
   - intel-openmp=2021.4.0
-  - ipython=7.29.0
-  - jedi=0.18.0
-  - locket=0.2.1
+  - ipython=8.1.1
+  - jedi=0.18.1
+  - jmespath=0.10.0
   - matplotlib-inline=0.1.2
   - mccabe=0.6.1
   - mkl=2021.4.0
@@ -35,53 +33,57 @@ dependencies:
   - mkl_random=1.2.2
   - mypy=0.910
   - mypy_extensions=0.4.3
-  - numexpr=2.7.3
-  - numpy=1.21.2
-  - numpy-base=1.21.2
-  - openssl=1.1.1l
+  - numexpr=2.8.1
+  - numpy=1.21.5
+  - numpy-base=1.21.5
+  - openssl=1.1.1n
   - packaging=21.3
-  - pandas=1.3.4
-  - parso=0.8.2
-  - partd=1.2.0
+  - pandas=1.4.1
+  - parso=0.8.3
   - pickleshare=0.7.5
   - pip=21.2.4
   - prompt-toolkit=3.0.20
   - psutil=5.8.0
+  - pure_eval=0.2.2
   - pycodestyle=2.7.0
   - pycparser=2.21
   - pyflakes=2.3.1
-  - pygments=2.10.0
-  - pyopenssl=21.0.0
+  - pygments=2.11.2
+  - pyopenssl=22.0.0
   - pyparsing=3.0.4
   - pysocks=1.7.1
   - python=3.9.7
   - python-dateutil=2.8.2
   - pytz=2021.3
-  - pyyaml=6.0
-  - requests=2.26.0
+  - requests=2.27.1
+  - s3transfer=0.5.0
   - setuptools=58.0.4
   - six=1.16.0
   - soupsieve=2.3.1
-  - sqlite=3.36.0
+  - sqlite=3.38.0
+  - stack_data=0.2.0
   - toml=0.10.2
-  - toolz=0.11.2
-  - tqdm=4.62.3
+  - tqdm=4.63.0
   - traitlets=5.1.1
   - typing_extensions=3.10.0.2
   - tzdata=2021e
-  - urllib3=1.26.7
+  - urllib3=1.26.8
   - vc=14.2
   - vs2015_runtime=14.27.29016
   - wcwidth=0.2.5
-  - wheel=0.37.0
+  - wheel=0.37.1
   - win_inet_pton=1.1.0
   - wincertstore=0.2
-  - yaml=0.2.5
-  - zipp=3.6.0
   - pip:
-    - household-pulse==0.2.0
+    - cloudpickle==2.0.0
+    - dask==2022.2.1
+    - fsspec==2022.2.0
+    - locket==0.2.1
     - mysql-connector-python==8.0.27
-    - protobuf==3.19.1
+    - partd==1.2.0
+    - protobuf==3.19.0
+    - pyyaml==6.0
+    - toolz==0.11.2
     - types-requests==2.25.9
     - types-setuptools==57.4.0
 prefix: C:\Users\manma\miniconda3\envs\household-pulse

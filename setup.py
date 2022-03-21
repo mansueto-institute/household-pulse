@@ -13,7 +13,8 @@ setuptools.setup(
         'beautifulsoup4>=4.10.0',
         'mysql-connector-python>=8.0.26',
         'dask>=0.0.7',
-        'tqdm'
+        'tqdm',
+        'boto3>=1.20.24'
     ],
     version='0.4.0',
     author="Manuel Martinez",
