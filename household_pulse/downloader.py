@@ -32,13 +32,17 @@ class DataLoader:
 
     def load_week(self, week: int) -> pd.DataFrame:
         """
-        _summary_
+        This methods attempts to download the passed week's raw response data.
+        It first checks S3, and if the file is not found in S3 it checks the
+        Census' website. If it finds it in the Census' website it downloads
+        the responses with the available weights into a pandas dataframe and
+        uploads a copy to S3 for future use.
 
         Args:
-            week (int): _description_
+            week (int): The pulse week value.
 
         Returns:
-            pd.DataFrame: _description_
+            pd.DataFrame: The raw responses with merged weights.
         """
         try:
             df = self._download_from_s3(week=week)
@@ -53,13 +57,13 @@ class DataLoader:
 
     def _download_from_s3(self, week: int) -> pd.DataFrame:
         """
-        _summary_
+        Downloads a pulse raw file from S3.
 
         Args:
-            week (int): _description_
+            week (int): The survey week index
 
         Returns:
-            bool: _description_
+            pd.DataFrame: Raw response data with availaible weights merged
         """
         s3obj = self.s3.get_object(
             Bucket='household-pulse',
@@ -75,7 +79,7 @@ class DataLoader:
         merge weights and PUF dataframes
 
         Args:
-            week (int): the week of data to download
+            week (int): The week of data to download
 
         Returns:
             pd.DataFrame: the weeks census household pulse data merged with the
@@ -111,14 +115,12 @@ class DataLoader:
 
     def _upload_to_s3(self, df: pd.DataFrame, week: int) -> None:
         """
-        _summary_
+        Uploads a dataframe that contains the raw responses from a single week
+        with its available weights merged as a compressed parquet file into S3
 
         Args:
-            df (pd.DataFrame): _description_
-            week (int): _description_
-
-        Returns:
-            _type_: _description_
+            df (pd.DataFrame): Dataframe to upload
+            week (int): The pulse survey week. Used for the file key.
         """
         buffer = BytesIO()
         df.to_parquet(buffer, index=False, compression='gzip')
@@ -131,10 +133,11 @@ class DataLoader:
     @staticmethod
     def _load_s3_creds() -> dict[str, str]:
         """
-        _summary_
+        Loads the S3 credentials that have read/write permissions for the
+        project bucket only.
 
         Returns:
-            dict[str, str]: _description_
+            dict[str, str]: IAM credentials.
         """
         fname = resource_filename('household_pulse', 's3.json')
         with open(fname, 'r') as file:
@@ -163,7 +166,7 @@ class DataLoader:
         else:
             return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
 
-    @ staticmethod
+    @staticmethod
     def _make_data_fname(week: int, fname: str) -> str:
         """
         Helper function to get the string names of the files downloaded
