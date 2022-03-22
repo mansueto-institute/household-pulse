@@ -8,13 +8,9 @@ Created on Sunday, 10th October 2021 9:04:41 pm
 @purpose:   module for all io utils
 ===============================================================================
 """
-
-import json
 import re
 
-
 import pandas as pd
-import pkg_resources
 import requests
 from bs4 import BeautifulSoup
 
@@ -114,21 +110,6 @@ def load_gsheet(sheetname: str) -> pd.DataFrame:
     )
 
     return df
-
-
-def load_rds_creds() -> dict[str, str]:
-    """
-    Loads credentials for RDS MySQL DB from local secrets file
-
-    Returns:
-        dict[str, str]: connection config dict
-    """
-    fname = pkg_resources.resource_filename(
-        'household_pulse',
-        'rds-mysql.json'
-    )
-    with open(fname, 'r') as file:
-        return json.loads(file.read())
 
 
 def load_census_weeks():
