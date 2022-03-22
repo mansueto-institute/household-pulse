@@ -27,8 +27,7 @@ class DataLoader:
     """
 
     def __init__(self) -> None:
-        creds = self._load_s3_creds()
-        self.s3 = boto3.client('s3', **creds)
+        self.s3 = boto3.client('s3', **self._load_s3_creds())
 
     def load_week(self, week: int) -> pd.DataFrame:
         """
