@@ -10,9 +10,11 @@ Created on Saturday, 23rd October 2021 1:57:08 pm
 """
 from argparse import ArgumentParser
 from pathlib import Path
+from typing import Optional
 
 from tqdm import tqdm
 
+from household_pulse.downloader import DataLoader
 from household_pulse.loaders import load_census_weeks, load_gsheet
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.pulse import Pulse
@@ -94,23 +96,20 @@ class PulseCLI:
                 target = self.args.update_gsheet
                 self.update_gsheet(target=target)
         elif self.args.subcommand == 'fetch':
-            if self.args.download_pulse:
+            if self.args.subsubcommand == 'download-pulse':
                 self.download_pulse()
+            elif self.args.subsubcommand == 'download-raw':
+                self.download_raw()
 
     def download_pulse(self) -> None:
         """
-        _summary_
+        downloads the entire processed data form our RDS DB.
         """
-        path: Path = Path(self.args.output)
-        path = path.resolve()
-
-        if not path.exists():
-            raise FileNotFoundError(f'directory {path} does not exist')
-
-        if self.args.week is None:
-            outfile = path.joinpath('pulse-data.csv')
-        else:
-            outfile = path.joinpath(f'pulse-data-{self.args.week}.csv')
+        outfile = self._resolve_outpath(
+            filepath=self.args.output,
+            file_prefix='pulse-data',
+            week=self.args.week
+        )
 
         sql = PulseSQL()
 
@@ -122,6 +121,20 @@ class PulseCLI:
 
         df.to_csv(outfile, index=False)
         sql.close_connection()
+
+    def download_raw(self) -> None:
+        """
+        Downloads a single week of raw data from either S3 or the Census,
+        depending on what is available.
+        """
+        outfile = self._resolve_outpath(
+            filepath=self.args.output,
+            file_prefix='pulse-raw',
+            week=self.args.week
+        )
+        dl = DataLoader()
+        df = dl.load_week(week=self.args.week)
+        df.to_csv(outfile, index=False)
 
     def _etlparser(self, parser: ArgumentParser) -> None:
         """
@@ -185,22 +198,42 @@ class PulseCLI:
         Args:
             parser (ArgumentParser): the edited subparser
         """
-        parser.add_argument(
-            '--download-pulse',
-            help='Downloads the processed pulse table into a .csv file',
-            action='store_true',
-            default=False
+        subparsers = parser.add_subparsers(
+            dest='subsubcommand',
+            help='The different sub-commands available'
         )
-        parser.add_argument(
+
+        dloadpulse = subparsers.add_parser(
+            name='download-pulse',
+            help='Subcommand for downloading the processed pulse data'
+        )
+
+        dloadpulse.add_argument(
             '--week',
-            help='Desired week to download. If not passed, gets all weeks',
+            help='Week to download',
             type=int,
-            required=False,
             default=None
         )
-        parser.add_argument(
+
+        dloadpulse.add_argument(
             'output',
             help='The target directory for the .csv file.',
+            type=str
+        )
+
+        dloadraw = subparsers.add_parser(
+            name='download-raw',
+            help='Subcommand for downloading the raw pulse data'
+        )
+        dloadraw.add_argument(
+            '--week',
+            help='Week to download',
+            type=int,
+            required=True
+        )
+        dloadraw.add_argument(
+            'output',
+            help='The target directory for the .csv file',
             type=str
         )
 
@@ -274,6 +307,34 @@ class PulseCLI:
         sql.cur.execute(f'DELETE FROM {target}')
         sql.append_values(table=target, df=df)
         sql.close_connection()
+
+    @staticmethod
+    def _resolve_outpath(filepath: str,
+                         file_prefix: str,
+                         week: Optional[int] = None) -> Path:
+        """
+        Resolves an output path for saving a csv file locally
+
+        Args:
+            filepath (str): desired output path
+            file_prefix (str): the prefix for the output file name
+            week (Optional[int]): the week for the output file
+
+        Returns:
+            Path: resolved output path
+        """
+        path: Path = Path(filepath)
+        path = path.resolve()
+
+        if not path.exists():
+            raise FileNotFoundError(f'directory {path} does not exist')
+
+        if week is None:
+            outfile = path.joinpath(f'{file_prefix}.csv')
+        else:
+            outfile = path.joinpath(f'{file_prefix}-{week}.csv')
+
+        return outfile
 
 
 if __name__ == "__main__":
