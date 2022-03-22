@@ -14,8 +14,9 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
 import pandas as pd
 from dask import dataframe as dd
 
-from household_pulse.loaders import (NUMERIC_COL_BUCKETS, download_puf,
-                                     load_census_weeks, load_gsheet)
+from household_pulse.downloader import DataLoader
+from household_pulse.loaders import (NUMERIC_COL_BUCKETS, load_census_weeks,
+                                     load_gsheet)
 from household_pulse.mysql_wrapper import PulseSQL
 
 
@@ -72,7 +73,8 @@ class Pulse:
         """
         downloads puf data and stores it into the class' state
         """
-        self.df = download_puf(week=self.week)
+        dl = DataLoader()
+        self.df = dl.load_week(week=self.week)
         self.df['TOPLINE'] = 1
 
     def _parse_question_cols(self) -> None:
