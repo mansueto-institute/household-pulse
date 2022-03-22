@@ -16,7 +16,7 @@ setuptools.setup(
         'tqdm',
         'boto3>=1.20.24'
     ],
-    version='1.0.0',
+    version='1.1.0',
     author="Manuel Martinez",
     author_email="manmart@uchicago.edu",
     description=(
