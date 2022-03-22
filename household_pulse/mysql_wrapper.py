@@ -9,6 +9,7 @@ Created on Saturday, 16th October 2021 1:35:51 pm
             into the project table
 ===============================================================================
 """
+import json
 import warnings
 from typing import Optional
 
@@ -17,8 +18,7 @@ import pandas as pd
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
 from mysql.connector.errors import DatabaseError
-
-from household_pulse.loaders import load_rds_creds
+from pkg_resources import resource_filename
 
 
 class PulseSQL:
@@ -132,7 +132,8 @@ class PulseSQL:
         starts connection to the DB. gets called automatically when the class
         is instantiated, ability to re run it to reconnect if needed.
         """
-        self.con: MySQLConnection = mysql.connector.connect(**load_rds_creds())
+        self.con: MySQLConnection = mysql.connector.connect(
+            **self._load_rds_creds())
         self.cur: MySQLCursor = self.con.cursor()
 
     def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -167,3 +168,15 @@ class PulseSQL:
             self.con.rollback()
             self.close_connection()
             raise error
+
+    @staticmethod
+    def _load_rds_creds() -> dict[str, str]:
+        """
+        Loads credentials for RDS MySQL DB from local secrets file
+
+        Returns:
+            dict[str, str]: connection config dict
+        """
+        fname = resource_filename('household_pulse', 'rds-mysql.json')
+        with open(fname, 'r') as file:
+            return json.loads(file.read())

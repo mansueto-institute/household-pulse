@@ -1,6 +1,7 @@
 # custom
 .DS_Store
 rds-mysql.json
+s3.json
 .vscode
 
 # Byte-compiled / optimized / DLL files
