@@ -8,10 +8,10 @@ Created on Sunday, 10th October 2021 9:04:41 pm
 @purpose:   module for all io utils
 ===============================================================================
 """
-import io
+
 import json
 import re
-from zipfile import ZipFile
+
 
 import pandas as pd
 import pkg_resources
@@ -112,88 +112,6 @@ def load_gsheet(sheetname: str) -> pd.DataFrame:
     df = pd.read_csv(
         f'{baseurl}/{ssid}/export?format=csv&gid={sheetids[sheetname]}'
     )
-
-    return df
-
-
-def make_data_url(week: int, hweights: bool = False) -> str:
-    """
-    Helper function to get string for file to download from census api
-
-    Args:
-        week (int): the week of data to download
-        hweights (bool): make url for household weights that for weeks < 13
-            are in a separate file in the census' ftp.
-
-    Returns:
-        str: the year/week/file.zip to be downloaded
-    """
-    if hweights and week > 12:
-        raise ValueError('hweights can only be passed for weeks 1-12')
-
-    year: int = 2021 if week > 21 else 2020
-    weekstr: str = str(week).zfill(2)
-    if hweights:
-        return f'{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv'
-    else:
-        return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
-
-
-def make_data_fname(week: int, fname: str) -> str:
-    """
-    Helper function to get the string names of the files downloaded
-
-    Args:
-        week (int): the week of data to download
-        fname (str): the file to dowload (d: main data file, w: weights file)
-
-    Returns:
-        str: name of file downloaded
-    """
-    if fname not in {'d', 'w'}:
-        raise ValueError("fname muts be in {'d', 'w'}")
-
-    year = '2021' if int(week) > 21 else '2020'
-    weekstr: str = str(week).zfill(2)
-    if fname == 'd':
-        return f"pulse{year}_puf_{weekstr}.csv"
-    else:
-        return f"pulse{year}_repwgt_puf_{weekstr}.csv"
-
-
-def download_puf(week: int) -> pd.DataFrame:
-    """
-    Download Census Household Pulse PUF zip file for the given week and merge
-    weights and PUF dataframes
-
-    Args:
-        week (int): the week of data to download
-
-    Returns:
-        pd.DataFrame: the weeks census household pulse data merged with the
-            weights csv
-    """
-    base_url = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
-    url = ''.join((base_url, make_data_url(week)))
-    r = requests.get(url)
-    read_zip = ZipFile(io.BytesIO(r.content))
-
-    data_df: pd.DataFrame = pd.read_csv(
-        read_zip.open(make_data_fname(week, 'd')),
-        dtype={'SCRAM': 'string'})
-    weight_df: pd.DataFrame = pd.read_csv(
-        read_zip.open(make_data_fname(week, 'w')),
-        dtype={'SCRAM': 'string'})
-
-    if week < 13:
-        hweight_url = ''.join((
-            base_url,
-            make_data_url(week=week, hweights=True)))
-        hwgdf = pd.read_csv(hweight_url)
-        weight_df = weight_df.merge(hwgdf, how='inner', on=['SCRAM', 'WEEK'])
-
-    df = data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
-    df = df.copy()
 
     return df
 
