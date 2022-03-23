@@ -15,8 +15,7 @@ import pandas as pd
 from dask import dataframe as dd
 
 from household_pulse.downloader import DataLoader
-from household_pulse.loaders import (NUMERIC_COL_BUCKETS, load_census_weeks,
-                                     load_gsheet)
+from household_pulse.loaders import load_census_weeks
 from household_pulse.mysql_wrapper import PulseSQL
 
 
@@ -31,10 +30,11 @@ class Pulse:
         Args:
             week (int): specifies which week to run the data for.
         """
+        self.dl = DataLoader()
         self.week = week
-        self.cmsdf = load_gsheet('county_metro_state')
-        self.qumdf = load_gsheet('question_mapping')
-        self.resdf = load_gsheet('response_mapping')
+        self.cmsdf = self.dl.load_gsheet('county_metro_state')
+        self.qumdf = self.dl.load_gsheet('question_mapping')
+        self.resdf = self.dl.load_gsheet('response_mapping')
         self.ctabdf: pd.DataFrame
 
     def process_data(self) -> None:
@@ -73,8 +73,7 @@ class Pulse:
         """
         downloads puf data and stores it into the class' state
         """
-        dl = DataLoader()
-        self.df = dl.load_week(week=self.week)
+        self.df = self.dl.load_week(week=self.week)
         self.df['TOPLINE'] = 1
 
     def _parse_question_cols(self) -> None:
@@ -121,15 +120,20 @@ class Pulse:
             pd.DataFrame: with the numeric columns bucketized
         """
         df = self.df
-        qumdf = load_gsheet('question_mapping')
-        num_cols = qumdf[qumdf['question_type'] == 'Input value']['variable']
-        for col in num_cols:
-            if col in df.columns:
-                df[col] = pd.cut(
-                    df[col],
-                    bins=NUMERIC_COL_BUCKETS[col]['bins'],
-                    labels=NUMERIC_COL_BUCKETS[col]['labels'],
-                    right=False)
+        mapdf = self.dl.load_gsheet('numeric_mapping')
+        numcols = mapdf['variable'].unique()
+
+        for col in numcols:
+            if col not in df.columns:
+                continue
+            auxdf = mapdf[mapdf['variable'] == col]
+            bins = pd.IntervalIndex.from_arrays(
+                left=auxdf['min_value'],
+                right=auxdf['max_value'],
+                closed='both',
+            )
+            df[col] = pd.cut(df[col], bins=bins)
+            df[col] = df[col].cat.rename_categories(auxdf['label'].values)
 
     def _reshape_long(self) -> None:
         """

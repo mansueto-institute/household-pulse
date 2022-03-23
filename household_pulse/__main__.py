@@ -15,7 +15,7 @@ from typing import Optional
 from tqdm import tqdm
 
 from household_pulse.downloader import DataLoader
-from household_pulse.loaders import load_census_weeks, load_gsheet
+from household_pulse.loaders import load_census_weeks
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.pulse import Pulse
 
@@ -296,7 +296,8 @@ class PulseCLI:
             raise ValueError(
                 f'{target} is not in allowed targets: {allowed_targets}')
 
-        df = load_gsheet(target)
+        dl = DataLoader()
+        df = dl.load_gsheet(target)
 
         if target == 'response_mapping':
             df['value_recode'] = df['value_recode'].astype('Int32')
