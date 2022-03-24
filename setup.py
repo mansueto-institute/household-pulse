@@ -17,7 +17,7 @@ setuptools.setup(
         'boto3>=1.20.24',
         'pyarrow>=4.0.1'
     ],
-    version='1.2.2',
+    version='1.2.3',
     author="Manuel Martinez",
     author_email="manmart@uchicago.edu",
     description=(
