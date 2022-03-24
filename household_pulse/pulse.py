@@ -243,7 +243,6 @@ class Pulse:
         """
         ctabdf = self.ctabdf
         resdf = self.resdf
-        qumdf = self.qumdf
 
         ctabdf = ctabdf.merge(
             resdf[['q_var', 'q_val', 'label_recode']],
@@ -251,8 +250,16 @@ class Pulse:
             on=['q_var', 'q_val'])
         ctabdf.rename(columns={'label_recode': 'q_val_label'}, inplace=True)
 
+        # before merging the `labels` to each of the question names we need
+        # to take into account some of the variables that were recoded due
+        # small changes across the survey waves.
+        auxdf = self.qumdf.copy()
+        auxdf['variable'] = auxdf['variable_recode'].where(
+            auxdf['variable_recode'].notnull(),
+            auxdf['variable'])
+
         ctabdf = ctabdf.merge(
-            qumdf[['variable', 'question_clean']],
+            auxdf[['variable', 'question_clean']],
             how='left',
             left_on='q_var',
             right_on='variable',
