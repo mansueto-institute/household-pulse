@@ -35,6 +35,7 @@ class Pulse:
         self.cmsdf = self.dl.load_gsheet('county_metro_state')
         self.qumdf = self.dl.load_gsheet('question_mapping')
         self.resdf = self.dl.load_gsheet('response_mapping')
+        self.mapdf = self.dl.load_gsheet('numeric_mapping')
         self.ctabdf: pd.DataFrame
 
     def process_data(self) -> None:
@@ -48,6 +49,7 @@ class Pulse:
         self._reshape_long()
         self._drop_missing_responses()
         self._recode_values()
+        self._coalesce_variables()
         self._melt_to_ctab()
         self._aggregate()
         self._merge_labels()
@@ -120,7 +122,7 @@ class Pulse:
             pd.DataFrame: with the numeric columns bucketized
         """
         df = self.df
-        mapdf = self.dl.load_gsheet('numeric_mapping')
+        mapdf = self.mapdf
         numcols = mapdf['variable'].unique()
 
         for col in numcols:
@@ -223,6 +225,17 @@ class Pulse:
         longdf['q_val'] = longdf['value_recode']
         longdf.drop(columns='value_recode', inplace=True)
         self.longdf = longdf
+
+    def _coalesce_variables(self) -> None:
+        """
+        coalesces variables that represent the same question but that have
+        been edited across the survey waves so that they represent the same
+        question in the final time series processed data.
+        """
+        qumdf = self.qumdf
+        auxdf = qumdf[qumdf['variable_recode'].notnull()]
+        recodemap = dict(zip(auxdf['variable'], auxdf['variable_recode']))
+        self.longdf['q_var'] = self.longdf['q_var'].replace(recodemap)
 
     def _merge_labels(self) -> None:
         """
