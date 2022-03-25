@@ -46,6 +46,7 @@ class Pulse:
         self._download_data()
         self._parse_question_cols()
         self._bucketize_numeric_cols()
+        self._coalesce_races()
         self._reshape_long()
         self._drop_missing_responses()
         self._recode_values()
@@ -236,6 +237,15 @@ class Pulse:
         auxdf = qumdf[qumdf['variable_recode'].notnull()]
         recodemap = dict(zip(auxdf['variable'], auxdf['variable_recode']))
         self.longdf['q_var'] = self.longdf['q_var'].replace(recodemap)
+
+    def _coalesce_races(self) -> None:
+        """
+        Coalesces the `RRACE` and `RHISPANIC` variables into a single variable
+        called `RRACE` that has a new category for hispanic/latino.
+        """
+        self.df['RRACE'] = self.df['RRACE'].where(
+            cond=self.df['RHISPANIC'] == 1,
+            other=5)
 
     def _merge_labels(self) -> None:
         """
