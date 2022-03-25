@@ -218,5 +218,6 @@ class DataLoader:
         df = pd.read_csv(
             f'{baseurl}/{ssid}/export?format=csv&gid={sheetids[sheetname]}'
         )
+        df = df.dropna(how='all')
 
         return df
