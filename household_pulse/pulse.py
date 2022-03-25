@@ -12,7 +12,6 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
 ===============================================================================
 """
 import pandas as pd
-from dask import dataframe as dd
 
 from household_pulse.downloader import DataLoader
 from household_pulse.loaders import load_census_weeks
@@ -51,7 +50,6 @@ class Pulse:
         self._drop_missing_responses()
         self._recode_values()
         self._coalesce_variables()
-        self._melt_to_ctab()
         self._aggregate()
         self._merge_labels()
         self._merge_cbsa_info()
@@ -185,17 +183,17 @@ class Pulse:
 
         self.longdf = longdf
 
-    def _melt_to_ctab(self) -> None:
-        """
-        duplicates each row in `longdf` for each of the crosstab values in
-        self.xtabs
-        """
-        self.longdf = self.longdf.melt(
-            id_vars=['SCRAM', 'q_var', 'q_val'],
-            value_vars=self.xtabs,
-            var_name='xtab_var',
-            value_name='xtab_val'
-        )
+    # def _melt_to_ctab(self) -> None:
+    #     """
+    #     duplicates each row in `longdf` for each of the crosstab values in
+    #     self.xtabs
+    #     """
+    #     self.longdf = self.longdf.melt(
+    #         id_vars=['SCRAM', 'q_var', 'q_val'],
+    #         value_vars=self.xtabs,
+    #         var_name='xtab_var',
+    #         value_name='xtab_val'
+    #     )
 
     def _recode_values(self) -> None:
         """
@@ -332,16 +330,13 @@ class Pulse:
         ctabdf.sort_values(by=['q_var', 'xtab_var'], inplace=True)
         self.ctabdf = ctabdf
 
-    def _aggregate_counts(self,
-                          weight_type: str,
-                          as_share: bool = False) -> pd.DataFrame:
+    def _aggregate_counts(self, weight_type: str) -> pd.DataFrame:
         """
         aggregates all weights at the level of `longdf`. that is each
         question by each crosstab and sums the weights within each group.
 
         Args:
             weight_type (str): {'PWEIGHT', 'HWEIGHT'}
-            as_share (bool): normalize the weights by the totals in each
 
         Returns:
             pd.DataFrame: aggregated weights with confidence intervals
@@ -352,31 +347,38 @@ class Pulse:
 
         # we fetch the passed weight type
         wgtdf = self.df.set_index('SCRAM').filter(like=weight_type)
-        # the 250000 number is set up so that the memory usage does not
-        # exceed ~8GB in total
-        ddf: dd = dd.from_pandas(self.longdf, chunksize=250000)
-        ddf = ddf.merge(wgtdf, how='left', on='SCRAM')
+        wgtcols = wgtdf.columns
 
-        sumdf: pd.DataFrame
-        sumdf = (ddf
-                 .groupby(['q_var', 'q_val', 'xtab_var', 'xtab_val'])
-                 [wgtdf.columns]
-                 .sum()
-                 .compute())
+        df = self.longdf.merge(wgtdf, on='SCRAM')
 
-        if as_share:
-            totdf = (sumdf
-                     .groupby(['q_var', 'xtab_var', 'xtab_val'])
-                     .transform('sum'))
-            sumdf = sumdf / totdf
-            sumdf.columns = sumdf.columns.str.replace(
-                weight_type,
-                f'{weight_type}_SHARE')
-            weight_type = f'{weight_type}_SHARE'
+        auxs = []
+        for xtab_var in self.xtabs:
+            auxdf = df.groupby([xtab_var, 'q_var', 'q_val'])[wgtcols].sum()
+            self._get_conf_intervals(auxdf, weight_type)
 
-        self._get_conf_intervals(sumdf, weight_type)
+            # we can get the confidence intervals as shares after aggregating
+            sumdf = auxdf.groupby(['q_var', xtab_var]).transform('sum')
+            shadf = auxdf / sumdf
+            shadf.columns = shadf.columns + '_SHARE'
+            xtabdf = auxdf.merge(
+                shadf,
+                how='left',
+                left_index=True,
+                right_index=True)
 
-        return sumdf
+            # here we reformat some data to append the crosstabs together
+            xtabdf.reset_index(inplace=True)
+            xtabdf['xtab_var'] = xtab_var
+            xtabdf['xtab_val'] = xtabdf[xtab_var]
+            xtabdf.drop(columns=xtab_var, inplace=True)
+            auxs.append(xtabdf)
+
+        resdf = pd.concat(auxs)
+        resdf.set_index(
+            ['xtab_var', 'xtab_val', 'q_var', 'q_val'],
+            inplace=True)
+
+        return resdf
 
     def _aggregate(self) -> None:
         """
@@ -387,14 +389,10 @@ class Pulse:
         Returns:
             pd.DataFrame: aggregated xtabs for all questions and weight types
         """
-        aggs = [
-            ('PWEIGHT', False),
-            ('PWEIGHT', True),
-            ('HWEIGHT', False),
-            ('HWEIGHT', True)]
+        weights = ('PWEIGHT', 'HWEIGHT')
         auxs = []
-        for weight_type, as_share in aggs:
-            auxs.append(self._aggregate_counts(weight_type, as_share))
+        for weight_type in weights:
+            auxs.append(self._aggregate_counts(weight_type))
         ctabdf = pd.concat(auxs, axis=1)
         ctabdf.columns = ctabdf.columns.str.lower()
         ctabdf = ctabdf.round(5)
