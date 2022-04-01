@@ -12,10 +12,9 @@ setuptools.setup(
         'requests>=2.26.0',
         'beautifulsoup4>=4.10.0',
         'mysql-connector-python>=8.0.26',
-        'dask>=0.0.7',
-        'tqdm',
         'boto3>=1.20.24',
-        'pyarrow>=4.0.1'
+        'pyarrow>=4.0.1',
+        'tqdm>=4.63.0'
     ],
     version='1.2.4',
     author="Manuel Martinez",
