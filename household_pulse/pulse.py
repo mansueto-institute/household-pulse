@@ -20,7 +20,15 @@ from household_pulse.mysql_wrapper import PulseSQL
 
 class Pulse:
     meltvars = ('SCRAM', 'WEEK')
-    xtabs = ('TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA')
+    xtabs = (
+        'TOPLINE',
+        'RRACE',
+        'EEDUC',
+        'EST_MSA',
+        'INCOME',
+        'EGENDER_EGENID_BIRTH',
+        'TBIRTH_YEAR'
+    )
 
     def __init__(self, week: int) -> None:
         """
@@ -43,13 +51,13 @@ class Pulse:
         upload
         """
         self._download_data()
+        self._coalesce_variables()
         self._parse_question_cols()
         self._bucketize_numeric_cols()
         self._coalesce_races()
         self._reshape_long()
         self._drop_missing_responses()
         self._recode_values()
-        self._coalesce_variables()
         self._aggregate()
         self._merge_labels()
         self._merge_cbsa_info()
@@ -234,7 +242,7 @@ class Pulse:
         qumdf = self.qumdf
         auxdf = qumdf[qumdf['variable_recode'].notnull()]
         recodemap = dict(zip(auxdf['variable'], auxdf['variable_recode']))
-        self.longdf['q_var'] = self.longdf['q_var'].replace(recodemap)
+        self.df = self.df.rename(columns=recodemap)
 
     def _coalesce_races(self) -> None:
         """
