@@ -252,10 +252,16 @@ class Pulse:
         ctabdf = self.ctabdf
         resdf = self.resdf
 
+        # we first merge response value labels
+        # here we deduplicate because of the variable recoding
+        resdfval = resdf.drop_duplicates(
+            subset=['variable_recode', 'value_recode'])
         ctabdf = ctabdf.merge(
-            resdf[['q_var', 'q_val', 'label_recode']],
+            resdfval[['variable_recode', 'value_recode', 'label_recode']],
             how='left',
-            on=['q_var', 'q_val'])
+            left_on=['q_var', 'q_val'],
+            right_on=['variable_recode', 'value_recode'])
+        ctabdf.drop(columns=['variable_recode', 'value_recode'], inplace=True)
         ctabdf.rename(columns={'label_recode': 'q_val_label'}, inplace=True)
 
         # before merging the `labels` to each of the question names we need
@@ -265,14 +271,14 @@ class Pulse:
         auxdf['variable'] = auxdf['variable_recode'].where(
             auxdf['variable_recode'].notnull(),
             auxdf['variable'])
+        auxdf = auxdf.drop_duplicates('variable')
 
         ctabdf = ctabdf.merge(
             auxdf[['variable', 'question_clean']],
             how='left',
             left_on='q_var',
             right_on='variable',
-            copy=False)
-
+            validate='m:1')
         ctabdf.drop(columns='variable', inplace=True)
         ctabdf.rename(columns={'question_clean': 'q_var_label'}, inplace=True)
 
