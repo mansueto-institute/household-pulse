@@ -12,7 +12,6 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
 ===============================================================================
 """
 import pandas as pd
-from dask import dataframe as dd
 
 from household_pulse.downloader import DataLoader
 from household_pulse.loaders import load_census_weeks
@@ -21,7 +20,15 @@ from household_pulse.mysql_wrapper import PulseSQL
 
 class Pulse:
     meltvars = ('SCRAM', 'WEEK')
-    xtabs = ('TOPLINE', 'RRACE', 'EEDUC', 'EST_MSA')
+    xtabs = (
+        'TOPLINE',
+        'RRACE',
+        'EEDUC',
+        'EST_MSA',
+        'INCOME',
+        'EGENDER_EGENID_BIRTH',
+        'TBIRTH_YEAR'
+    )
 
     def __init__(self, week: int) -> None:
         """
@@ -44,14 +51,13 @@ class Pulse:
         upload
         """
         self._download_data()
+        self._coalesce_variables()
         self._parse_question_cols()
         self._bucketize_numeric_cols()
         self._coalesce_races()
         self._reshape_long()
         self._drop_missing_responses()
         self._recode_values()
-        self._coalesce_variables()
-        self._melt_to_ctab()
         self._aggregate()
         self._merge_labels()
         self._merge_cbsa_info()
@@ -137,6 +143,7 @@ class Pulse:
             )
             df[col] = pd.cut(df[col], bins=bins)
             df[col] = df[col].cat.rename_categories(auxdf['label'].values)
+            df[col] = df[col].astype(str)
 
     def _reshape_long(self) -> None:
         """
@@ -185,18 +192,6 @@ class Pulse:
 
         self.longdf = longdf
 
-    def _melt_to_ctab(self) -> None:
-        """
-        duplicates each row in `longdf` for each of the crosstab values in
-        self.xtabs
-        """
-        self.longdf = self.longdf.melt(
-            id_vars=['SCRAM', 'q_var', 'q_val'],
-            value_vars=self.xtabs,
-            var_name='xtab_var',
-            value_name='xtab_val'
-        )
-
     def _recode_values(self) -> None:
         """
         recodes the numeric values from the original data into new categories
@@ -205,26 +200,30 @@ class Pulse:
         resdf = self.resdf
         longdf = self.longdf
 
-        resdf.rename(
-            columns={'variable': 'q_var', 'value': 'q_val'},
-            inplace=True)
-        resdf['q_var'] = resdf['q_var'].astype(str)
-        resdf['q_val'] = resdf['q_val'].astype(str)
+        resdf['variable_recode'] = resdf['variable_recode'].astype(str)
+        resdf['value'] = resdf['value'].astype(str)
+        resdf['value'] = resdf['value'].str.split('.').str.get(0)
         resdf['value_recode'] = resdf['value_recode'].astype(str)
         resdf['value_recode'] = resdf['value_recode'].str.split('.').str.get(0)
         longdf['q_var'] = longdf['q_var'].astype(str)
         longdf['q_val'] = longdf['q_val'].astype(str)
+
+        auxdf = resdf.drop_duplicates(subset=['variable_recode', 'value'])
+
         longdf = longdf.merge(
-            resdf[['q_var', 'q_val', 'value_recode']],
+            auxdf[['variable_recode', 'value', 'value_recode']],
             how='left',
-            on=['q_var', 'q_val'],
-            copy=False)
+            left_on=['q_var', 'q_val'],
+            right_on=['variable_recode', 'value'],
+            copy=False,
+            validate='m:1')
         # coalesce old values and new values
-        longdf['value_recode'] = longdf['value_recode'].where(
-            longdf['value_recode'].notnull(),
+        longdf['value_recode'] = longdf['value_recode'].combine_first(
             longdf['q_val'])
         longdf['q_val'] = longdf['value_recode']
-        longdf.drop(columns='value_recode', inplace=True)
+        longdf.drop(
+            columns=['variable_recode', 'value', 'value_recode'],
+            inplace=True)
         self.longdf = longdf
 
     def _coalesce_variables(self) -> None:
@@ -236,7 +235,7 @@ class Pulse:
         qumdf = self.qumdf
         auxdf = qumdf[qumdf['variable_recode'].notnull()]
         recodemap = dict(zip(auxdf['variable'], auxdf['variable_recode']))
-        self.longdf['q_var'] = self.longdf['q_var'].replace(recodemap)
+        self.df = self.df.rename(columns=recodemap)
 
     def _coalesce_races(self) -> None:
         """
@@ -254,10 +253,16 @@ class Pulse:
         ctabdf = self.ctabdf
         resdf = self.resdf
 
+        # we first merge response value labels
+        # here we deduplicate because of the variable recoding
+        resdfval = resdf.drop_duplicates(
+            subset=['variable_recode', 'value_recode'])
         ctabdf = ctabdf.merge(
-            resdf[['q_var', 'q_val', 'label_recode']],
+            resdfval[['variable_recode', 'value_recode', 'label_recode']],
             how='left',
-            on=['q_var', 'q_val'])
+            left_on=['q_var', 'q_val'],
+            right_on=['variable_recode', 'value_recode'])
+        ctabdf.drop(columns=['variable_recode', 'value_recode'], inplace=True)
         ctabdf.rename(columns={'label_recode': 'q_val_label'}, inplace=True)
 
         # before merging the `labels` to each of the question names we need
@@ -267,14 +272,14 @@ class Pulse:
         auxdf['variable'] = auxdf['variable_recode'].where(
             auxdf['variable_recode'].notnull(),
             auxdf['variable'])
+        auxdf = auxdf.drop_duplicates('variable')
 
         ctabdf = ctabdf.merge(
             auxdf[['variable', 'question_clean']],
             how='left',
             left_on='q_var',
             right_on='variable',
-            copy=False)
-
+            validate='m:1')
         ctabdf.drop(columns='variable', inplace=True)
         ctabdf.rename(columns={'question_clean': 'q_var_label'}, inplace=True)
 
@@ -288,8 +293,8 @@ class Pulse:
         ctabdf = self.ctabdf
         cmsdf = self.cmsdf
 
-        ctabdf['xtab_val'] = ctabdf['xtab_val'].astype(int)
         cmsdf.drop_duplicates(subset='cbsa_fips', inplace=True)
+        cmsdf['cbsa_fips'] = cmsdf['cbsa_fips'].astype(str)
 
         ctabdf = ctabdf.merge(
             cmsdf[['cbsa_title', 'cbsa_fips']],
@@ -332,16 +337,13 @@ class Pulse:
         ctabdf.sort_values(by=['q_var', 'xtab_var'], inplace=True)
         self.ctabdf = ctabdf
 
-    def _aggregate_counts(self,
-                          weight_type: str,
-                          as_share: bool = False) -> pd.DataFrame:
+    def _aggregate_counts(self, weight_type: str) -> pd.DataFrame:
         """
         aggregates all weights at the level of `longdf`. that is each
         question by each crosstab and sums the weights within each group.
 
         Args:
             weight_type (str): {'PWEIGHT', 'HWEIGHT'}
-            as_share (bool): normalize the weights by the totals in each
 
         Returns:
             pd.DataFrame: aggregated weights with confidence intervals
@@ -352,31 +354,38 @@ class Pulse:
 
         # we fetch the passed weight type
         wgtdf = self.df.set_index('SCRAM').filter(like=weight_type)
-        # the 250000 number is set up so that the memory usage does not
-        # exceed ~8GB in total
-        ddf: dd = dd.from_pandas(self.longdf, chunksize=250000)
-        ddf = ddf.merge(wgtdf, how='left', on='SCRAM')
+        wgtcols = wgtdf.columns
 
-        sumdf: pd.DataFrame
-        sumdf = (ddf
-                 .groupby(['q_var', 'q_val', 'xtab_var', 'xtab_val'])
-                 [wgtdf.columns]
-                 .sum()
-                 .compute())
+        df = self.longdf.merge(wgtdf, on='SCRAM')
 
-        if as_share:
-            totdf = (sumdf
-                     .groupby(['q_var', 'xtab_var', 'xtab_val'])
-                     .transform('sum'))
-            sumdf = sumdf / totdf
-            sumdf.columns = sumdf.columns.str.replace(
-                weight_type,
-                f'{weight_type}_SHARE')
-            weight_type = f'{weight_type}_SHARE'
+        auxs = []
+        for xtab_var in self.xtabs:
+            auxdf = df.groupby([xtab_var, 'q_var', 'q_val'])[wgtcols].sum()
+            self._get_conf_intervals(auxdf, weight_type)
 
-        self._get_conf_intervals(sumdf, weight_type)
+            # we can get the confidence intervals as shares after aggregating
+            sumdf = auxdf.groupby(['q_var', xtab_var]).transform('sum')
+            shadf = auxdf / sumdf
+            shadf.columns = shadf.columns + '_SHARE'
+            xtabdf = auxdf.merge(
+                shadf,
+                how='left',
+                left_index=True,
+                right_index=True)
 
-        return sumdf
+            # here we reformat some data to append the crosstabs together
+            xtabdf.reset_index(inplace=True)
+            xtabdf['xtab_var'] = xtab_var
+            xtabdf['xtab_val'] = xtabdf[xtab_var]
+            xtabdf.drop(columns=xtab_var, inplace=True)
+            auxs.append(xtabdf)
+
+        resdf = pd.concat(auxs)
+        resdf.set_index(
+            ['xtab_var', 'xtab_val', 'q_var', 'q_val'],
+            inplace=True)
+
+        return resdf
 
     def _aggregate(self) -> None:
         """
@@ -387,17 +396,12 @@ class Pulse:
         Returns:
             pd.DataFrame: aggregated xtabs for all questions and weight types
         """
-        aggs = [
-            ('PWEIGHT', False),
-            ('PWEIGHT', True),
-            ('HWEIGHT', False),
-            ('HWEIGHT', True)]
+        weights = ('PWEIGHT', 'HWEIGHT')
         auxs = []
-        for weight_type, as_share in aggs:
-            auxs.append(self._aggregate_counts(weight_type, as_share))
+        for weight_type in weights:
+            auxs.append(self._aggregate_counts(weight_type))
         ctabdf = pd.concat(auxs, axis=1)
         ctabdf.columns = ctabdf.columns.str.lower()
-        ctabdf = ctabdf.round(5)
         ctabdf.reset_index(inplace=True)
         self.ctabdf = ctabdf
 
