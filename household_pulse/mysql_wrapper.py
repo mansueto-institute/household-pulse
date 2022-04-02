@@ -65,12 +65,12 @@ class PulseSQL:
             raise ValueError(
                 'the number of unique values for week in `df` must be unique')
         try:
-            self._delete_week(week=int(df['week'].min()))
+            self._delete_week(week=int(df['week'].min()), commit=False)
             self.append_values(table=table, df=df)
         except DatabaseError as e:
             self.con.rollback()
             self.close_connection()
-            raise DatabaseError(e)
+            raise e
 
     def get_latest_week(self) -> int:
         """
@@ -149,13 +149,13 @@ class PulseSQL:
         """
         return df.where(df.notnull(), None)
 
-    def _delete_week(self, week: int) -> None:
+    def _delete_week(self, week: int, commit: bool = True) -> None:
         """
         deletes all records that match the passed week value
 
         Args:
-            table (str): [description]
-            df (pd.DataFrame): [description]
+            week (int): the week to remove from the pulse table
+            commit (bool): whether to commit the deletion or delay it
         """
         query = '''
             DELETE FROM pulse
@@ -163,7 +163,8 @@ class PulseSQL:
         '''
         try:
             self.cur.execute(query, (week, ))
-            self.con.commit()
+            if commit:
+                self.con.commit()
         except DatabaseError as error:
             self.con.rollback()
             self.close_connection()
