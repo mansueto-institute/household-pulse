@@ -143,6 +143,7 @@ class Pulse:
             )
             df[col] = pd.cut(df[col], bins=bins)
             df[col] = df[col].cat.rename_categories(auxdf['label'].values)
+            df[col] = df[col].astype(str)
 
     def _reshape_long(self) -> None:
         """
@@ -190,18 +191,6 @@ class Pulse:
               (longdf['q_val'].isnull()))]
 
         self.longdf = longdf
-
-    # def _melt_to_ctab(self) -> None:
-    #     """
-    #     duplicates each row in `longdf` for each of the crosstab values in
-    #     self.xtabs
-    #     """
-    #     self.longdf = self.longdf.melt(
-    #         id_vars=['SCRAM', 'q_var', 'q_val'],
-    #         value_vars=self.xtabs,
-    #         var_name='xtab_var',
-    #         value_name='xtab_val'
-    #     )
 
     def _recode_values(self) -> None:
         """
@@ -300,8 +289,8 @@ class Pulse:
         ctabdf = self.ctabdf
         cmsdf = self.cmsdf
 
-        ctabdf['xtab_val'] = ctabdf['xtab_val'].astype(int)
         cmsdf.drop_duplicates(subset='cbsa_fips', inplace=True)
+        cmsdf['cbsa_fips'] = cmsdf['cbsa_fips'].astype(str)
 
         ctabdf = ctabdf.merge(
             cmsdf[['cbsa_title', 'cbsa_fips']],
