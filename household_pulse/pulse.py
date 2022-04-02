@@ -395,7 +395,6 @@ class Pulse:
             auxs.append(self._aggregate_counts(weight_type))
         ctabdf = pd.concat(auxs, axis=1)
         ctabdf.columns = ctabdf.columns.str.lower()
-        ctabdf = ctabdf.round(5)
         ctabdf.reset_index(inplace=True)
         self.ctabdf = ctabdf
 
