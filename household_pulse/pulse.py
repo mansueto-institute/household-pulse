@@ -200,26 +200,30 @@ class Pulse:
         resdf = self.resdf
         longdf = self.longdf
 
-        resdf.rename(
-            columns={'variable': 'q_var', 'value': 'q_val'},
-            inplace=True)
-        resdf['q_var'] = resdf['q_var'].astype(str)
-        resdf['q_val'] = resdf['q_val'].astype(str)
+        resdf['variable_recode'] = resdf['variable_recode'].astype(str)
+        resdf['value'] = resdf['value'].astype(str)
+        resdf['value'] = resdf['value'].str.split('.').str.get(0)
         resdf['value_recode'] = resdf['value_recode'].astype(str)
         resdf['value_recode'] = resdf['value_recode'].str.split('.').str.get(0)
         longdf['q_var'] = longdf['q_var'].astype(str)
         longdf['q_val'] = longdf['q_val'].astype(str)
+
+        auxdf = resdf.drop_duplicates(subset=['variable_recode', 'value'])
+
         longdf = longdf.merge(
-            resdf[['q_var', 'q_val', 'value_recode']],
+            auxdf[['variable_recode', 'value', 'value_recode']],
             how='left',
-            on=['q_var', 'q_val'],
-            copy=False)
+            left_on=['q_var', 'q_val'],
+            right_on=['variable_recode', 'value'],
+            copy=False,
+            validate='m:1')
         # coalesce old values and new values
-        longdf['value_recode'] = longdf['value_recode'].where(
-            longdf['value_recode'].notnull(),
+        longdf['value_recode'] = longdf['value_recode'].combine_first(
             longdf['q_val'])
         longdf['q_val'] = longdf['value_recode']
-        longdf.drop(columns='value_recode', inplace=True)
+        longdf.drop(
+            columns=['variable_recode', 'value', 'value_recode'],
+            inplace=True)
         self.longdf = longdf
 
     def _coalesce_variables(self) -> None:
