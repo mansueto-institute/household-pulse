@@ -11,6 +11,7 @@ Created on Monday, 21st March 2022 7:00:00 pm
 ===============================================================================
 """
 import json
+import re
 from io import BytesIO
 from zipfile import ZipFile
 
@@ -18,6 +19,7 @@ import boto3
 import pandas as pd
 import requests
 from botocore.exceptions import ClientError
+from bs4 import BeautifulSoup
 from pkg_resources import resource_filename
 
 
@@ -29,6 +31,13 @@ class DataLoader:
 
     def __init__(self) -> None:
         self.s3 = boto3.client('s3', **self._load_s3_creds())
+        self.base_census_url = (
+            'https://www2.census.gov/programs-surveys/demo/datasets/hhp/')
+        self._build_week_year_map()
+
+    @property
+    def weekyrmap(self):
+        return self.__weekyrmap
 
     def load_week(self, week: int) -> pd.DataFrame:
         """
@@ -85,9 +94,8 @@ class DataLoader:
             pd.DataFrame: the weeks census household pulse data merged with the
                 weights csv
         """
-        base_url = (
-            "https://www2.census.gov/programs-surveys/demo/datasets/hhp/")
-        url = ''.join((base_url, self._make_data_url(week)))
+
+        url = ''.join((self.base_census_url, self._make_data_url(week)))
         r = requests.get(url)
         read_zip = ZipFile(BytesIO(r.content))
 
@@ -100,7 +108,7 @@ class DataLoader:
 
         if week < 13:
             hweight_url = ''.join((
-                base_url,
+                self.base_census_url,
                 self._make_data_url(week=week, hweights=True)))
             hwgdf = pd.read_csv(hweight_url)
             weight_df = weight_df.merge(
@@ -130,21 +138,30 @@ class DataLoader:
             Body=buffer.getvalue()
         )
 
-    @staticmethod
-    def _load_s3_creds() -> dict[str, str]:
+    def _build_week_year_map(self) -> None:
         """
-        Loads the S3 credentials that have read/write permissions for the
-        project bucket only.
-
-        Returns:
-            dict[str, str]: IAM credentials.
+        creates a dictionary that maps each week to a year
         """
-        fname = resource_filename('household_pulse', 's3.json')
-        with open(fname, 'r') as file:
-            return json.loads(file.read())
+        r = requests.get(self.base_census_url)
+        soup = BeautifulSoup(r.text, 'html.parser')
 
-    @staticmethod
-    def _make_data_url(week: int, hweights: bool = False) -> str:
+        yearlinks = soup.find_all('a', {'href': re.compile(r'\d{4}/')})
+        years: list[str] = [yearlink.get_text() for yearlink in yearlinks]
+
+        weekyrmap = {}
+        for year in years:
+            yearint = int(re.sub(r'\D', '', year))
+            r = requests.get(''.join((self.base_census_url, year)))
+            soup = BeautifulSoup(r.text, 'html.parser')
+            weeklinks = soup.find_all('a', {'href': re.compile(r'wk\d{1,2}/')})
+            weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
+            for week in weeks:
+                weekint = int(re.sub(r'\D', '', week))
+                weekyrmap[weekint] = yearint
+
+        self.__weekyrmap = weekyrmap
+
+    def _make_data_url(self, week: int, hweights: bool = False) -> str:
         """
         Helper function to get string for file to download from census api
 
@@ -159,15 +176,14 @@ class DataLoader:
         if hweights and week > 12:
             raise ValueError('hweights can only be passed for weeks 1-12')
 
-        year: int = 2021 if week > 21 else 2020
+        year = self.weekyrmap[week]
         weekstr: str = str(week).zfill(2)
         if hweights:
             return f'{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv'
         else:
             return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
 
-    @staticmethod
-    def _make_data_fname(week: int, fname: str) -> str:
+    def _make_data_fname(self, week: int, fname: str) -> str:
         """
         Helper function to get the string names of the files downloaded
 
@@ -182,12 +198,25 @@ class DataLoader:
         if fname not in {'d', 'w'}:
             raise ValueError("fname muts be in {'d', 'w'}")
 
-        year = '2021' if int(week) > 21 else '2020'
+        year = self.weekyrmap[week]
         weekstr: str = str(week).zfill(2)
         if fname == 'd':
             return f"pulse{year}_puf_{weekstr}.csv"
         else:
             return f"pulse{year}_repwgt_puf_{weekstr}.csv"
+
+    @staticmethod
+    def _load_s3_creds() -> dict[str, str]:
+        """
+        Loads the S3 credentials that have read/write permissions for the
+        project bucket only.
+
+        Returns:
+            dict[str, str]: IAM credentials.
+        """
+        fname = resource_filename('household_pulse', 's3.json')
+        with open(fname, 'r') as file:
+            return json.loads(file.read())
 
     @staticmethod
     def load_gsheet(sheetname: str) -> pd.DataFrame:
