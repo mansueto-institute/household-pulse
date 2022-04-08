@@ -79,6 +79,13 @@ class PulseCLI:
                     pulse.process_data()
                     pulse.upload_data()
 
+            elif self.args.run_all_weeks:
+                weeks = self.get_all_weeks(target='census')
+                for week in tqdm(weeks, desc='Processing weeks'):
+                    pulse = Pulse(week=week)
+                    pulse.process_data()
+                    pulse.upload_data()
+
             elif self.args.backfill:
                 cenweeks = load_census_weeks()
 
@@ -175,6 +182,11 @@ class PulseCLI:
             type=int,
             default=[],
             metavar='WEEKS')
+        execgroup.add_argument(
+            '--run-all-weeks',
+            help='Runs ALL available weeks on the census',
+            action='store_true',
+            default=False)
         execgroup.add_argument(
             '--backfill',
             help='Runs all weeks in the census that are not in the RDS DB',
