@@ -92,9 +92,6 @@ class PulseCLI:
                     pulse.process_data()
                     pulse.upload_data()
 
-            elif self.args.update_gsheet:
-                target = self.args.update_gsheet
-                self.update_gsheet(target=target)
         elif self.args.subcommand == 'fetch':
             if self.args.subsubcommand == 'download-pulse':
                 self.download_pulse()
@@ -183,12 +180,6 @@ class PulseCLI:
             help='Runs all weeks in the census that are not in the RDS DB',
             action='store_true',
             default=False
-        )
-        execgroup.add_argument(
-            '--update-gsheet',
-            help='uploads a google sheets table to the SQL DB',
-            type=str,
-            metavar='GSHEET TABLE NAME'
         )
 
     def _dataparser(self, parser: ArgumentParser) -> None:
@@ -282,32 +273,6 @@ class PulseCLI:
             weeks = tuple(sorted(load_census_weeks()))
 
         return weeks
-
-    @staticmethod
-    def update_gsheet(target: str) -> None:
-        """
-        pushes one of the tables in google sheets to the MySQL DB
-
-        Args:
-            target (str): {'question_mapping', 'response_mapping'}
-        """
-        allowed_targets = {'question_mapping', 'response_mapping'}
-        if target not in allowed_targets:
-            raise ValueError(
-                f'{target} is not in allowed targets: {allowed_targets}')
-
-        dl = DataLoader()
-        df = dl.load_gsheet(target)
-
-        if target == 'response_mapping':
-            df['value_recode'] = df['value_recode'].astype('Int32')
-            df['value_binary'] = df['value_binary'].astype('Int32')
-            df = df.astype('object')
-
-        sql = PulseSQL()
-        sql.cur.execute(f'DELETE FROM {target}')
-        sql.append_values(table=target, df=df)
-        sql.close_connection()
 
     @staticmethod
     def _resolve_outpath(filepath: str,
