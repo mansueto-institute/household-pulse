@@ -1,5 +1,4 @@
 CREATE TABLE `pulse`.`pulse` (
-  `idpulsenew` INT NOT NULL AUTO_INCREMENT,
   `week` INT NOT NULL,
   `collection_dates` VARCHAR(255) NOT NULL,
   `xtab_var` VARCHAR(255) NOT NULL,
@@ -21,5 +20,5 @@ CREATE TABLE `pulse`.`pulse` (
   `hweight_share` DOUBLE NOT NULL,
   `hweight_lower_share` DOUBLE NOT NULL,
   `hweight_upper_share` DOUBLE NOT NULL,
-  PRIMARY KEY (`idpulsenew`),
+  PRIMARY KEY (`week`, `xtab_var`, `xtab_val`, `q_var`, `q_val`),
   UNIQUE INDEX `idpulsenew_UNIQUE` (`idpulsenew` ASC) VISIBLE);
