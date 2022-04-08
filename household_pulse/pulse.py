@@ -224,6 +224,17 @@ class Pulse:
         longdf.drop(
             columns=['variable_recode', 'value', 'value_recode'],
             inplace=True)
+
+        # recode xtabs separately
+        for xtab in self.xtabs:
+            auxdf = resdf[resdf['variable_recode'] == xtab].copy()
+            auxdf['value'] = auxdf['value'].astype(longdf[xtab].dtype)
+            auxdf['value_recode'] = auxdf['value_recode'].astype(
+                longdf[xtab].dtype)
+
+            valuemap = dict(zip(auxdf['value'], auxdf['value_recode']))
+            longdf[xtab] = longdf[xtab].replace(valuemap)
+
         self.longdf = longdf
 
     def _coalesce_variables(self) -> None:
