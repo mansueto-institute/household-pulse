@@ -16,7 +16,7 @@ setuptools.setup(
         'pyarrow>=4.0.1',
         'tqdm>=4.63.0'
     ],
-    version='1.2.8',
+    version='1.2.9',
     author="Manuel Martinez",
     author_email="manmart@uchicago.edu",
     description=(

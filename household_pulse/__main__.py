@@ -15,7 +15,6 @@ from typing import Optional
 from tqdm import tqdm
 
 from household_pulse.downloader import DataLoader
-from household_pulse.loaders import load_census_weeks
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.pulse import Pulse
 
@@ -87,7 +86,8 @@ class PulseCLI:
                     pulse.upload_data()
 
             elif self.args.backfill:
-                cenweeks = load_census_weeks()
+                dl = DataLoader()
+                cenweeks = dl.weekyrmap.keys()
 
                 sql = PulseSQL()
                 rdsweeks = sql.get_available_weeks()
@@ -259,7 +259,8 @@ class PulseCLI:
             week = sql.get_latest_week()
             sql.close_connection()
         elif target == 'census':
-            week = max(load_census_weeks())
+            dl = DataLoader()
+            week = max(dl.weekyrmap.keys())
 
         return week
 
@@ -282,7 +283,8 @@ class PulseCLI:
             weeks = sql.get_available_weeks()
             sql.close_connection()
         elif target == 'census':
-            weeks = tuple(sorted(load_census_weeks()))
+            dl = DataLoader()
+            weeks = tuple(sorted(dl.weekyrmap.keys()))
 
         return weeks
 

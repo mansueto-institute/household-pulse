@@ -12,9 +12,7 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
 ===============================================================================
 """
 import pandas as pd
-
 from household_pulse.downloader import DataLoader
-from household_pulse.loaders import load_census_weeks
 from household_pulse.mysql_wrapper import PulseSQL
 
 
@@ -61,7 +59,6 @@ class Pulse:
         self._aggregate()
         self._merge_labels()
         self._merge_cbsa_info()
-        self._add_week_collection_dates()
         self._reorganize_cols()
 
     def upload_data(self) -> None:
@@ -71,11 +68,15 @@ class Pulse:
         old data for this particular week, it does not delete anything.
         """
         if not hasattr(self, 'ctabdf'):
-            raise ValueError(
+            raise AttributeError(
                 'this should be only run after running the '
                 '.process_pulse_data() method')
         sql = PulseSQL()
         sql.update_values(table='pulse', df=self.ctabdf)
+
+        if self.week not in sql.get_collection_weeks():
+            sql.update_collection_dates()
+
         sql.close_connection()
 
     def _download_data(self) -> None:
@@ -316,24 +317,15 @@ class Pulse:
         ctabdf.drop(columns='cbsa_fips', inplace=True)
         self.ctabdf = ctabdf
 
-    def _add_week_collection_dates(self) -> None:
-        """
-        simply add the week number to the crosstabbed data and add the
-        collection date range for the particular week
-        """
-        self.ctabdf['collection_dates'] = load_census_weeks()[self.week]
-        self.ctabdf['week'] = self.week
-
     def _reorganize_cols(self) -> None:
         """
         reorganize columns before upload for easier inspection
         """
         ctabdf = self.ctabdf
         wgtcols = ctabdf.columns[ctabdf.columns.str.contains('weight')]
-
+        ctabdf['week'] = self.week
         colorder = [
             'week',
-            'collection_dates',
             'xtab_var',
             'xtab_val',
             'cbsa_title',
@@ -345,7 +337,9 @@ class Pulse:
         colorder.extend(wgtcols.tolist())
         assert ctabdf.columns.isin(colorder).all(), 'missing a column'
         ctabdf = ctabdf[colorder]
-        ctabdf.sort_values(by=['q_var', 'xtab_var'], inplace=True)
+        ctabdf.sort_values(
+            by=['xtab_var', 'xtab_val', 'q_var', 'q_val'],
+            inplace=True)
         self.ctabdf = ctabdf
 
     def _aggregate_counts(self, weight_type: str) -> pd.DataFrame:

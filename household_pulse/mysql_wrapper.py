@@ -20,6 +20,8 @@ from mysql.connector.cursor import MySQLCursor
 from mysql.connector.errors import DatabaseError
 from pkg_resources import resource_filename
 
+from household_pulse.downloader import DataLoader
+
 
 class PulseSQL:
     def __init__(self) -> None:
@@ -90,6 +92,11 @@ class PulseSQL:
 
         return result
 
+    def get_collection_weeks(self) -> set[int]:
+        self.cur.execute('SELECT DISTINCT week FROM collection_dates')
+        result = set(x[0] for x in self.cur.fetchall())
+        return result
+
     def close_connection(self) -> None:
         """
         Closes the connection to the DB
@@ -126,6 +133,20 @@ class PulseSQL:
             raise DatabaseError(e)
 
         return df
+
+    def update_collection_dates(self) -> None:
+        """
+        truncates the current `collection_dates` table and uploads the latest
+        collection dates into the RDS database.
+        """
+        dl = DataLoader()
+        collection_dates = dl.load_collection_dates()
+        self.cur.execute('TRUNCATE pulse.collection_dates')
+
+        datdf = pd.DataFrame.from_dict(collection_dates, orient='index')
+        datdf.reset_index(inplace=True)
+        datdf.rename(columns={'index': 'week'}, inplace=True)
+        self.append_values(table='collection_dates', df=datdf)
 
     def _establish_connection(self) -> None:
         """

@@ -12,6 +12,7 @@ Created on Monday, 21st March 2022 7:00:00 pm
 """
 import json
 import re
+from datetime import date, datetime
 from io import BytesIO
 from zipfile import ZipFile
 
@@ -250,3 +251,75 @@ class DataLoader:
         df = df.dropna(how='all')
 
         return df
+
+    @staticmethod
+    def load_collection_dates() -> dict[int, dict[str, date]]:
+        """
+        Scrapes date range meta data for each release of the Household Pulse
+        data
+
+        Returns:
+            dict[int, dict[str, date]]]: dictionary with weeks as keys and the
+                publication and collection dates.
+        """
+        weekpat = re.compile(r'Week (\d{1,2})')
+        monthpat = re.compile(r'[A-z]+ \d{1,2}(?:, \d{4})?')
+
+        URL = '/'.join(
+            (
+                'https://www.census.gov',
+                'programs-surveys',
+                'household-pulse-survey',
+                'data.html'
+            )
+        )
+        page = requests.get(URL)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        phases = soup.find_all(
+            'div',
+            {'class': 'data-uscb-list-articles-container'})
+        results = {}
+        for phase in phases:
+            if 'Data Tool' in phase.text:
+                break
+
+            wektexts = phase.find_all('p', 'uscb-margin-TB-02 uscb-title-3')
+            pubtexts = phase.find_all('div', 'uscb-list-metadata')
+            coltexts = phase.find_all(
+                'p',
+                ('uscb-sub-heading-2 uscb-color-secondary-1 '
+                 'uscb-line-height-20-18 uscb-margin-TB-02')
+            )
+            for pubtext, coltext, wektext in zip(pubtexts, coltexts, wektexts):
+                pubstr = pubtext.find_all('span')[-1].text
+                pubdate = datetime.strptime(pubstr, '%B %d, %Y')
+
+                colstrs = re.findall(monthpat, coltext.text)
+
+                # if both collections dates happen in the same year they don't
+                # put the year on the start date :flip-table:
+                if len(colstrs[1].split()) == 2:
+                    enddate = datetime.strptime(
+                        ', '.join((colstrs[1], str(pubdate.year))),
+                        '%B %d, %Y')
+                    startdate = datetime.strptime(
+                        ', '.join((colstrs[0], str(enddate.year))),
+                        '%B %d, %Y')
+                elif len(colstrs[0].split()) == 2:
+                    enddate = datetime.strptime(colstrs[1], '%B %d, %Y')
+                    startdate = datetime.strptime(
+                        ', '.join((colstrs[0], str(enddate.year))),
+                        '%B %d, %Y')
+                else:
+                    startdate = datetime.strptime(colstrs[0], '%B %d, %Y')
+                    enddate = datetime.strptime(colstrs[1], '%B %d, %Y')
+
+                week = int(re.findall(weekpat, wektext.text)[0])
+
+                results[week] = {
+                    'pub_date': pubdate.date(),
+                    'start_date': startdate.date(),
+                    'end_date': enddate.date()
+                }
+
+        return results

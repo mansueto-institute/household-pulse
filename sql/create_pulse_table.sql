@@ -1,6 +1,5 @@
 CREATE TABLE `pulse`.`pulse` (
   `week` INT NOT NULL,
-  `collection_dates` VARCHAR(255) NOT NULL,
   `xtab_var` VARCHAR(255) NOT NULL,
   `xtab_val` INT NOT NULL,
   `cbsa_title` VARCHAR(255) NULL,
