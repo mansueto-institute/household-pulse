@@ -68,15 +68,16 @@ class Pulse:
         old data for this particular week, it does not delete anything.
         """
         if not hasattr(self, 'ctabdf'):
-            raise ValueError(
+            raise AttributeError(
                 'this should be only run after running the '
                 '.process_pulse_data() method')
         sql = PulseSQL()
         sql.update_values(table='pulse', df=self.ctabdf)
-        sql.close_connection()
 
         if self.week not in sql.get_collection_weeks():
             sql.update_collection_dates()
+
+        sql.close_connection()
 
     def _download_data(self) -> None:
         """
@@ -322,10 +323,9 @@ class Pulse:
         """
         ctabdf = self.ctabdf
         wgtcols = ctabdf.columns[ctabdf.columns.str.contains('weight')]
-
+        ctabdf['week'] = self.week
         colorder = [
             'week',
-            'collection_dates',
             'xtab_var',
             'xtab_val',
             'cbsa_title',
@@ -337,7 +337,9 @@ class Pulse:
         colorder.extend(wgtcols.tolist())
         assert ctabdf.columns.isin(colorder).all(), 'missing a column'
         ctabdf = ctabdf[colorder]
-        ctabdf.sort_values(by=['q_var', 'xtab_var'], inplace=True)
+        ctabdf.sort_values(
+            by=['xtab_var', 'xtab_val', 'q_var', 'q_val'],
+            inplace=True)
         self.ctabdf = ctabdf
 
     def _aggregate_counts(self, weight_type: str) -> pd.DataFrame:
