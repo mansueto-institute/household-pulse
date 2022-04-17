@@ -14,7 +14,6 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
 import pandas as pd
 
 from household_pulse.downloader import DataLoader
-from household_pulse.loaders import load_census_weeks
 from household_pulse.mysql_wrapper import PulseSQL
 
 
@@ -61,7 +60,6 @@ class Pulse:
         self._aggregate()
         self._merge_labels()
         self._merge_cbsa_info()
-        self._add_week_collection_dates()
         self._reorganize_cols()
 
     def upload_data(self) -> None:
@@ -315,14 +313,6 @@ class Pulse:
 
         ctabdf.drop(columns='cbsa_fips', inplace=True)
         self.ctabdf = ctabdf
-
-    def _add_week_collection_dates(self) -> None:
-        """
-        simply add the week number to the crosstabbed data and add the
-        collection date range for the particular week
-        """
-        self.ctabdf['collection_dates'] = load_census_weeks()[self.week]
-        self.ctabdf['week'] = self.week
 
     def _reorganize_cols(self) -> None:
         """
