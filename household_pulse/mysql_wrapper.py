@@ -134,7 +134,7 @@ class PulseSQL:
 
         return df
 
-    def upload_collection_dates(self) -> None:
+    def update_collection_dates(self) -> None:
         """
         truncates the current `collection_dates` table and uploads the latest
         collection dates into the RDS database.
