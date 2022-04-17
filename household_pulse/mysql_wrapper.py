@@ -92,6 +92,11 @@ class PulseSQL:
 
         return result
 
+    def get_collection_weeks(self) -> set[int]:
+        self.cur.execute('SELECT DISTINCT week FROM collection_dates')
+        result = set(x[0] for x in self.cur.fetchall())
+        return result
+
     def close_connection(self) -> None:
         """
         Closes the connection to the DB
