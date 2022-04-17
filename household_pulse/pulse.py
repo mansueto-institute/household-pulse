@@ -12,7 +12,6 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
 ===============================================================================
 """
 import pandas as pd
-
 from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
 
@@ -75,6 +74,9 @@ class Pulse:
         sql = PulseSQL()
         sql.update_values(table='pulse', df=self.ctabdf)
         sql.close_connection()
+
+        if self.week not in sql.get_collection_weeks():
+            sql.update_collection_dates()
 
     def _download_data(self) -> None:
         """
