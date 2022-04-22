@@ -191,6 +191,12 @@ class Pulse:
             ~((longdf['question_type'] == 'Input value') &
               (longdf['q_val'].isnull()))]
 
+        longdf = longdf[~longdf['INCOME'].isin({-88, -99})]
+
+        for col in self.xtabs:
+            if len({-88, -99} & set(longdf[col].unique())) > 0:
+                raise ValueError(f'xtab_var {col} has some -99 or -88 values')
+
         self.longdf = longdf
 
     def _recode_values(self) -> None:
