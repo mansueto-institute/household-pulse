@@ -142,9 +142,16 @@ class Pulse:
                 right=auxdf['max_value'],
                 closed='both',
             )
-            df[col] = pd.cut(df[col], bins=bins)
-            df[col] = df[col].cat.rename_categories(auxdf['label'].values)
-            df[col] = df[col].astype(str)
+            bucketized: pd.Series = pd.cut(df[col], bins=bins)
+            if bucketized.isnull().sum() > 0:
+                allowed = {-88, -99}
+                unmapped = set(df[col][bucketized.isnull()])
+                if len(allowed - unmapped) == 0:
+                    continue
+                else:
+                    raise ValueError(
+                        f'Unmapped values bining col {col}, {unmapped}')
+            df[col] = bucketized.cat.codes
 
     def _reshape_long(self) -> None:
         """
@@ -189,7 +196,7 @@ class Pulse:
         # drop skipped input value questions
         longdf = longdf[
             ~((longdf['question_type'] == 'Input value') &
-              (longdf['q_val'].isnull()))]
+              (longdf['q_val'].isin((-88, -99))))]
 
         longdf = longdf[~longdf['INCOME'].isin({-88, -99})]
 
@@ -197,6 +204,7 @@ class Pulse:
             if len({-88, -99} & set(longdf[col].unique())) > 0:
                 raise ValueError(f'xtab_var {col} has some -99 or -88 values')
 
+        longdf.drop(columns='question_type', inplace=True)
         self.longdf = longdf
 
     def _recode_values(self) -> None:
