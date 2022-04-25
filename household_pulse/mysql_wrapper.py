@@ -63,12 +63,11 @@ class PulseSQL:
         Raises:
             DatabaseError: any issues with the DB connection
         """
-        if df['week'].nunique() != 1:
-            raise ValueError(
-                'the number of unique values for week in `df` must be unique')
         try:
-            self._delete_week(week=int(df['week'].min()), commit=False)
-            self.append_values(table=table, df=df)
+            weeks = [int(w) for w in df['week'].unique()]
+            for week in weeks:
+                self._delete_week(week=week, table=table, commit=False)
+                self.append_values(table=table, df=df[df['week'] == week])
         except DatabaseError as e:
             self.con.rollback()
             self.close_connection()
@@ -170,7 +169,7 @@ class PulseSQL:
         """
         return df.where(df.notnull(), None)
 
-    def _delete_week(self, week: int, commit: bool = True) -> None:
+    def _delete_week(self, week: int, table: str, commit: bool = True):
         """
         deletes all records that match the passed week value
 
@@ -178,8 +177,8 @@ class PulseSQL:
             week (int): the week to remove from the pulse table
             commit (bool): whether to commit the deletion or delay it
         """
-        query = '''
-            DELETE FROM pulse
+        query = f'''
+            DELETE FROM {table}
             WHERE week = %s
         '''
         try:
