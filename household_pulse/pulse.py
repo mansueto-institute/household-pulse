@@ -162,6 +162,7 @@ class Pulse:
             value_vars=self.allqs,
             var_name='q_var',
             value_name='q_val')
+        self.longdf['q_val'] = self.longdf['q_val'].astype(int)
 
     def _drop_missing_responses(self) -> None:
         """
@@ -215,7 +216,6 @@ class Pulse:
         longdf = self.longdf
 
         auxdf = resdf.drop_duplicates(subset=['variable_recode', 'value'])
-        auxdf['value'] = auxdf['value'].astype(int)
 
         longdf = longdf.merge(
             auxdf[['variable_recode', 'value', 'value_recode']],
@@ -241,6 +241,8 @@ class Pulse:
 
             valuemap = dict(zip(auxdf['value'], auxdf['value_recode']))
             longdf[xtab] = longdf[xtab].replace(valuemap)
+
+        longdf['q_val'] = longdf['q_val'].astype(int)
 
         self.longdf = longdf
 
@@ -372,8 +374,6 @@ class Pulse:
         ctabdf = pd.concat(auxs, axis=1)
         ctabdf.columns = ctabdf.columns.str.lower()
         ctabdf.reset_index(inplace=True)
-        ctabdf['xtab_val'] = ctabdf['xtab_val'].astype(int)
-        ctabdf['q_val'] = ctabdf['q_val'].astype(int)
         self.ctabdf = ctabdf
 
     @staticmethod
