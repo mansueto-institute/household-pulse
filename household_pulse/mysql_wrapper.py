@@ -11,6 +11,7 @@ Created on Saturday, 16th October 2021 1:35:51 pm
 """
 import json
 import warnings
+from datetime import datetime
 from typing import Optional
 
 import mysql.connector
@@ -95,6 +96,27 @@ class PulseSQL:
         self.cur.execute('SELECT DISTINCT week FROM collection_dates')
         result = set(x[0] for x in self.cur.fetchall())
         return result
+
+    def get_pulse_dates(self, week: int) -> dict[str, datetime]:
+        """
+        fetches the collection dates associated with a pulse week
+
+        Args:
+            week (int): week to search for
+
+        Returns:
+            dict[str, datetime]: a dictionary with the publication, start and
+                end dates for a specific survey wave
+        """
+        self.cur.execute(
+            '''
+            SELECT *
+            FROM collection_dates
+            WHERE week = %s
+            ''',
+            (week, ))
+        colnames = [desc[0] for desc in self.cur.description]
+        return dict(zip(colnames, *self.cur.fetchall()))
 
     def close_connection(self) -> None:
         """
