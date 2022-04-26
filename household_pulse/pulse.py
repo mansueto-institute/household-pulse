@@ -176,6 +176,7 @@ class Pulse:
             value_vars=self.allqs,
             var_name='q_var',
             value_name='q_val')
+        self.longdf.dropna(subset='q_val', inplace=True)
         self.longdf['q_val'] = self.longdf['q_val'].astype(int)
 
     def _drop_missing_responses(self) -> None:
