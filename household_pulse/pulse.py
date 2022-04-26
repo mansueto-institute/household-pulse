@@ -57,7 +57,6 @@ class Pulse:
         self._drop_missing_responses()
         self._recode_values()
         self._aggregate()
-        self._merge_labels()
         self._merge_cbsa_info()
         self._reorganize_cols()
 
@@ -215,15 +214,8 @@ class Pulse:
         resdf = self.resdf
         longdf = self.longdf
 
-        resdf['variable_recode'] = resdf['variable_recode'].astype(str)
-        resdf['value'] = resdf['value'].astype(str)
-        resdf['value'] = resdf['value'].str.split('.').str.get(0)
-        resdf['value_recode'] = resdf['value_recode'].astype(str)
-        resdf['value_recode'] = resdf['value_recode'].str.split('.').str.get(0)
-        longdf['q_var'] = longdf['q_var'].astype(str)
-        longdf['q_val'] = longdf['q_val'].astype(str)
-
         auxdf = resdf.drop_duplicates(subset=['variable_recode', 'value'])
+        auxdf['value'] = auxdf['value'].astype(int)
 
         longdf = longdf.merge(
             auxdf[['variable_recode', 'value', 'value_recode']],
@@ -272,45 +264,6 @@ class Pulse:
             cond=self.df['RHISPANIC'] == 1,
             other=5)
 
-    def _merge_labels(self) -> None:
-        """
-        merges both the question and response labels from the data dictionary
-        """
-        ctabdf = self.ctabdf
-        resdf = self.resdf
-
-        # we first merge response value labels
-        # here we deduplicate because of the variable recoding
-        resdfval = resdf.drop_duplicates(
-            subset=['variable_recode', 'value_recode'])
-        ctabdf = ctabdf.merge(
-            resdfval[['variable_recode', 'value_recode', 'label_recode']],
-            how='left',
-            left_on=['q_var', 'q_val'],
-            right_on=['variable_recode', 'value_recode'])
-        ctabdf.drop(columns=['variable_recode', 'value_recode'], inplace=True)
-        ctabdf.rename(columns={'label_recode': 'q_val_label'}, inplace=True)
-
-        # before merging the `labels` to each of the question names we need
-        # to take into account some of the variables that were recoded due
-        # small changes across the survey waves.
-        auxdf = self.qumdf.copy()
-        auxdf['variable'] = auxdf['variable_recode'].where(
-            auxdf['variable_recode'].notnull(),
-            auxdf['variable'])
-        auxdf = auxdf.drop_duplicates('variable')
-
-        ctabdf = ctabdf.merge(
-            auxdf[['variable', 'question_clean']],
-            how='left',
-            left_on='q_var',
-            right_on='variable',
-            validate='m:1')
-        ctabdf.drop(columns='variable', inplace=True)
-        ctabdf.rename(columns={'question_clean': 'q_var_label'}, inplace=True)
-
-        self.ctabdf = ctabdf
-
     def _merge_cbsa_info(self) -> None:
         """
         Merges core-based statistical area information to the crosstab that
@@ -320,7 +273,6 @@ class Pulse:
         cmsdf = self.cmsdf
 
         cmsdf.drop_duplicates(subset='cbsa_fips', inplace=True)
-        cmsdf['cbsa_fips'] = cmsdf['cbsa_fips'].astype(str)
 
         ctabdf = ctabdf.merge(
             cmsdf[['cbsa_title', 'cbsa_fips']],
@@ -344,9 +296,7 @@ class Pulse:
             'xtab_val',
             'cbsa_title',
             'q_var',
-            'q_var_label',
             'q_val',
-            'q_val_label'
         ]
         colorder.extend(wgtcols.tolist())
         assert ctabdf.columns.isin(colorder).all(), 'missing a column'
@@ -422,6 +372,8 @@ class Pulse:
         ctabdf = pd.concat(auxs, axis=1)
         ctabdf.columns = ctabdf.columns.str.lower()
         ctabdf.reset_index(inplace=True)
+        ctabdf['xtab_val'] = ctabdf['xtab_val'].astype(int)
+        ctabdf['q_val'] = ctabdf['q_val'].astype(int)
         self.ctabdf = ctabdf
 
     @staticmethod
