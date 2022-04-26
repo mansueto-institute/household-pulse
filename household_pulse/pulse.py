@@ -51,6 +51,7 @@ class Pulse:
         self._download_data()
         self._coalesce_variables()
         self._parse_question_cols()
+        self._calculate_ages()
         self._bucketize_numeric_cols()
         self._coalesce_races()
         self._reshape_long()
@@ -84,6 +85,19 @@ class Pulse:
         """
         self.df = self.dl.load_week(week=self.week)
         self.df['TOPLINE'] = 1
+
+    def _calculate_ages(self) -> None:
+        """
+        calculates the ages of the respondents based on the birth year and
+        the date at which the survey was implemented
+        """
+        sql = PulseSQL()
+        dates = sql.get_pulse_dates(self.week)
+        sql.close_connection()
+
+        df = self.df
+        df['TBIRTH_YEAR'] = dates['end_date'].year - df['TBIRTH_YEAR']
+        df['TBIRTH_YEAR'].clip(lower=18, inplace=True)
 
     def _parse_question_cols(self) -> None:
         """
