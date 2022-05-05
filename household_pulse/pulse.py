@@ -111,7 +111,7 @@ class Pulse:
         # first we get the select one question
         soneqs: pd.Series = qumdf.loc[
             qumdf['question_type'].isin(['Select one', 'Yes / No']),
-            'variable']
+            'variable_recode_final']
         soneqs = soneqs[soneqs.isin(df.columns)]
         # here we just drop grouping variables from actual questions
         soneqs = soneqs[~soneqs.isin(self.xtabs + self.meltvars)]
@@ -119,14 +119,14 @@ class Pulse:
         # next we get the select all questions
         sallqs: pd.Series = qumdf.loc[
             qumdf['question_type'] == 'Select all',
-            'variable']
+            'variable_recode_final']
         sallqs = sallqs[sallqs.isin(df.columns)]
 
         self.soneqs = soneqs.tolist()
         self.sallqs = sallqs.tolist()
         self.allqs = qumdf.loc[
             qumdf['variable'].isin(self.df.columns),
-            'variable']
+            'variable_recode_final']
         self.allqs = self.allqs[~self.allqs.str.contains('WEIGHT')]
         self.allqs = self.allqs.tolist()
 
