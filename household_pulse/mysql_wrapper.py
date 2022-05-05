@@ -11,6 +11,7 @@ Created on Saturday, 16th October 2021 1:35:51 pm
 """
 import json
 import warnings
+from datetime import datetime
 from typing import Optional
 
 import mysql.connector
@@ -63,12 +64,11 @@ class PulseSQL:
         Raises:
             DatabaseError: any issues with the DB connection
         """
-        if df['week'].nunique() != 1:
-            raise ValueError(
-                'the number of unique values for week in `df` must be unique')
         try:
-            self._delete_week(week=int(df['week'].min()), commit=False)
-            self.append_values(table=table, df=df)
+            weeks = [int(w) for w in df['week'].unique()]
+            for week in weeks:
+                self._delete_week(week=week, table=table, commit=False)
+                self.append_values(table=table, df=df[df['week'] == week])
         except DatabaseError as e:
             self.con.rollback()
             self.close_connection()
@@ -96,6 +96,27 @@ class PulseSQL:
         self.cur.execute('SELECT DISTINCT week FROM collection_dates')
         result = set(x[0] for x in self.cur.fetchall())
         return result
+
+    def get_pulse_dates(self, week: int) -> dict[str, datetime]:
+        """
+        fetches the collection dates associated with a pulse week
+
+        Args:
+            week (int): week to search for
+
+        Returns:
+            dict[str, datetime]: a dictionary with the publication, start and
+                end dates for a specific survey wave
+        """
+        self.cur.execute(
+            '''
+            SELECT *
+            FROM collection_dates
+            WHERE week = %s
+            ''',
+            (week, ))
+        colnames = [desc[0] for desc in self.cur.description]
+        return dict(zip(colnames, *self.cur.fetchall()))
 
     def close_connection(self) -> None:
         """
@@ -170,7 +191,7 @@ class PulseSQL:
         """
         return df.where(df.notnull(), None)
 
-    def _delete_week(self, week: int, commit: bool = True) -> None:
+    def _delete_week(self, week: int, table: str, commit: bool = True):
         """
         deletes all records that match the passed week value
 
@@ -178,8 +199,8 @@ class PulseSQL:
             week (int): the week to remove from the pulse table
             commit (bool): whether to commit the deletion or delay it
         """
-        query = '''
-            DELETE FROM pulse
+        query = f'''
+            DELETE FROM {table}
             WHERE week = %s
         '''
         try:

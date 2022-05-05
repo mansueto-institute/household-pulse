@@ -51,13 +51,13 @@ class Pulse:
         self._download_data()
         self._coalesce_variables()
         self._parse_question_cols()
+        self._calculate_ages()
         self._bucketize_numeric_cols()
         self._coalesce_races()
         self._reshape_long()
         self._drop_missing_responses()
         self._recode_values()
         self._aggregate()
-        self._merge_labels()
         self._merge_cbsa_info()
         self._reorganize_cols()
 
@@ -86,6 +86,19 @@ class Pulse:
         self.df = self.dl.load_week(week=self.week)
         self.df['TOPLINE'] = 1
 
+    def _calculate_ages(self) -> None:
+        """
+        calculates the ages of the respondents based on the birth year and
+        the date at which the survey was implemented
+        """
+        sql = PulseSQL()
+        dates = sql.get_pulse_dates(self.week)
+        sql.close_connection()
+
+        df = self.df
+        df['TBIRTH_YEAR'] = dates['end_date'].year - df['TBIRTH_YEAR']
+        df['TBIRTH_YEAR'].clip(lower=18, inplace=True)
+
     def _parse_question_cols(self) -> None:
         """
         parses the types of questions in the data (select all vs select one)
@@ -98,7 +111,7 @@ class Pulse:
         # first we get the select one question
         soneqs: pd.Series = qumdf.loc[
             qumdf['question_type'].isin(['Select one', 'Yes / No']),
-            'variable']
+            'variable_recode_final']
         soneqs = soneqs[soneqs.isin(df.columns)]
         # here we just drop grouping variables from actual questions
         soneqs = soneqs[~soneqs.isin(self.xtabs + self.meltvars)]
@@ -106,14 +119,14 @@ class Pulse:
         # next we get the select all questions
         sallqs: pd.Series = qumdf.loc[
             qumdf['question_type'] == 'Select all',
-            'variable']
+            'variable_recode_final']
         sallqs = sallqs[sallqs.isin(df.columns)]
 
         self.soneqs = soneqs.tolist()
         self.sallqs = sallqs.tolist()
         self.allqs = qumdf.loc[
             qumdf['variable'].isin(self.df.columns),
-            'variable']
+            'variable_recode_final']
         self.allqs = self.allqs[~self.allqs.str.contains('WEIGHT')]
         self.allqs = self.allqs.tolist()
 
@@ -142,9 +155,16 @@ class Pulse:
                 right=auxdf['max_value'],
                 closed='both',
             )
-            df[col] = pd.cut(df[col], bins=bins)
-            df[col] = df[col].cat.rename_categories(auxdf['label'].values)
-            df[col] = df[col].astype(str)
+            bucketized: pd.Series = pd.cut(df[col], bins=bins)
+            if bucketized.isnull().sum() > 0:
+                allowed = {-88, -99}
+                unmapped = set(df[col][bucketized.isnull()])
+                if len(allowed - unmapped) == 0:
+                    continue
+                else:
+                    raise ValueError(
+                        f'Unmapped values bining col {col}, {unmapped}')
+            df[col] = bucketized.cat.codes
 
     def _reshape_long(self) -> None:
         """
@@ -156,6 +176,8 @@ class Pulse:
             value_vars=self.allqs,
             var_name='q_var',
             value_name='q_val')
+        self.longdf.dropna(subset='q_val', inplace=True)
+        self.longdf['q_val'] = self.longdf['q_val'].astype(int)
 
     def _drop_missing_responses(self) -> None:
         """
@@ -189,7 +211,7 @@ class Pulse:
         # drop skipped input value questions
         longdf = longdf[
             ~((longdf['question_type'] == 'Input value') &
-              (longdf['q_val'].isnull()))]
+              (longdf['q_val'].isin((-88, -99))))]
 
         longdf = longdf[~longdf['INCOME'].isin({-88, -99})]
 
@@ -197,6 +219,7 @@ class Pulse:
             if len({-88, -99} & set(longdf[col].unique())) > 0:
                 raise ValueError(f'xtab_var {col} has some -99 or -88 values')
 
+        longdf.drop(columns='question_type', inplace=True)
         self.longdf = longdf
 
     def _recode_values(self) -> None:
@@ -206,14 +229,6 @@ class Pulse:
         """
         resdf = self.resdf
         longdf = self.longdf
-
-        resdf['variable_recode'] = resdf['variable_recode'].astype(str)
-        resdf['value'] = resdf['value'].astype(str)
-        resdf['value'] = resdf['value'].str.split('.').str.get(0)
-        resdf['value_recode'] = resdf['value_recode'].astype(str)
-        resdf['value_recode'] = resdf['value_recode'].str.split('.').str.get(0)
-        longdf['q_var'] = longdf['q_var'].astype(str)
-        longdf['q_val'] = longdf['q_val'].astype(str)
 
         auxdf = resdf.drop_duplicates(subset=['variable_recode', 'value'])
 
@@ -242,6 +257,8 @@ class Pulse:
             valuemap = dict(zip(auxdf['value'], auxdf['value_recode']))
             longdf[xtab] = longdf[xtab].replace(valuemap)
 
+        longdf['q_val'] = longdf['q_val'].astype(int)
+
         self.longdf = longdf
 
     def _coalesce_variables(self) -> None:
@@ -264,45 +281,6 @@ class Pulse:
             cond=self.df['RHISPANIC'] == 1,
             other=5)
 
-    def _merge_labels(self) -> None:
-        """
-        merges both the question and response labels from the data dictionary
-        """
-        ctabdf = self.ctabdf
-        resdf = self.resdf
-
-        # we first merge response value labels
-        # here we deduplicate because of the variable recoding
-        resdfval = resdf.drop_duplicates(
-            subset=['variable_recode', 'value_recode'])
-        ctabdf = ctabdf.merge(
-            resdfval[['variable_recode', 'value_recode', 'label_recode']],
-            how='left',
-            left_on=['q_var', 'q_val'],
-            right_on=['variable_recode', 'value_recode'])
-        ctabdf.drop(columns=['variable_recode', 'value_recode'], inplace=True)
-        ctabdf.rename(columns={'label_recode': 'q_val_label'}, inplace=True)
-
-        # before merging the `labels` to each of the question names we need
-        # to take into account some of the variables that were recoded due
-        # small changes across the survey waves.
-        auxdf = self.qumdf.copy()
-        auxdf['variable'] = auxdf['variable_recode'].where(
-            auxdf['variable_recode'].notnull(),
-            auxdf['variable'])
-        auxdf = auxdf.drop_duplicates('variable')
-
-        ctabdf = ctabdf.merge(
-            auxdf[['variable', 'question_clean']],
-            how='left',
-            left_on='q_var',
-            right_on='variable',
-            validate='m:1')
-        ctabdf.drop(columns='variable', inplace=True)
-        ctabdf.rename(columns={'question_clean': 'q_var_label'}, inplace=True)
-
-        self.ctabdf = ctabdf
-
     def _merge_cbsa_info(self) -> None:
         """
         Merges core-based statistical area information to the crosstab that
@@ -312,7 +290,6 @@ class Pulse:
         cmsdf = self.cmsdf
 
         cmsdf.drop_duplicates(subset='cbsa_fips', inplace=True)
-        cmsdf['cbsa_fips'] = cmsdf['cbsa_fips'].astype(str)
 
         ctabdf = ctabdf.merge(
             cmsdf[['cbsa_title', 'cbsa_fips']],
@@ -336,9 +313,7 @@ class Pulse:
             'xtab_val',
             'cbsa_title',
             'q_var',
-            'q_var_label',
             'q_val',
-            'q_val_label'
         ]
         colorder.extend(wgtcols.tolist())
         assert ctabdf.columns.isin(colorder).all(), 'missing a column'

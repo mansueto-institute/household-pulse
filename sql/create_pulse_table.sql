@@ -19,5 +19,4 @@ CREATE TABLE `pulse`.`pulse` (
   `hweight_share` DOUBLE NOT NULL,
   `hweight_lower_share` DOUBLE NOT NULL,
   `hweight_upper_share` DOUBLE NOT NULL,
-  PRIMARY KEY (`week`, `xtab_var`, `xtab_val`, `q_var`, `q_val`),
-  UNIQUE INDEX `idpulsenew_UNIQUE` (`idpulsenew` ASC) VISIBLE);
+  PRIMARY KEY (`week`, `xtab_var`, `xtab_val`, `q_var`, `q_val`))
