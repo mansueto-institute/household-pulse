@@ -11,7 +11,7 @@ dependencies:
   - aws-checksums=0.1.9
   - aws-sdk-cpp=1.8.185
   - backcall=0.2.0
-  - beautifulsoup4=4.10.0
+  - beautifulsoup4=4.11.1
   - blas=1.0
   - boost-cpp=1.73.0
   - boto3=1.21.32
@@ -22,7 +22,7 @@ dependencies:
   - bump2version=1.0.1
   - bzip2=1.0.8
   - c-ares=1.18.1
-  - ca-certificates=2022.3.29
+  - ca-certificates=2022.4.26
   - certifi=2021.10.8
   - cffi=1.15.0
   - charset-normalizer=2.0.4
@@ -38,13 +38,13 @@ dependencies:
   - idna=3.3
   - importlib-metadata=4.11.3
   - intel-openmp=2021.4.0
-  - ipython=8.2.0
+  - ipython=8.3.0
   - jedi=0.18.1
   - jmespath=0.10.0
   - libboost=1.73.0
-  - libcurl=7.80.0
+  - libcurl=7.82.0
   - libprotobuf=3.11.2
-  - libssh2=1.9.0
+  - libssh2=1.10.0
   - lz4-c=1.9.3
   - matplotlib-inline=0.1.2
   - mccabe=0.7.0
@@ -59,7 +59,7 @@ dependencies:
   - numpy-base=1.21.5
   - openssl=1.1.1n
   - packaging=21.3
-  - pandas=1.4.1
+  - pandas=1.4.2
   - parso=0.8.3
   - pickleshare=0.7.5
   - pip=21.2.4
@@ -80,19 +80,19 @@ dependencies:
   - re2=2020.11.01
   - requests=2.27.1
   - s3transfer=0.5.0
-  - setuptools=58.0.4
+  - setuptools=61.2.0
   - six=1.16.0
-  - snappy=1.1.8
+  - snappy=1.1.9
   - soupsieve=2.3.1
-  - sqlite=3.38.2
+  - sqlite=3.38.3
   - stack_data=0.2.0
   - toml=0.10.2
-  - tqdm=4.63.0
+  - tqdm=4.64.0
   - traitlets=5.1.1
   - typing_extensions=4.1.1
   - tzdata=2022a
   - uriparser=0.9.3
-  - urllib3=1.26.8
+  - urllib3=1.26.9
   - utf8proc=2.6.1
   - vc=14.2
   - vs2015_runtime=14.27.29016
@@ -102,7 +102,7 @@ dependencies:
   - wincertstore=0.2
   - xz=5.2.5
   - zipp=3.7.0
-  - zlib=1.2.11
+  - zlib=1.2.12
   - zstd=1.4.9
   - pip:
     - mysql-connector-python==8.0.27
