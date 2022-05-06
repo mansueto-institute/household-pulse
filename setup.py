@@ -14,7 +14,8 @@ setuptools.setup(
         'mysql-connector-python>=8.0.26',
         'boto3>=1.20.24',
         'pyarrow>=4.0.1',
-        'tqdm>=4.63.0'
+        'tqdm>=4.63.0',
+        'statsmodels>=0.13.2'
     ],
     version='1.2.10',
     author="Manuel Martinez",
