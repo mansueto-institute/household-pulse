@@ -18,7 +18,7 @@ import mysql.connector
 import pandas as pd
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
-from mysql.connector.errors import DatabaseError
+from mysql.connector.errors import Error
 from pkg_resources import resource_filename
 
 from household_pulse.downloader import DataLoader
@@ -28,14 +28,19 @@ class PulseSQL:
     def __init__(self) -> None:
         self._establish_connection()
 
-    def append_values(self, table: str, df: pd.DataFrame) -> None:
+    def append_values(self,
+                      table: str,
+                      df: pd.DataFrame,
+                      commit: bool = True) -> None:
         """
         appends an entire dataframe to an existing table
 
         Args:
             table (str): table name
             df (pd.DataFrame): data to append
+            commit (bool): if to commit the transaction after the insert
         """
+        self._refresh_connection()
         cols = ', '.join(df.columns.tolist())
         vals = ', '.join(['%s'] * len(df.columns))
         query = f'''
@@ -45,10 +50,11 @@ class PulseSQL:
         df = self._convert_nans(df=df)
         try:
             self.cur.executemany(query, df.values.tolist())
-            self.con.commit()
-        except DatabaseError as error:
-            self.con.rollback()
-            self.con.close()
+            if commit:
+                self.conn.commit()
+        except Error as error:
+            self.conn.rollback()
+            self.conn.close()
             raise error
 
     def update_values(self,
@@ -62,15 +68,19 @@ class PulseSQL:
             table (str): table to update in
             df (pd.DataFrame): data to use for updating
         Raises:
-            DatabaseError: any issues with the DB connection
+            Error: any issues with the DB connection
         """
         try:
             weeks = [int(w) for w in df['week'].unique()]
             for week in weeks:
                 self._delete_week(week=week, table=table, commit=False)
-                self.append_values(table=table, df=df[df['week'] == week])
-        except DatabaseError as e:
-            self.con.rollback()
+                self.append_values(
+                    table=table,
+                    df=df[df['week'] == week],
+                    commit=False)
+            self.conn.commit()
+        except Error as e:
+            self.conn.rollback()
             self.close_connection()
             raise e
 
@@ -122,7 +132,7 @@ class PulseSQL:
         """
         Closes the connection to the DB
         """
-        self.con.close()
+        self.conn.close()
 
     def get_pulse_table(self, query: Optional[str] = None) -> pd.DataFrame:
         """
@@ -147,11 +157,11 @@ class PulseSQL:
                 # we ignore the warning that pandas gives us for not using
                 # sql alchemy
                 warnings.simplefilter('ignore')
-                df = pd.read_sql(sql=query, con=self.con)
-        except DatabaseError as e:
-            self.con.rollback()
+                df = pd.read_sql(sql=query, con=self.conn)
+        except Error as e:
+            self.conn.rollback()
             self.close_connection()
-            raise DatabaseError(e)
+            raise Error(e)
 
         return df
 
@@ -174,9 +184,9 @@ class PulseSQL:
         starts connection to the DB. gets called automatically when the class
         is instantiated, ability to re run it to reconnect if needed.
         """
-        self.con: MySQLConnection = mysql.connector.connect(
+        self.conn: MySQLConnection = mysql.connector.connect(
             **self._load_rds_creds())
-        self.cur: MySQLCursor = self.con.cursor()
+        self.cur: MySQLCursor = self.conn.cursor()
 
     def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -199,6 +209,7 @@ class PulseSQL:
             week (int): the week to remove from the pulse table
             commit (bool): whether to commit the deletion or delay it
         """
+        self._refresh_connection()
         query = f'''
             DELETE FROM {table}
             WHERE week = %s
@@ -206,11 +217,18 @@ class PulseSQL:
         try:
             self.cur.execute(query, (week, ))
             if commit:
-                self.con.commit()
-        except DatabaseError as error:
-            self.con.rollback()
+                self.conn.commit()
+        except Error as error:
+            self.conn.rollback()
             self.close_connection()
             raise error
+
+    def _refresh_connection(self) -> None:
+        """
+        if dead, it tries to reset the connection.
+        """
+        if not self.conn.is_connected():
+            self._establish_connection()
 
     @staticmethod
     def _load_rds_creds() -> dict[str, str]:
