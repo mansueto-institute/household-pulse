@@ -10,6 +10,7 @@ Created on Friday, 22nd April 2022 5:09:03 pm
             values across time.
 ===============================================================================
 """
+import warnings
 
 import pandas as pd
 import statsmodels.api as sm
@@ -52,15 +53,19 @@ if __name__ == "__main__":
             hweight_share,
             hweight_lower_share,
             hweight_upper_share
-        FROM pulse
+        FROM pulse;
     '''
 
     df = sql.get_pulse_table(query=query)
-
-    df = df.groupby(['xtab_var', 'xtab_val', 'q_var', 'q_val']).apply(
-        smooth_group)
     df.sort_values(
-        by=['week', 'xtab_var', 'xtab_val', 'q_var', 'q_val'],
+        by=['xtab_var', 'xtab_val', 'q_var', 'q_val', 'week'],
         inplace=True)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        df = df.groupby(
+            by=['xtab_var', 'xtab_val', 'q_var', 'q_val'],
+            sort=False).apply(smooth_group)
+
     sql.update_values(table='smoothed', df=df)
     sql.close_connection()
