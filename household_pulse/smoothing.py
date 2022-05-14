@@ -29,9 +29,10 @@ def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
     ]
     for wcol in wcols:
         smoothed = sm.nonparametric.lowess(
-            exog=group['week'],
+            exog=group['end_date'],
             endog=group[wcol],
-            frac=frac)
+            frac=frac,
+            is_sorted=True)
         group[f'{wcol}_smoothed'] = smoothed[:, 1]
         group.drop(columns=wcol, inplace=True)
 
@@ -52,20 +53,24 @@ if __name__ == "__main__":
             pweight_upper_share,
             hweight_share,
             hweight_lower_share,
-            hweight_upper_share
-        FROM pulse;
+            hweight_upper_share,
+            end_date
+        FROM pulse.pulse
+        INNER JOIN pulse.collection_dates USING(week)
     '''
 
     df = sql.get_pulse_table(query=query)
     df.sort_values(
         by=['xtab_var', 'xtab_val', 'q_var', 'q_val', 'week'],
         inplace=True)
+    df['end_date'] = pd.to_datetime(df['end_date'])
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
         df = df.groupby(
             by=['xtab_var', 'xtab_val', 'q_var', 'q_val'],
-            sort=False).apply(smooth_group)
-
+            sort=False
+        ).apply(smooth_group)
+    df.drop(columns='end_date', inplace=True)
     sql.update_values(table='smoothed', df=df)
     sql.close_connection()
