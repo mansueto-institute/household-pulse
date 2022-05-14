@@ -17,6 +17,7 @@ from tqdm import tqdm
 from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.pulse import Pulse
+from household_pulse.smoothing import smooth_pulse
 
 
 class PulseCLI:
@@ -98,6 +99,9 @@ class PulseCLI:
                     pulse = Pulse(week=week)
                     pulse.process_data()
                     pulse.upload_data()
+
+            elif self.args.run_smoothing:
+                smooth_pulse()
 
         elif self.args.subcommand == 'fetch':
             if self.args.subsubcommand == 'download-pulse':
@@ -191,8 +195,12 @@ class PulseCLI:
             '--backfill',
             help='Runs all weeks in the census that are not in the RDS DB',
             action='store_true',
-            default=False
-        )
+            default=False)
+        execgroup.add_argument(
+            '--run-smoothing',
+            help='Runs a LOWESS on the time series for each question',
+            action='store_true',
+            default=False)
 
     def _dataparser(self, parser: ArgumentParser) -> None:
         """
