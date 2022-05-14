@@ -39,7 +39,11 @@ def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
     return group
 
 
-if __name__ == "__main__":
+def smooth_pulse() -> None:
+    """
+    smoothes the entire pulse table, creating a new table with the smoothed
+    weight_share variables
+    """
     sql = PulseSQL()
 
     query = '''
