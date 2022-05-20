@@ -16,4 +16,8 @@ def handler(event, context):
     proc = subprocess.run(
         ['python3', '-m', 'household_pulse', *args],
         capture_output=True)
+    cache_proc = subprocess.run(
+        ['python3', '-m', 'household_pulse/fetch_and_cache.py', *args],
+        capture_output=True)
+
     return proc.stdout
