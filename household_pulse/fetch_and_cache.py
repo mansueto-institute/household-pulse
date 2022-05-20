@@ -142,6 +142,23 @@ def cache_queries(engine,metadata,connection, dates,combined_xtabs,question_grou
                 write_json(json.dumps(data), path.join('.','cache', f'{question_group.variable_group}-{xtab}.json'))
             except:
                 print(f'Error with {question_group.variable_group}')
+                
+            try:
+                data = run_query(
+                    question_group, 
+                    response_labels, 
+                    xtab_labels, 
+                    xtab, 
+                    week_range, 
+                    dates,
+                    engine,
+                    metadata, 
+                    connection,
+                    smoothed=True
+                )
+                write_json(json.dumps(data), path.join('.','cache', f'{question_group.variable_group}-{xtab}-SMOOTHED.json'))
+            except:
+                print(f'Error with {question_group.variable_group} smoothed')
 
 def cleanup_connection(connection):
     connection.close()

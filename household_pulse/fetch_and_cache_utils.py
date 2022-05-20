@@ -115,7 +115,7 @@ def group_to_json(group, labels):
     }
 
     for i in range(0, len(group)):
-        temp_dict[group.iloc[i].q_val] = group.iloc[i].pweight_share
+        temp_dict[group.iloc[i].q_val] = group.iloc[i].proportion
 
     curr_group = list(group.q_val.unique())
     curr_labels = list(labels.keys())
@@ -145,7 +145,7 @@ def generate_dummy_obj(week, labels):
         temp_dict[key] = None
     return temp_dict
 
-def run_query(question_group, response_labels, xtab_labels, xtab, week_range, dates, engine, metadata, connection):
+def run_query(question_group, response_labels, xtab_labels, xtab, week_range, dates, engine, metadata, connection, smoothed=False):
     """
     Run a query for a given question group, response labels, xtab labels, xtab,
     week range, and dates.
@@ -173,7 +173,17 @@ def run_query(question_group, response_labels, xtab_labels, xtab, week_range, da
         }
     """
     variables = json.loads(question_group['variables'])
-    PULSE = db.Table('pulse', metadata, autoload=True, autoload_with=engine)
+    if smoothed:
+        table_name = "smoothed"
+    else:
+        table_name = "pulse"
+
+    if smoothed:
+        value_col = "pweight_share_smoothed"
+    else:
+        value_col = "pweight_share"
+
+    PULSE = db.Table(table_name, metadata, autoload=True, autoload_with=engine)
     query = db.select(
         [
             PULSE.c.week,
@@ -181,7 +191,7 @@ def run_query(question_group, response_labels, xtab_labels, xtab, week_range, da
             PULSE.c.q_val,
             # PULSE.c.xtab_var,
             PULSE.c.xtab_val,
-            PULSE.c.pweight_share
+            PULSE.c[value_col]
         ]
     ) \
         .where(PULSE.c.q_var.in_(variables)) \
@@ -213,7 +223,7 @@ def run_query(question_group, response_labels, xtab_labels, xtab, week_range, da
     for xtab in df.xtab_val.unique():
         temp_df = df[df.xtab_val == xtab]
         temp_df['week'] = temp_df.week.astype(int)
-        temp_df['pweight_share'] = temp_df.pweight_share.astype(float)
+        temp_df['proportion'] = temp_df[value_col].astype(float)
         temp_df = temp_df.sort_values(by=['week'])
         grouped_dict = temp_df.groupby('week').apply(lambda x: group_to_json(x, response_labels))
         values = []
