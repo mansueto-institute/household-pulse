@@ -230,7 +230,9 @@ def run_query(question_group,
         'qid': question_group.variable_group,
         'ct': xtab,
         'labels': response_labels,
-        'ctLabels': xtab_labels[['xtab_val', 'xtab_label']].to_json(orient="records"),
+        'ctLabels': (
+            xtab_labels[['xtab_val', 'xtab_label']]
+            ).to_json(orient="records"),
         "response": [],
         "available_weeks": []
     }
