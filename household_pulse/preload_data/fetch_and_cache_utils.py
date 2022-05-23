@@ -265,10 +265,12 @@ def run_query(question_group,
                                                     week].dates.values[0]
         try:
             return_dict['response'].append({
-                "ct": xtab_labels[xtab_labels.xtab_val == xtab].xtab_label.values[0],
+                "ct": (
+                    xtab_labels[xtab_labels.xtab_val == xtab]
+                ).xtab_label.values[0],
                 "values": values
             })
-        except:
+        except KeyError:
             print(f"Missing xtab {xtab} from label dict")
             print(xtab_labels)
 
