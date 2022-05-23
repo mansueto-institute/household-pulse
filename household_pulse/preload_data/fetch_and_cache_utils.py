@@ -4,6 +4,7 @@ import tarfile
 import warnings
 from datetime import datetime
 from os import environ, path
+from typing import Optional
 
 import boto3
 import pandas as pd
@@ -60,7 +61,7 @@ def get_sheet(sheet_name: str):
     return pd.read_csv(f"{BASE_SHEET_URL}&gid={SHEET_MAPPING[sheet_name]}")
 
 
-def reconcile(str1: any, str2: any):
+def reconcile(str1: Optional[str], str2: Optional[str]):
     """
     Returns the first string if it is not None, otherwise returns the second
     string
