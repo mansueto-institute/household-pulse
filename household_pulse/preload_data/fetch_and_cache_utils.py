@@ -3,17 +3,19 @@ import logging
 import tarfile
 import warnings
 from datetime import datetime
-from os import environ
 from typing import Optional
 
-import boto3
 import pandas as pd
 from botocore.exceptions import ClientError
+from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-BASE_SHEET_URL = environ["GOOGLE_SHEET_BASE"]
+BASE_SHEET_URL = (
+    'https://docs.google.com/spreadsheets/d/e/'
+    '2PACX-1vQ3z_mffa5UDBgny2E6mrQcbrXcrebM22sjz54GZ6CwGpwlvSCkGUXZdutNQgoBbg_'
+    'ztZhLKImi9Ju6/pub?output=csv')
 SHEET_MAPPING = {
     "question_mapping": 34639438,
     "response_mapping": 1561671071,
@@ -21,9 +23,6 @@ SHEET_MAPPING = {
     "xtab_labels": 1576761217,
     "county_metro_state": 974836931,
 }
-
-ACCESS_KEY = environ["S3_ACCESS_KEY"]
-SECRET_KEY = environ["S3_SECRET_KEY"]
 
 # CONVENIENCE
 
@@ -69,7 +68,7 @@ def reconcile(str1: Optional[str], str2: Optional[str]):
     Returns:
         string
     """
-    if type(str1) == str:
+    if isinstance(str1, str):
         if len(str1) > 0:
             return str1
         else:
@@ -94,14 +93,10 @@ def compress_folder(input_path: str, output_path: str):
 
 
 def upload_folder(bucket, path_to_file, prefix):
-    s3 = boto3.client(
-        's3',
-        aws_access_key_id=ACCESS_KEY,
-        aws_secret_access_key=SECRET_KEY
-    )
+    dl = DataLoader()
 
     try:
-        s3.upload_file(path_to_file, bucket, prefix+path_to_file)
+        dl.s3.upload_file(path_to_file, bucket, prefix+path_to_file)
     except ClientError as e:
         logging.error(e)
         return False
