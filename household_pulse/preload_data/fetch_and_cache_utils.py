@@ -157,7 +157,16 @@ def generate_dummy_obj(week, labels):
     return temp_dict
 
 
-def run_query(question_group, response_labels, xtab_labels, xtab, week_range, dates, engine, metadata, connection, smoothed=False):
+def run_query(question_group,
+              response_labels,
+              xtab_labels,
+              xtab,
+              week_range,
+              dates,
+              engine,
+              metadata,
+              connection,
+              smoothed=False):
     """
     Run a query for a given question group, response labels, xtab labels, xtab,
     week range, and dates.
@@ -168,7 +177,10 @@ def run_query(question_group, response_labels, xtab_labels, xtab, week_range, da
             'qid': question id,
             'ct': cross tab,
             'labels': dictionary of labels ({'1': 'Yes', '2': 'No'}),
-            'ctLabels': dictionary of xtab lables ({'1': 'high income', '2': 'low income'}),
+            'ctLabels': dictionary of xtab lables ({
+                '1': 'high income',
+                '2': 'low income'}
+                ),
             'response': an array of data responses, for each cross tab value
                 {
                     'ct': cross tab value,
