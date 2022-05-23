@@ -99,7 +99,7 @@ def upload_folder(bucket, path_to_file, prefix):
     )
 
     try:
-        response = s3.upload_file(path_to_file, bucket, prefix+path_to_file)
+        s3.upload_file(path_to_file, bucket, prefix+path_to_file)
     except ClientError as e:
         logging.error(e)
         return False
