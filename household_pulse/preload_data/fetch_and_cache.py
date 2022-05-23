@@ -1,17 +1,23 @@
 
-import sqlalchemy as db
 import json
-from fetch_and_cache_utils import get_dates, get_xtab_labels, get_question_order, get_questions, get_question_groupings, get_label_groupings, write_json, df_to_json, compress_folder, upload_folder, run_query
 from os import environ, mkdir, path
 
+import sqlalchemy as db
 
-### PARAMS
-RDS_HOSTNAME=environ("RDS_HOSTNAME")
-RDS_USERNAME=environ("RDS_USERNAME")
-RDS_PASSWORD=environ("RDS_PASSWORD")
-RDS_PORT=environ("RDS_PORT")
-RDS_DATABASE=environ("RDS_DATABASE")
+from fetch_and_cache_utils import (compress_folder, df_to_json, get_dates,
+                                   get_label_groupings, get_question_groupings,
+                                   get_question_order, get_questions,
+                                   get_xtab_labels, run_query, upload_folder,
+                                   write_json)
+
+# PARAMS
+RDS_HOSTNAME = environ("RDS_HOSTNAME")
+RDS_USERNAME = environ("RDS_USERNAME")
+RDS_PASSWORD = environ("RDS_PASSWORD")
+RDS_PORT = environ("RDS_PORT")
+RDS_DATABASE = environ("RDS_DATABASE")
 MIN_WEEK_FILTER = 6
+
 
 def make_directories():
     try:
@@ -26,9 +32,11 @@ def make_directories():
     except:
         print('Cache dir exists...')
 
+
 def initiate_connection():
     # intitiate connection
-    engine = db.create_engine(f'mysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOSTNAME}:{RDS_PORT}/{RDS_DATABASE}')
+    engine = db.create_engine(
+        f'mysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOSTNAME}:{RDS_PORT}/{RDS_DATABASE}')
     metadata = db.MetaData()
     connection = engine.connect()
     print('Connected to mysql database')
@@ -38,7 +46,8 @@ def initiate_connection():
         'connection': connection
     }
 
-def get_meta(engine,metadata,connection):
+
+def get_meta(engine, metadata, connection):
     print('Fetching meta information...')
     ##### metadata #####
     # # # Meta- date range and labels
@@ -63,7 +72,6 @@ def get_meta(engine,metadata,connection):
     df_to_json(combined_xtabs, path.join('.', 'meta', 'xtab.json'))
     print('xtabs...')
 
-
     # # get questions
     # Get order based on most recent week and number of weeks present
     order = get_question_order(engine, connection, metadata)
@@ -80,7 +88,6 @@ def get_meta(engine,metadata,connection):
     df_to_json(questions, path.join('.', 'meta', 'questions.json'))
     print('questions...')
 
-
     # # get question grouping
     # For fetching, the grouping of the question group with relevant variables
     # format example
@@ -90,9 +97,9 @@ def get_meta(engine,metadata,connection):
     #     "variables":"[\"WHYCHNGD1\", \"WHYCHNGD2\"...]"
     # }
     question_groupings = get_question_groupings()
-    df_to_json(question_groupings, path.join('.', 'meta', 'questionGrouping.json'))
+    df_to_json(question_groupings, path.join(
+        '.', 'meta', 'questionGrouping.json'))
     print('groupings...')
-
 
     # # get label grouping
     # Outer tagged label groupings
@@ -101,7 +108,8 @@ def get_meta(engine,metadata,connection):
     #      ...
     # }
     label_groupings = get_label_groupings()
-    write_json(json.dumps(label_groupings), path.join('.', 'meta', 'labelGrouping.json'))
+    write_json(json.dumps(label_groupings), path.join(
+        '.', 'meta', 'labelGrouping.json'))
     print('labels...')
     print('Done fetching meta.')
     return {
@@ -111,7 +119,8 @@ def get_meta(engine,metadata,connection):
         'label_groupings': label_groupings,
     }
 
-def cache_queries(engine,metadata,connection, dates,combined_xtabs,question_groupings,label_groupings):
+
+def cache_queries(engine, metadata, connection, dates, combined_xtabs, question_groupings, label_groupings):
     print('Caching queries...')
     ##### data caching #####
     week_range = [dates.week.min(), dates.week.max()]
@@ -139,7 +148,8 @@ def cache_queries(engine,metadata,connection, dates,combined_xtabs,question_grou
                     metadata,
                     connection
                 )
-                write_json(json.dumps(data), path.join('.','cache', f'{question_group.variable_group}-{xtab}.json'))
+                write_json(json.dumps(data), path.join(
+                    '.', 'cache', f'{question_group.variable_group}-{xtab}.json'))
             except:
                 print(f'Error with {question_group.variable_group}')
 
@@ -156,36 +166,44 @@ def cache_queries(engine,metadata,connection, dates,combined_xtabs,question_grou
                     connection,
                     smoothed=True
                 )
-                write_json(json.dumps(data), path.join('.','cache', f'{question_group.variable_group}-{xtab}-SMOOTHED.json'))
+                write_json(json.dumps(data), path.join(
+                    '.', 'cache', f'{question_group.variable_group}-{xtab}-SMOOTHED.json'))
             except:
                 print(f'Error with {question_group.variable_group} smoothed')
+
 
 def cleanup_connection(connection):
     connection.close()
 
+
 def compress_and_upload():
     print('Compressing files...')
-    compress_folder(path.join(".", "meta"), path.join(".", "meta", "output_meta.tar.gz"))
-    compress_folder(path.join(".", "cache"), path.join(".", "cache", "output_cache.tar.gz"))
+    compress_folder(path.join(".", "meta"), path.join(
+        ".", "meta", "output_meta.tar.gz"))
+    compress_folder(path.join(".", "cache"), path.join(
+        ".", "cache", "output_cache.tar.gz"))
     print('Uploading to s3...')
-    upload_folder('household-pulse', path.join(".", "meta", "output_meta.tar.gz"), 'frontend_cache')
-    upload_folder('household-pulse', path.join(".", "cache", "output_cache.tar.gz"), 'frontend_cache')
+    upload_folder('household-pulse', path.join(".", "meta",
+                  "output_meta.tar.gz"), 'frontend_cache')
+    upload_folder('household-pulse', path.join(".", "cache",
+                  "output_cache.tar.gz"), 'frontend_cache')
     print('Uploaded.')
+
 
 def fetch_meta_and_cache_data():
     make_directories()
-    ## Connection to use to RDS
+    # Connection to use to RDS
     connection_obj = initiate_connection()
     engine = connection_obj['engine']
     metadata = connection_obj['metadata']
     connection = connection_obj['connection']
-    ## Meta info for queries
-    meta_obj = get_meta(engine,metadata,connection)
+    # Meta info for queries
+    meta_obj = get_meta(engine, metadata, connection)
     dates = meta_obj['dates']
     combined_xtabs = meta_obj['xtabs']
     question_groupings = meta_obj['question_groupings']
     label_groupings = meta_obj['label_groupings']
-    ## Cache data
+    # Cache data
     cache_queries(
         engine,
         metadata,
@@ -198,6 +216,7 @@ def fetch_meta_and_cache_data():
     # Wrap it up.
     cleanup_connection(connection)
     compress_and_upload()
+
 
 if __name__ == "__main__":
     fetch_meta_and_cache_data()
