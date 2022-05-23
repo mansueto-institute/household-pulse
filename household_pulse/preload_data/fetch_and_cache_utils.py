@@ -62,7 +62,8 @@ def get_sheet(sheet_name: str):
 
 def reconcile(str1: any, str2: any):
     """
-    Returns the first string if it is not None, otherwise returns the second string
+    Returns the first string if it is not None, otherwise returns the second
+    string
 
     Returns:
         string
@@ -232,7 +233,7 @@ def run_query(question_group,
         'labels': response_labels,
         'ctLabels': (
             xtab_labels[['xtab_val', 'xtab_label']]
-            ).to_json(orient="records"),
+        ).to_json(orient="records"),
         "response": [],
         "available_weeks": []
     }
@@ -291,7 +292,10 @@ def get_dates(engine, connection, metadata):
     df = pd.DataFrame(result_data)
     df.columns = list(result_keys)
     df['dates'] = df.apply(
-        lambda x: f"{datetime.strftime(x['start_date'], '%Y-%m-%d')} to {datetime.strftime(x['end_date'], '%Y-%m-%d')}", axis=1)
+        lambda x: f"""
+        {datetime.strftime(x['start_date'], '%Y-%m-%d')} to
+        {datetime.strftime(x['end_date'], '%Y-%m-%d')}""",
+        axis=1)
     df['date'] = df['end_date'].apply(
         lambda x:  datetime.strftime(x, '%Y-%m-%d'))
     return df[['week', 'date', 'dates']]
@@ -346,14 +350,28 @@ def get_question_order(engine, connection, metadata):
 
 
 def get_questions(order_df, MIN_WEEK_FILTER):
-    columns = ['variable_recode_final', 'variable_group_recode', 'variable_group',
-               'question_clean', 'exclude', 'topic_area', 'subtopic_area', 'drop_question', 'question_type']
+    columns = [
+        'variable_recode_final',
+        'variable_group_recode',
+        'variable_group',
+        'question_clean',
+        'exclude',
+        'topic_area',
+        'subtopic_area',
+        'drop_question',
+        'question_type'
+    ]
     questions = get_sheet("question_mapping")[columns].fillna('')
 
     questions = questions.merge(
-        order_df, left_on="variable_recode_final", right_on="q_var", how="left")
-    questions.sort_values(by=["count_of_weeks", "most_recent_week"], ascending=[
-                          False, False], inplace=True)
+        order_df,
+        left_on="variable_recode_final",
+        right_on="q_var",
+        how="left")
+    questions.sort_values(
+        by=["count_of_weeks", "most_recent_week"],
+        ascending=[False, False],
+        inplace=True)
     questions = questions[questions.count_of_weeks > MIN_WEEK_FILTER]
     questions.drop(
         columns=["q_var", "count_of_weeks",
@@ -400,8 +418,11 @@ def get_question_groupings():
     questions['variable_group'] = questions.apply(lambda x: reconcile(
         x['variable_group_recode'], x['variable_group']), axis=1)
     questions = questions[["variable_recode_final", "variable_group", "kind"]]
-    questions['variables'] = questions.apply(lambda x: json.dumps(list(
-        questions[questions.variable_group == x.variable_group].variable_recode_final)), axis=1)
+    questions['variables'] = questions.apply(
+        lambda x: json.dumps(list(
+            questions[questions.variable_group == x.variable_group]
+            .variable_recode_final)),
+        axis=1)
     questions = questions[["variable_group", "kind", "variables"]]
     return questions.drop_duplicates()
 
@@ -415,7 +436,13 @@ def get_label_groupings():
     questions = questions[["variable_recode_final", "variable_group"]]
 
     response_mapping = get_sheet("response_mapping")[
-        ["variable", "variable_recode", "label", "label_recode", "value", "value_recode"]].fillna('')
+        ["variable",
+         "variable_recode",
+         "label",
+         "label_recode",
+         "value",
+         "value_recode"]
+    ].fillna('')
     response_mapping["label"] = response_mapping.apply(
         lambda x: reconcile(x['label_recode'], x['label']), axis=1)
     response_mapping["variable"] = response_mapping.apply(
@@ -431,7 +458,10 @@ def get_label_groupings():
     combined_mappings = pd.concat([response_mapping, numeric_mapping])
 
     merged_mappings = combined_mappings.merge(
-        questions, how="left", left_on="variable", right_on="variable_recode_final")
+        questions,
+        how="left",
+        left_on="variable",
+        right_on="variable_recode_final")
     merged_mappings = merged_mappings[(
         merged_mappings.value != -99) & (merged_mappings.value != -88)]
 
@@ -439,10 +469,13 @@ def get_label_groupings():
 
     for variable_group in merged_mappings.variable_group.unique():
         temp_obj = {}
-        sub_labels = merged_mappings[merged_mappings.variable_group == variable_group][[
-            "value", "label"]]
+        sub_labels = merged_mappings[
+            merged_mappings.variable_group == variable_group][[
+                "value", "label"]]
         for i in range(0, len(sub_labels)):
-            temp_obj[f"{int(sub_labels.value.iloc[i])}"] = f"{sub_labels.label.iloc[i]}"
+            temp_obj[
+                f"{int(sub_labels.value.iloc[i])}"] = \
+                f"{sub_labels.label.iloc[i]}"
         combined_labels[variable_group] = temp_obj
 
     return combined_labels
