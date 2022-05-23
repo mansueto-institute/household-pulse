@@ -7,6 +7,7 @@ from os import environ, path
 import boto3
 import pandas as pd
 import sqlalchemy as db
+from botocore.exceptions import ClientError
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
