@@ -1,8 +1,8 @@
 
 import json
-from os import environ, mkdir, path
+from os import mkdir, path
 
-import sqlalchemy as db
+from household_pulse.mysql_wrapper import PulseSQL
 
 from fetch_and_cache_utils import (compress_folder, df_to_json, get_dates,
                                    get_label_groupings, get_question_groupings,
@@ -11,47 +11,28 @@ from fetch_and_cache_utils import (compress_folder, df_to_json, get_dates,
                                    write_json)
 
 # PARAMS
-RDS_HOSTNAME = environ("RDS_HOSTNAME")
-RDS_USERNAME = environ("RDS_USERNAME")
-RDS_PASSWORD = environ("RDS_PASSWORD")
-RDS_PORT = environ("RDS_PORT")
-RDS_DATABASE = environ("RDS_DATABASE")
 MIN_WEEK_FILTER = 6
 
 
 def make_directories():
     try:
-        path = path.join(".", "meta")
-        mkdir(path)
-    except:
+        fpath = path.join(".", "meta")
+        mkdir(fpath)
+    except FileExistsError:
         print('Meta dir exists...')
 
     try:
-        path = path.join(".", "cache")
-        mkdir(path)
-    except:
+        fpath = path.join(".", "cache")
+        mkdir(fpath)
+    except FileExistsError:
         print('Cache dir exists...')
 
 
-def initiate_connection():
-    # intitiate connection
-    engine = db.create_engine(
-        f'mysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOSTNAME}:{RDS_PORT}/{RDS_DATABASE}')
-    metadata = db.MetaData()
-    connection = engine.connect()
-    print('Connected to mysql database')
-    return {
-        'engine': engine,
-        'metadata': metadata,
-        'connection': connection
-    }
-
-
-def get_meta(engine, metadata, connection):
+def get_meta(pulsesql: PulseSQL):
     print('Fetching meta information...')
-    ##### metadata #####
-    # # # Meta- date range and labels
-    dates = get_dates(engine, connection, metadata)
+    # metadata
+    # Meta- date range and labels
+    dates = get_dates(pulsesql=pulsesql)
     # format example
     # {
     #     "week":44,
@@ -74,7 +55,7 @@ def get_meta(engine, metadata, connection):
 
     # # get questions
     # Get order based on most recent week and number of weeks present
-    order = get_question_order(engine, connection, metadata)
+    order = get_question_order(pulsesql=pulsesql)
     # format example
     # {
     #     "question":"During the last 7 days, did you..?",
@@ -120,9 +101,13 @@ def get_meta(engine, metadata, connection):
     }
 
 
-def cache_queries(engine, metadata, connection, dates, combined_xtabs, question_groupings, label_groupings):
+def cache_queries(pulsesql,
+                  dates,
+                  combined_xtabs,
+                  question_groupings,
+                  label_groupings):
     print('Caching queries...')
-    ##### data caching #####
+    # data caching
     week_range = [dates.week.min(), dates.week.max()]
     xtabs = combined_xtabs['xtab_var'].unique()
 
@@ -132,8 +117,10 @@ def cache_queries(engine, metadata, connection, dates, combined_xtabs, question_
         for i in range(0, len(question_groupings)):
             question_group = question_groupings.iloc[i]
             try:
-                response_labels = label_groupings[question_group.variable_group]
-            except:
+                response_labels = label_groupings[
+                    question_group.variable_group
+                ]
+            except KeyError:
                 print(f"Missing labels for {question_group.variable_group}")
 
             try:
@@ -144,13 +131,16 @@ def cache_queries(engine, metadata, connection, dates, combined_xtabs, question_
                     xtab,
                     week_range,
                     dates,
-                    engine,
-                    metadata,
-                    connection
+                    pulsesql=pulsesql
                 )
-                write_json(json.dumps(data), path.join(
-                    '.', 'cache', f'{question_group.variable_group}-{xtab}.json'))
-            except:
+                write_json(
+                    json.dumps(data),
+                    path.join(
+                        '.',
+                        'cache',
+                        f'{question_group.variable_group}-{xtab}.json')
+                )
+            except KeyError:
                 print(f'Error with {question_group.variable_group}')
 
             try:
@@ -161,19 +151,18 @@ def cache_queries(engine, metadata, connection, dates, combined_xtabs, question_
                     xtab,
                     week_range,
                     dates,
-                    engine,
-                    metadata,
-                    connection,
+                    pulsesql=pulsesql,
                     smoothed=True
                 )
-                write_json(json.dumps(data), path.join(
-                    '.', 'cache', f'{question_group.variable_group}-{xtab}-SMOOTHED.json'))
-            except:
+                write_json(
+                    json.dumps(data),
+                    path.join(
+                        '.',
+                        'cache',
+                        (f'{question_group.variable_group}-{xtab}-'
+                         'SMOOTHED.json')))
+            except KeyError:
                 print(f'Error with {question_group.variable_group} smoothed')
-
-
-def cleanup_connection(connection):
-    connection.close()
 
 
 def compress_and_upload():
@@ -193,28 +182,23 @@ def compress_and_upload():
 def fetch_meta_and_cache_data():
     make_directories()
     # Connection to use to RDS
-    connection_obj = initiate_connection()
-    engine = connection_obj['engine']
-    metadata = connection_obj['metadata']
-    connection = connection_obj['connection']
+    pulsesql = PulseSQL()
     # Meta info for queries
-    meta_obj = get_meta(engine, metadata, connection)
+    meta_obj = get_meta(pulsesql=pulsesql)
     dates = meta_obj['dates']
     combined_xtabs = meta_obj['xtabs']
     question_groupings = meta_obj['question_groupings']
     label_groupings = meta_obj['label_groupings']
     # Cache data
     cache_queries(
-        engine,
-        metadata,
-        connection,
         dates,
         combined_xtabs,
         question_groupings,
-        label_groupings
+        label_groupings,
+        pulsesql=pulsesql,
     )
     # Wrap it up.
-    cleanup_connection(connection)
+    pulsesql.close_connection()
     compress_and_upload()
 
 
