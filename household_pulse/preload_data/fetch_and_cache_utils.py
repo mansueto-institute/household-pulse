@@ -13,7 +13,7 @@ from botocore.exceptions import ClientError
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-BASE_SHEET_URL = environ("GOOGLE_SHEET_BASE")
+BASE_SHEET_URL = environ["GOOGLE_SHEET_BASE"]
 SHEET_MAPPING = {
     "question_mapping": 34639438,
     "response_mapping": 1561671071,
@@ -22,8 +22,8 @@ SHEET_MAPPING = {
     "county_metro_state": 974836931,
 }
 
-ACCESS_KEY = environ("S3_ACCESS_KEY")
-SECRET_KEY = environ("S3_SECRET_KEY")
+ACCESS_KEY = environ["S3_ACCESS_KEY"]
+SECRET_KEY = environ["S3_SECRET_KEY"]
 
 # CONVENIENCE
 
