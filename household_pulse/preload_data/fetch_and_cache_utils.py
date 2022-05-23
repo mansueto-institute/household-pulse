@@ -3,7 +3,7 @@ import logging
 import tarfile
 import warnings
 from datetime import datetime
-from os import environ, path
+from os import environ
 from typing import Optional
 
 import boto3
