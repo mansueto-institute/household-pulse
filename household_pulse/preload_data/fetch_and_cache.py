@@ -1,10 +1,10 @@
-# %%
+
 import sqlalchemy as db
 import json
 from fetch_and_cache_utils import get_dates, get_xtab_labels, get_question_order, get_questions, get_question_groupings, get_label_groupings, write_json, df_to_json, compress_folder, upload_folder, run_query
 from os import environ, mkdir, path
 
-# %%
+
 ### PARAMS
 RDS_HOSTNAME=environ("RDS_HOSTNAME")
 RDS_USERNAME=environ("RDS_USERNAME")
@@ -116,7 +116,7 @@ def cache_queries(engine,metadata,connection, dates,combined_xtabs,question_grou
     ##### data caching #####
     week_range = [dates.week.min(), dates.week.max()]
     xtabs = combined_xtabs['xtab_var'].unique()
-    # %%
+
     for xtab in xtabs:
         print(f'Querying xtab {xtab}')
         xtab_labels = combined_xtabs[combined_xtabs.xtab_var == xtab]
@@ -126,33 +126,33 @@ def cache_queries(engine,metadata,connection, dates,combined_xtabs,question_grou
                 response_labels = label_groupings[question_group.variable_group]
             except:
                 print(f"Missing labels for {question_group.variable_group}")
-            
+
             try:
                 data = run_query(
-                    question_group, 
-                    response_labels, 
-                    xtab_labels, 
-                    xtab, 
-                    week_range, 
+                    question_group,
+                    response_labels,
+                    xtab_labels,
+                    xtab,
+                    week_range,
                     dates,
                     engine,
-                    metadata, 
+                    metadata,
                     connection
                 )
                 write_json(json.dumps(data), path.join('.','cache', f'{question_group.variable_group}-{xtab}.json'))
             except:
                 print(f'Error with {question_group.variable_group}')
-                
+
             try:
                 data = run_query(
-                    question_group, 
-                    response_labels, 
-                    xtab_labels, 
-                    xtab, 
-                    week_range, 
+                    question_group,
+                    response_labels,
+                    xtab_labels,
+                    xtab,
+                    week_range,
                     dates,
                     engine,
-                    metadata, 
+                    metadata,
                     connection,
                     smoothed=True
                 )
@@ -162,7 +162,7 @@ def cache_queries(engine,metadata,connection, dates,combined_xtabs,question_grou
 
 def cleanup_connection(connection):
     connection.close()
-    
+
 def compress_and_upload():
     print('Compressing files...')
     compress_folder(path.join(".", "meta"), path.join(".", "meta", "output_meta.tar.gz"))
@@ -189,7 +189,7 @@ def fetch_meta_and_cache_data():
     cache_queries(
         engine,
         metadata,
-        connection, 
+        connection,
         dates,
         combined_xtabs,
         question_groupings,
@@ -198,6 +198,6 @@ def fetch_meta_and_cache_data():
     # Wrap it up.
     cleanup_connection(connection)
     compress_and_upload()
-# %%
+
 if __name__ == "__main__":
     fetch_meta_and_cache_data()
