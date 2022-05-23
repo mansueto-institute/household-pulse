@@ -8,8 +8,8 @@ from typing import Optional
 
 import boto3
 import pandas as pd
-import sqlalchemy as db
 from botocore.exceptions import ClientError
+from household_pulse.mysql_wrapper import PulseSQL
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -165,9 +165,7 @@ def run_query(question_group,
               xtab,
               week_range,
               dates,
-              engine,
-              metadata,
-              connection,
+              pulsesql: PulseSQL,
               smoothed=False):
     """
     Run a query for a given question group, response labels, xtab labels, xtab,
@@ -209,24 +207,16 @@ def run_query(question_group,
     else:
         value_col = "pweight_share"
 
-    PULSE = db.Table(table_name, metadata, autoload=True, autoload_with=engine)
-    query = db.select(
-        [
-            PULSE.c.week,
-            # PULSE.c.q_var,
-            PULSE.c.q_val,
-            # PULSE.c.xtab_var,
-            PULSE.c.xtab_val,
-            PULSE.c[value_col]
-        ]
-    ) \
-        .where(PULSE.c.q_var.in_(variables)) \
-        .where(PULSE.c.xtab_var == xtab) \
-        .order_by(PULSE.c.week)
-
-    result_proxy = connection.execute(query)
-    result_keys = result_proxy.keys()
-    result_data = result_proxy.fetchall()
+    qvars = ', '.join(['%s'] * len(variables))
+    query = f"""
+        SELECT week, q_val, xtab_val, {value_col}
+        FROM {table_name}
+        WHERE q_var IN ({qvars}) AND
+            xtab_var = %s
+        ORDER BY week;
+    """
+    pulsesql.cur.execute(query, variables + [xtab])
+    result_data = pulsesql.cur.fetchall()
 
     return_dict = {
         'qid': question_group.variable_group,
@@ -244,7 +234,7 @@ def run_query(question_group,
     if len(df) == 0:
         return return_dict
 
-    df.columns = list(result_keys)
+    df.columns = [d[0] for d in pulsesql.cur.description]
     available_weeks = df.week.unique().astype(int).tolist()
     return_dict['available_weeks'] = available_weeks
 
@@ -280,18 +270,13 @@ def run_query(question_group,
 
 
 # FETCHERS AND DATA PARSING
-def get_dates(engine, connection, metadata):
-    collection_dates = db.Table(
-        'collection_dates', metadata, autoload=True, autoload_with=engine)
-    query = db.select([collection_dates]).order_by(
-        db.desc(collection_dates.columns.week))
-    # query
-    result_proxy = connection.execute(query)
-    result_keys = result_proxy.keys()
-    result_data = result_proxy.fetchall()
+def get_dates(pulsesql: PulseSQL):
+    query = 'SELECT * FROM collection_dates ORDER BY week;'
+    pulsesql.cur.execute(query)
+    result_data = pulsesql.cur.fetchall()
     # cleanup and output
     df = pd.DataFrame(result_data)
-    df.columns = list(result_keys)
+    df.columns = [d[0] for d in pulsesql.cur.description]
     df['dates'] = df.apply(
         lambda x: f"""
         {datetime.strftime(x['start_date'], '%Y-%m-%d')} to
@@ -329,17 +314,17 @@ def get_xtab_labels():
     return combined_xtabs
 
 
-def get_question_order(engine, connection, metadata):
-    PULSE = db.Table('pulse', metadata, autoload=True, autoload_with=engine)
-    query = db.select([
-        PULSE.c.q_var,
-        PULSE.c.week
-    ]).order_by(db.desc(PULSE.columns.week)).distinct()
-    result_proxy = connection.execute(query)
-    result_data = result_proxy.fetchall()
+def get_question_order(pulsesql: PulseSQL):
+    query = '''
+        SELECT DISTINCT q_var, week
+        FROM pulse
+        ORDER BY week DESC
+    '''
+    pulsesql.cur.execute(query)
+    result_data = pulsesql.cur.fetchall()
 
     df = pd.DataFrame(result_data)
-    df.columns = list(result_proxy.keys())
+    df.columns = [d[0] for d in pulsesql.cur.description]
     count = df.groupby("q_var").count()
     count.columns = ["count_of_weeks"]
     most_recent = df.sort_values(
