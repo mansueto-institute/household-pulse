@@ -25,18 +25,18 @@ SECRET_KEY = environ("S3_SECRET_KEY")
 # CONVENIENCE
 
 
-def write_json(json, path):
+def write_json(json, fpath):
     """
     Write a json file to disk.
 
     Returns:
         void
     """
-    with open(path, 'w') as outfile:
+    with open(fpath, 'w') as outfile:
         outfile.write(json)
 
 
-def df_to_json(df, path: str):
+def df_to_json(df, fpath: str):
     """
     Convert a pandas dataframe to a json string, then writes it.
 
@@ -45,7 +45,7 @@ def df_to_json(df, path: str):
     """
 
     json_df = df.to_json(orient="records")
-    write_json(json_df, path)
+    write_json(json_df, fpath)
 
 
 def get_sheet(sheet_name: str):
