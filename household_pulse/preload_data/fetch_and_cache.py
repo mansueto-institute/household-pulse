@@ -191,11 +191,11 @@ def fetch_meta_and_cache_data():
     label_groupings = meta_obj['label_groupings']
     # Cache data
     cache_queries(
+        pulsesql,
         dates,
         combined_xtabs,
         question_groupings,
         label_groupings,
-        pulsesql=pulsesql,
     )
     # Wrap it up.
     pulsesql.close_connection()
