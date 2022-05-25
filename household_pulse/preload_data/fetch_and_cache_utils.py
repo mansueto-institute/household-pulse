@@ -88,7 +88,7 @@ def compress_folder(input_path: str, output_path: str):
         void
     """
     tar = tarfile.open(output_path, "w:gz")
-    tar.add(input_path, arcname="TarName")
+    tar.add(input_path)
     tar.close()
 
 
