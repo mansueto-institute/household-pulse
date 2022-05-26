@@ -4,6 +4,7 @@ import tarfile
 import warnings
 from datetime import datetime
 from typing import Optional
+from glob import glob
 
 import pandas as pd
 from botocore.exceptions import ClientError
@@ -11,6 +12,7 @@ from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
+pd.options.mode.chained_assignment = None  # default='warn'
 
 BASE_SHEET_URL = (
     'https://docs.google.com/spreadsheets/d/e/'
@@ -88,7 +90,9 @@ def compress_folder(input_path: str, output_path: str):
         void
     """
     tar = tarfile.open(output_path, "w:gz")
-    tar.add(input_path)
+    files = glob(input_path + "/*")
+    for file in files:
+        tar.add(file, arcname=file.split('/')[-1])
     tar.close()
 
 
@@ -300,8 +304,8 @@ def get_xtab_labels():
     msa_xtabs['xtab_var'] = "EST_MSA"
 
     text_xtab = get_sheet("response_mapping").fillna('')
-    text_xtab = text_xtab[text_xtab.variable.isin(xtab_labels.query_value)][[
-        "variable", "value", "label"]]
+    text_xtab = text_xtab[text_xtab.variable_recode.isin(xtab_labels.query_value)][[
+        "variable_recode", "value", "label"]]
     text_xtab.columns = ["xtab_var", "xtab_val", "xtab_label"]
 
     combined_xtabs = pd.concat(
