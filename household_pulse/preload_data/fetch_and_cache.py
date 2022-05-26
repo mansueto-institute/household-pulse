@@ -1,6 +1,7 @@
 
 import json
 from os import mkdir, path
+from tqdm import tqdm
 
 from household_pulse.mysql_wrapper import PulseSQL
 
@@ -110,11 +111,11 @@ def cache_queries(pulsesql,
     # data caching
     week_range = [dates.week.min(), dates.week.max()]
     xtabs = combined_xtabs['xtab_var'].unique()
-
+    
     for xtab in xtabs:
         print(f'Querying xtab {xtab}')
         xtab_labels = combined_xtabs[combined_xtabs.xtab_var == xtab]
-        for i in range(0, len(question_groupings)):
+        for i in tqdm(range(0, len(question_groupings))):
             question_group = question_groupings.iloc[i]
             try:
                 response_labels = label_groupings[
