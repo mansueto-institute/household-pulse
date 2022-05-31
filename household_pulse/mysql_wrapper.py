@@ -16,9 +16,8 @@ from typing import Optional
 
 import mysql.connector
 import pandas as pd
-from mysql.connector import MySQLConnection
+from mysql.connector import Error, MySQLConnection
 from mysql.connector.cursor import MySQLCursor
-from mysql.connector.errors import Error
 from pkg_resources import resource_filename
 
 from household_pulse.downloader import DataLoader
@@ -49,11 +48,14 @@ class PulseSQL:
         '''
         df = self._convert_nans(df=df)
         try:
-            self.cur.executemany(query, df.values.tolist())
+            c: MySQLCursor = self.conn.cursor()
+            c.executemany(query, df.values.tolist())
             if commit:
                 self.conn.commit()
+            c.close()
         except Error as error:
             self.conn.rollback()
+            c.close()
             self.conn.close()
             raise error
 
@@ -91,20 +93,26 @@ class PulseSQL:
         Returns:
             int: latest week loaded into RDS
         """
-        self.cur.execute('SELECT MAX(week) FROM pulse;')
-        result = int(self.cur.fetchone()[0])
+        c: MySQLCursor = self.conn.cursor()
+        c.execute('SELECT MAX(week) FROM pulse;')
+        result = int(c.fetchone()[0])
+        c.close()
 
         return result
 
     def get_available_weeks(self) -> tuple[int, ...]:
-        self.cur.execute('SELECT DISTINCT(week) FROM pulse ORDER BY week')
-        result = tuple(int(x[0]) for x in self.cur.fetchall())
+        c: MySQLCursor = self.conn.cursor()
+        c.execute('SELECT DISTINCT(week) FROM pulse ORDER BY week')
+        result = tuple(int(x[0]) for x in c.fetchall())
+        c.close()
 
         return result
 
     def get_collection_weeks(self) -> set[int]:
-        self.cur.execute('SELECT DISTINCT week FROM collection_dates')
-        result = set(x[0] for x in self.cur.fetchall())
+        c: MySQLCursor = self.conn.cursor()
+        c.execute('SELECT DISTINCT week FROM collection_dates')
+        result = set(x[0] for x in c.fetchall())
+        c.close()
         return result
 
     def get_pulse_dates(self, week: int) -> dict[str, datetime]:
@@ -118,15 +126,18 @@ class PulseSQL:
             dict[str, datetime]: a dictionary with the publication, start and
                 end dates for a specific survey wave
         """
-        self.cur.execute(
+        c: MySQLCursor = self.conn.cursor()
+        c.execute(
             '''
             SELECT *
             FROM collection_dates
             WHERE week = %s
             ''',
             (week, ))
-        colnames = [desc[0] for desc in self.cur.description]
-        return dict(zip(colnames, *self.cur.fetchall()))
+        colnames = [desc[0] for desc in c.description]
+        results = c.fetchall()
+        c.close()
+        return dict(zip(colnames, *results))
 
     def close_connection(self) -> None:
         """
@@ -172,7 +183,9 @@ class PulseSQL:
         """
         dl = DataLoader()
         collection_dates = dl.load_collection_dates()
-        self.cur.execute('TRUNCATE pulse.collection_dates')
+        c: MySQLCursor = self.conn.cursor()
+        c.execute('TRUNCATE pulse.collection_dates')
+        c.close()
 
         datdf = pd.DataFrame.from_dict(collection_dates, orient='index')
         datdf.reset_index(inplace=True)
@@ -186,7 +199,6 @@ class PulseSQL:
         """
         self.conn: MySQLConnection = mysql.connector.connect(
             **self._load_rds_creds())
-        self.cur: MySQLCursor = self.conn.cursor()
 
     def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -215,11 +227,14 @@ class PulseSQL:
             WHERE week = %s
         '''
         try:
-            self.cur.execute(query, (week, ))
+            c: MySQLCursor = self.conn.cursor()
+            c.execute(query, (week, ))
             if commit:
                 self.conn.commit()
+            c.close()
         except Error as error:
             self.conn.rollback()
+            c.close()
             self.close_connection()
             raise error
 

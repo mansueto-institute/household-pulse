@@ -4,29 +4,13 @@ from os import mkdir, path
 from tqdm import tqdm
 
 from household_pulse.mysql_wrapper import PulseSQL
-
-from fetch_and_cache_utils import (compress_folder, df_to_json, get_dates,
-                                   get_label_groupings, get_question_groupings,
-                                   get_question_order, get_questions,
-                                   get_xtab_labels, run_query, upload_folder,
-                                   write_json)
+from household_pulse.preload_data.fetch_and_cache_utils import (
+    compress_folder, df_to_json, get_dates, get_label_groupings,
+    get_question_groupings, get_question_order, get_questions, get_xtab_labels,
+    run_query, upload_folder, write_json)
 
 # PARAMS
 MIN_WEEK_FILTER = 6
-
-
-def make_directories():
-    try:
-        fpath = path.join(".", "meta")
-        mkdir(fpath)
-    except FileExistsError:
-        print('Meta dir exists...')
-
-    try:
-        fpath = path.join(".", "cache")
-        mkdir(fpath)
-    except FileExistsError:
-        print('Cache dir exists...')
 
 
 def get_meta(pulsesql: PulseSQL):
@@ -40,7 +24,6 @@ def get_meta(pulsesql: PulseSQL):
     #     "date":"2022-04-11",
     #     "dates":"2022-03-30 to 2022-04-11"
     # }
-    df_to_json(dates, path.join('.', 'meta', 'dates.json'))
     print('dates...')
 
     # # #  Meta- xtab labels

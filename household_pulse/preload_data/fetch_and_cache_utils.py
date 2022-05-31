@@ -1,18 +1,14 @@
 import json
 import logging
 import tarfile
-import warnings
 from datetime import datetime
-from typing import Optional
 from glob import glob
+from typing import Optional
 
 import pandas as pd
 from botocore.exceptions import ClientError
 from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
-
-warnings.simplefilter(action='ignore', category=FutureWarning)
-pd.options.mode.chained_assignment = None  # default='warn'
 
 BASE_SHEET_URL = (
     'https://docs.google.com/spreadsheets/d/e/'
@@ -288,8 +284,6 @@ def get_dates(pulsesql: PulseSQL):
 
 def get_xtab_labels():
     xtab_labels = get_sheet("xtab_labels").fillna('')
-    df_to_json(xtab_labels, '../meta/xtab_labels.json')
-
     numeric_xtab = get_sheet("numeric_mapping").fillna('')
     numeric_xtab = numeric_xtab.query("variable == 'TBIRTH_YEAR'")[
         ['variable', 'bin', 'label']]
