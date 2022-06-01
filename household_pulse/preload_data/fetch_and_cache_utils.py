@@ -1,4 +1,3 @@
-import json
 import logging
 import tarfile
 from datetime import datetime
@@ -154,13 +153,13 @@ def generate_dummy_obj(week, labels):
     return temp_dict
 
 
-def run_query(question_group,
+def run_query(df: pd.DataFrame,
+              question_group,
               response_labels,
               xtab_labels,
               xtab,
               week_range,
               dates,
-              pulsesql: PulseSQL,
               smoothed=False):
     """
     Run a query for a given question group, response labels, xtab labels, xtab,
@@ -191,27 +190,10 @@ def run_query(question_group,
             'available_weeks': array of weeks available, as ints
         }
     """
-    variables = json.loads(question_group['variables'])
-    if smoothed:
-        table_name = "smoothed"
-    else:
-        table_name = "pulse"
-
     if smoothed:
         value_col = "pweight_share_smoothed"
     else:
         value_col = "pweight_share"
-
-    qvars = ', '.join(['%s'] * len(variables))
-    query = f"""
-        SELECT week, q_val, xtab_val, {value_col}
-        FROM {table_name}
-        WHERE q_var IN ({qvars}) AND
-            xtab_var = %s
-        ORDER BY week;
-    """
-    pulsesql.cur.execute(query, variables + [xtab])
-    result_data = pulsesql.cur.fetchall()
 
     return_dict = {
         'qid': question_group.variable_group,
@@ -224,22 +206,20 @@ def run_query(question_group,
         "available_weeks": []
     }
 
-    df = pd.DataFrame(result_data)
+    resdf = df[
+        (df['xtab_var'] == xtab) &
+        (df['q_var'].isin(question_group['variables']))]
 
-    if len(df) == 0:
-        return return_dict
-
-    df.columns = [d[0] for d in pulsesql.cur.description]
-    available_weeks = df.week.unique().astype(int).tolist()
+    available_weeks = resdf.week.unique().astype(int).tolist()
     return_dict['available_weeks'] = available_weeks
 
-    for xtab in df.xtab_val.unique():
-        temp_df = df[df.xtab_val == xtab]
-        temp_df['week'] = temp_df.week.astype(int)
-        temp_df['proportion'] = temp_df[value_col].astype(float)
-        temp_df = temp_df.sort_values(by=['week'])
-        grouped_dict = temp_df.groupby('week').apply(
-            lambda x: group_to_json(x, response_labels))
+    for resdftab in resdf.xtab_val.unique():
+        temp_resdf = resdf[resdf.xtab_val == resdftab].copy()
+        temp_resdf['week'] = temp_resdf.week.astype(int)
+        temp_resdf['proportion'] = temp_resdf[value_col].astype(float)
+        temp_resdf = temp_resdf.sort_values(by=['week'])
+        grouped_dict = temp_resdf.groupby('week').apply(
+            lambda resdf: group_to_json(resdf, response_labels))
         values = []
         for week in range(week_range[0], week_range[1]+1):
             if week in grouped_dict.index:
@@ -253,12 +233,12 @@ def run_query(question_group,
         try:
             return_dict['response'].append({
                 "ct": (
-                    xtab_labels[xtab_labels.xtab_val == xtab]
+                    xtab_labels[xtab_labels.xtab_val == resdftab]
                 ).xtab_label.values[0],
                 "values": values
             })
         except KeyError:
-            print(f"Missing xtab {xtab} from label dict")
+            print(f"Missing resdftab {resdftab} from label dict")
             print(xtab_labels)
 
     return return_dict
@@ -267,11 +247,13 @@ def run_query(question_group,
 # FETCHERS AND DATA PARSING
 def get_dates(pulsesql: PulseSQL):
     query = 'SELECT * FROM collection_dates ORDER BY week;'
-    pulsesql.cur.execute(query)
-    result_data = pulsesql.cur.fetchall()
+    c = pulsesql.conn.cursor()
+    c.execute(query)
+    result_data = c.fetchall()
     # cleanup and output
     df = pd.DataFrame(result_data)
-    df.columns = [d[0] for d in pulsesql.cur.description]
+    df.columns = [d[0] for d in c.description]
+    c.close()
     df['dates'] = df.apply(
         lambda x: f"""
         {datetime.strftime(x['start_date'], '%Y-%m-%d')} to
@@ -298,8 +280,9 @@ def get_xtab_labels():
     msa_xtabs['xtab_var'] = "EST_MSA"
 
     text_xtab = get_sheet("response_mapping").fillna('')
-    text_xtab = text_xtab[text_xtab.variable_recode.isin(xtab_labels.query_value)][[
-        "variable_recode", "value", "label"]]
+    text_xtab = text_xtab[
+        text_xtab.variable_recode.isin(xtab_labels.query_value)][[
+            "variable_recode", "value", "label"]]
     text_xtab.columns = ["xtab_var", "xtab_val", "xtab_label"]
 
     combined_xtabs = pd.concat(
@@ -313,11 +296,13 @@ def get_question_order(pulsesql: PulseSQL):
         FROM pulse
         ORDER BY week DESC
     '''
-    pulsesql.cur.execute(query)
-    result_data = pulsesql.cur.fetchall()
-
+    c = pulsesql.conn.cursor()
+    c.execute(query)
+    result_data = c.fetchall()
     df = pd.DataFrame(result_data)
-    df.columns = [d[0] for d in pulsesql.cur.description]
+    df.columns = [d[0] for d in c.description]
+    c.close()
+
     count = df.groupby("q_var").count()
     count.columns = ["count_of_weeks"]
     most_recent = df.sort_values(
@@ -397,13 +382,16 @@ def get_question_groupings():
     questions['variable_group'] = questions.apply(lambda x: reconcile(
         x['variable_group_recode'], x['variable_group']), axis=1)
     questions = questions[["variable_recode_final", "variable_group", "kind"]]
-    questions['variables'] = questions.apply(
-        lambda x: json.dumps(list(
-            questions[questions.variable_group == x.variable_group]
-            .variable_recode_final)),
-        axis=1)
-    questions = questions[["variable_group", "kind", "variables"]]
-    return questions.drop_duplicates()
+    questions = (
+        questions
+        .groupby(['variable_group', 'kind'])['variable_recode_final']
+        .unique()
+        .reset_index())
+    questions.rename(
+        columns={'variable_recode_final': 'variables'},
+        inplace=True)
+
+    return questions
 
 
 def get_label_groupings():
@@ -454,7 +442,7 @@ def get_label_groupings():
         for i in range(0, len(sub_labels)):
             temp_obj[
                 f"{int(sub_labels.value.iloc[i])}"] = \
-                f"{sub_labels.label.iloc[i]}"
+                    f"{sub_labels.label.iloc[i]}"
         combined_labels[variable_group] = temp_obj
 
     return combined_labels
