@@ -94,14 +94,12 @@ def fetch_meta_and_cache_data():
 
     for fname, data in meta.items():
         if isinstance(data, pd.DataFrame):
-            meta[f'{fname}.json'] = meta.pop(fname).to_json(orient='records')
-        else:
-            meta[f'{fname}.json'] = meta.pop(fname)
-
+            meta[fname] = meta[fname].to_json(orient='records')
+    metacache = {f'{k}.json': v for k, v in meta.items()}
     dl.tar_and_upload_to_s3(
         bucket='household-pulse',
         tarname='output_meta.tar.gz',
-        files=meta)
+        files=metacache)
 
 
 if __name__ == "__main__":
