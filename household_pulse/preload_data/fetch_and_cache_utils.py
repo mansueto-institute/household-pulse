@@ -1,6 +1,5 @@
 import logging
 import tarfile
-from datetime import datetime
 from glob import glob
 from typing import Optional
 
@@ -254,13 +253,11 @@ def get_dates(pulsesql: PulseSQL):
     df = pd.DataFrame(result_data)
     df.columns = [d[0] for d in c.description]
     c.close()
-    df['dates'] = df.apply(
-        lambda x: f"""
-        {datetime.strftime(x['start_date'], '%Y-%m-%d')} to
-        {datetime.strftime(x['end_date'], '%Y-%m-%d')}""",
-        axis=1)
-    df['date'] = df['end_date'].apply(
-        lambda x:  datetime.strftime(x, '%Y-%m-%d'))
+    df['dates'] = (
+        df['start_date'].astype(str) +
+        ' to ' +
+        df['end_date'].astype(str))
+    df['date'] = df['end_date'].astype(str)
     return df[['week', 'date', 'dates']]
 
 
@@ -442,7 +439,7 @@ def get_label_groupings():
         for i in range(0, len(sub_labels)):
             temp_obj[
                 f"{int(sub_labels.value.iloc[i])}"] = \
-                    f"{sub_labels.label.iloc[i]}"
+                f"{sub_labels.label.iloc[i]}"
         combined_labels[variable_group] = temp_obj
 
     return combined_labels
