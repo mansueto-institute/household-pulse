@@ -176,6 +176,33 @@ class PulseSQL:
 
         return df
 
+    def get_pulse_with_smoothed(self) -> pd.DataFrame:
+        """
+        Gets all the records from the pulse table but only those columns
+        needed to pre-populate the front end's cache
+
+        Returns:
+            pd.DataFrame: pulse columns with the added smoothed pweight share
+        """
+        query = '''
+            SELECT week,
+                xtab_var,
+                xtab_val,
+                q_var,
+                q_val,
+                pweight_share,
+                pweight_share_smoothed
+            FROM pulse
+            INNER JOIN smoothed
+            USING (week, xtab_var, xtab_val, q_var, q_val);
+            '''
+        with warnings.catch_warnings():
+            # we ignore the warning that pandas gives us for not using
+            # sql alchemy
+            warnings.simplefilter('ignore')
+            df = pd.read_sql(sql=query, con=self.conn)
+        return df
+
     def update_collection_dates(self) -> None:
         """
         truncates the current `collection_dates` table and uploads the latest
