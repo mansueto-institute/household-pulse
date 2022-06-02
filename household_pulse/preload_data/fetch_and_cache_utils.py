@@ -208,7 +208,7 @@ def run_query(df: pd.DataFrame,
 
     resdf = df[
         (df['xtab_var'] == xtab) &
-        (df['q_var'].isin(question_group['variables']))]
+        (df['q_var'].isin(question_group.variables))]
 
     available_weeks = resdf.week.unique().astype(int).tolist()
     return_dict['available_weeks'] = available_weeks
