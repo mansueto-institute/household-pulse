@@ -1,152 +1,76 @@
 
 import json
-from os import mkdir, path
-from tqdm import tqdm
 
+import pandas as pd
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.preload_data.fetch_and_cache_utils import (
-    compress_folder, df_to_json, get_dates, get_label_groupings,
-    get_question_groupings, get_question_order, get_questions, get_xtab_labels,
-    run_query, upload_folder, write_json)
+    compress_folder, get_dates, get_label_groupings, get_question_groupings,
+    get_question_order, get_questions, get_xtab_labels, run_query,
+    upload_folder)
+from tqdm import tqdm
 
 # PARAMS
 MIN_WEEK_FILTER = 6
 
 
 def get_meta(pulsesql: PulseSQL):
-    print('Fetching meta information...')
-    # metadata
-    # Meta- date range and labels
     dates = get_dates(pulsesql=pulsesql)
-    # format example
-    # {
-    #     "week":44,
-    #     "date":"2022-04-11",
-    #     "dates":"2022-03-30 to 2022-04-11"
-    # }
-    print('dates...')
-
-    # # #  Meta- xtab labels
-    combined_xtabs = get_xtab_labels()
-    # format example
-    # {
-    #     "xtab_var":"TBIRTH_YEAR",
-    #     "xtab_val":0,
-    #     "xtab_label":"18 to 29"
-    # }
-    df_to_json(combined_xtabs, path.join('.', 'meta', 'xtab.json'))
-    print('xtabs...')
-
-    # # get questions
-    # Get order based on most recent week and number of weeks present
     order = get_question_order(pulsesql=pulsesql)
-    # format example
-    # {
-    #     "question":"During the last 7 days, did you..?",
-    #     "topic":"Food security",
-    #     "subtopic":"Food assistance",
-    #     "question_type":"Yes \/ No",
-    #     "variable":"FREEFOOD",
-    #     "isMultiQuestion":true
-    # }
+
     questions = get_questions(order, MIN_WEEK_FILTER)
-    df_to_json(questions, path.join('.', 'meta', 'questions.json'))
-    print('questions...')
-
-    # # get question grouping
-    # For fetching, the grouping of the question group with relevant variables
-    # format example
-    # {
-    #     "variable_group":"WHYCHNGD",
-    #     "kind":"single",
-    #     "variables":"[\"WHYCHNGD1\", \"WHYCHNGD2\"...]"
-    # }
+    combined_xtabs = get_xtab_labels()
     question_groupings = get_question_groupings()
-    df_to_json(question_groupings, path.join(
-        '.', 'meta', 'questionGrouping.json'))
-    print('groupings...')
-
-    # # get label grouping
-    # Outer tagged label groupings
-    # {
-    #      "ACTIVITY": {"1": "Yes", "2": "No"},
-    #      ...
-    # }
     label_groupings = get_label_groupings()
-    write_json(json.dumps(label_groupings), path.join(
-        '.', 'meta', 'labelGrouping.json'))
-    print('labels...')
-    print('Done fetching meta.')
+
     return {
         'dates': dates,
         'xtabs': combined_xtabs,
+        'questions': questions,
         'question_groupings': question_groupings,
         'label_groupings': label_groupings,
     }
 
 
-def cache_queries(pulsesql,
+def cache_queries(df: pd.DataFrame,
                   dates,
                   combined_xtabs,
                   question_groupings,
                   label_groupings):
-    print('Caching queries...')
-    # data caching
+
     week_range = [dates.week.min(), dates.week.max()]
     xtabs = combined_xtabs['xtab_var'].unique()
-    
+    cached = {}
+
     for xtab in xtabs:
-        print(f'Querying xtab {xtab}')
         xtab_labels = combined_xtabs[combined_xtabs.xtab_var == xtab]
-        for i in tqdm(range(0, len(question_groupings))):
-            question_group = question_groupings.iloc[i]
-            try:
-                response_labels = label_groupings[
-                    question_group.variable_group
-                ]
-            except KeyError:
-                print(f"Missing labels for {question_group.variable_group}")
+        for row in tqdm(
+                question_groupings.itertuples(),
+                total=len(question_groupings),
+                desc=f'Working on xtab: {xtab}'):
 
-            try:
-                data = run_query(
-                    question_group,
-                    response_labels,
-                    xtab_labels,
-                    xtab,
-                    week_range,
-                    dates,
-                    pulsesql=pulsesql
-                )
-                write_json(
-                    json.dumps(data),
-                    path.join(
-                        '.',
-                        'cache',
-                        f'{question_group.variable_group}-{xtab}.json')
-                )
-            except KeyError:
-                print(f'Error with {question_group.variable_group}')
+            var_group = row.variable_group
+            response_labels = label_groupings[var_group]
 
-            try:
+            fnamepre = f'{row.variable_group}-{xtab}'
+
+            for smoothed in (True, False):
+                if smoothed:
+                    fname = '-'.join((fnamepre, 'SMOOTHED'))
+                else:
+                    fname = fnamepre
                 data = run_query(
-                    question_group,
-                    response_labels,
-                    xtab_labels,
-                    xtab,
-                    week_range,
-                    dates,
-                    pulsesql=pulsesql,
-                    smoothed=True
-                )
-                write_json(
-                    json.dumps(data),
-                    path.join(
-                        '.',
-                        'cache',
-                        (f'{question_group.variable_group}-{xtab}-'
-                         'SMOOTHED.json')))
-            except KeyError:
-                print(f'Error with {question_group.variable_group} smoothed')
+                    df=df,
+                    question_group=row,
+                    response_labels=response_labels,
+                    xtab_labels=xtab_labels,
+                    xtab=xtab,
+                    week_range=week_range,
+                    dates=dates,
+                    smoothed=smoothed)
+
+                cached['.'.join((fname, 'json'))] = data
+
+    return cached
 
 
 def compress_and_upload():
@@ -164,25 +88,19 @@ def compress_and_upload():
 
 
 def fetch_meta_and_cache_data():
-    make_directories()
-    # Connection to use to RDS
     pulsesql = PulseSQL()
-    # Meta info for queries
-    meta_obj = get_meta(pulsesql=pulsesql)
-    dates = meta_obj['dates']
-    combined_xtabs = meta_obj['xtabs']
-    question_groupings = meta_obj['question_groupings']
-    label_groupings = meta_obj['label_groupings']
-    # Cache data
-    cache_queries(
-        pulsesql,
-        dates,
-        combined_xtabs,
-        question_groupings,
-        label_groupings,
-    )
-    # Wrap it up.
+
+    df = pulsesql.get_pulse_with_smoothed()
+
+    meta = get_meta(pulsesql=pulsesql)
     pulsesql.close_connection()
+
+    cache = cache_queries(
+        df,
+        meta['dates'],
+        meta['xtabs'],
+        meta['question_groupings'],
+        meta['label_groupings'])
     compress_and_upload()
 
 
