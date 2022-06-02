@@ -1,12 +1,10 @@
 
-import json
-
 import pandas as pd
+from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.preload_data.fetch_and_cache_utils import (
-    compress_folder, get_dates, get_label_groupings, get_question_groupings,
-    get_question_order, get_questions, get_xtab_labels, run_query,
-    upload_folder)
+    get_dates, get_label_groupings, get_question_groupings, get_question_order,
+    get_questions, get_xtab_labels, run_query)
 from tqdm import tqdm
 
 # PARAMS
@@ -73,20 +71,6 @@ def cache_queries(df: pd.DataFrame,
     return cached
 
 
-def compress_and_upload():
-    print('Compressing files...')
-    compress_folder(path.join(".", "meta"), path.join(
-        ".", "meta", "output_meta.tar.gz"))
-    compress_folder(path.join(".", "cache"), path.join(
-        ".", "cache", "output_cache.tar.gz"))
-    print('Uploading to s3...')
-    upload_folder('household-pulse', path.join(".", "meta",
-                  "output_meta.tar.gz"), 'frontend_cache')
-    upload_folder('household-pulse', path.join(".", "cache",
-                  "output_cache.tar.gz"), 'frontend_cache')
-    print('Uploaded.')
-
-
 def fetch_meta_and_cache_data():
     pulsesql = PulseSQL()
 
@@ -101,7 +85,23 @@ def fetch_meta_and_cache_data():
         meta['xtabs'],
         meta['question_groupings'],
         meta['label_groupings'])
-    compress_and_upload()
+
+    dl = DataLoader()
+    dl.tar_and_upload_to_s3(
+        bucket='household-pulse',
+        tarname='output_cache.tar.gz',
+        files=cache)
+
+    for fname, data in meta.items():
+        if isinstance(data, pd.DataFrame):
+            meta[f'{fname}.json'] = meta.pop(fname).to_json(orient='records')
+        else:
+            meta[f'{fname}.json'] = meta.pop(fname)
+
+    dl.tar_and_upload_to_s3(
+        bucket='household-pulse',
+        tarname='output_meta.tar.gz',
+        files=meta)
 
 
 if __name__ == "__main__":
