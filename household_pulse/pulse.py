@@ -94,7 +94,11 @@ class Pulse:
         the date at which the survey was implemented
         """
         sql = PulseSQL()
-        dates = sql.get_pulse_dates(self.week)
+        try:
+            dates = sql.get_pulse_dates(self.week)
+        except KeyError:
+            sql.update_collection_dates()
+            dates = sql.get_pulse_dates(self.week)
         sql.close_connection()
 
         df = self.df

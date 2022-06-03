@@ -137,6 +137,8 @@ class PulseSQL:
         colnames = [desc[0] for desc in c.description]
         results = c.fetchall()
         c.close()
+        if len(results) == 0:
+            raise KeyError(f'week {week} not found in collection_dates table')
         return dict(zip(colnames, *results))
 
     def close_connection(self) -> None:
