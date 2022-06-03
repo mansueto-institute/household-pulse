@@ -71,7 +71,7 @@ def cache_queries(df: pd.DataFrame,
     return cached
 
 
-def fetch_meta_and_cache_data():
+def build_front_cache():
     pulsesql = PulseSQL()
 
     df = pulsesql.get_pulse_with_smoothed()
@@ -103,4 +103,4 @@ def fetch_meta_and_cache_data():
 
 
 if __name__ == "__main__":
-    fetch_meta_and_cache_data()
+    build_front_cache()

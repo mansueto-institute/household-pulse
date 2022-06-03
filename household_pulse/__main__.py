@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
+from household_pulse.preload_data.fetch_and_cache import build_front_cache
 from household_pulse.pulse import Pulse
 from household_pulse.smoothing import smooth_pulse
 
@@ -102,6 +103,9 @@ class PulseCLI:
 
             elif self.args.run_smoothing:
                 smooth_pulse()
+
+            elif self.args.build_front_cache:
+                build_front_cache()
 
         elif self.args.subcommand == 'fetch':
             if self.args.subsubcommand == 'download-pulse':
@@ -199,6 +203,11 @@ class PulseCLI:
         execgroup.add_argument(
             '--run-smoothing',
             help='Runs a LOWESS on the time series for each question',
+            action='store_true',
+            default=False)
+        execgroup.add_argument(
+            '--build-front-cache',
+            help='Builds a cache of all data from RDS for the front end',
             action='store_true',
             default=False)
 
