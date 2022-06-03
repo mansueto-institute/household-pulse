@@ -12,6 +12,7 @@ Created on Monday, 21st March 2022 7:00:00 pm
 """
 import json
 import re
+import tarfile
 from datetime import date, datetime
 from io import BytesIO
 from zipfile import ZipFile
@@ -64,6 +65,40 @@ class DataLoader:
                 raise ClientError(e)
 
         return df
+
+    def tar_and_upload_to_s3(self,
+                             bucket: str,
+                             tarname: str,
+                             files: dict[str, dict]) -> None:
+        """
+        this method takes in a dictionary that contain json serializable data
+        as values and corresponding file names as keys. all the key-value
+        pairs are added to a tar rfile as individual json files, which is then
+        uploaded to a location in S3 using the `tarname` as the object key.
+
+        Args:
+            bucket (str): target bucket
+            tarname (str): object key, or name of the tar file
+            files (dict[str, dict]): keys as file names in the archive with
+                the data as its values.
+        """
+        fileobj = BytesIO()
+        with tarfile.open(mode='w:gz', fileobj=fileobj) as tar_file:
+            for fname, data in files.items():
+                with BytesIO() as out_stream:
+                    if isinstance(data, dict):
+                        out_stream.write(json.dumps(data).encode())
+                    else:
+                        out_stream.write(data.encode())
+                    out_stream.seek(0)
+                    finfo = tarfile.TarInfo(fname)
+                    finfo.size = len(out_stream.getbuffer())
+                    tar_file.addfile(finfo, out_stream)
+        self.s3.put_object(
+            Body=fileobj.getvalue(),
+            Bucket=bucket,
+            Key=tarname)
+        fileobj.close()
 
     def _download_from_s3(self, week: int) -> pd.DataFrame:
         """
