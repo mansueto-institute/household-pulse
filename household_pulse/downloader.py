@@ -86,7 +86,10 @@ class DataLoader:
         with tarfile.open(mode='w:gz', fileobj=fileobj) as tar_file:
             for fname, data in files.items():
                 with BytesIO() as out_stream:
-                    out_stream.write(json.dumps(data).encode())
+                    if isinstance(data, dict):
+                        out_stream.write(json.dumps(data).encode())
+                    else:
+                        out_stream.write(data.encode())
                     out_stream.seek(0)
                     finfo = tarfile.TarInfo(fname)
                     finfo.size = len(out_stream.getbuffer())
