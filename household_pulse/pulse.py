@@ -11,7 +11,9 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
             end.
 ===============================================================================
 """
+import numpy as np
 import pandas as pd
+
 from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
 
@@ -159,12 +161,14 @@ class Pulse:
             if bucketized.isnull().sum() > 0:
                 allowed = {-88, -99}
                 unmapped = set(df[col][bucketized.isnull()])
-                if len(allowed - unmapped) == 0:
-                    continue
-                else:
+                if len(allowed - unmapped) != 0:
                     raise ValueError(
                         f'Unmapped values bining col {col}, {unmapped}')
-            df[col] = bucketized.cat.codes
+            # map the category codes if not missing, otherwise keep the missing
+            df[col] = np.where(
+                bucketized.cat.codes == -1,
+                df[col],
+                bucketized.cat.codes)
 
     def _reshape_long(self) -> None:
         """
