@@ -14,8 +14,11 @@ import warnings
 
 import pandas as pd
 import statsmodels.api as sm
+from tqdm import tqdm
 
 from household_pulse.mysql_wrapper import PulseSQL
+
+tqdm.pandas()
 
 
 def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
@@ -33,6 +36,7 @@ def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
             endog=group[wcol],
             frac=frac,
             is_sorted=True)
+        smoothed[:, 1] = smoothed[:, 1] / smoothed[:, 1].sum()
         group[f'{wcol}_smoothed'] = smoothed[:, 1]
         group.drop(columns=wcol, inplace=True)
 
@@ -74,7 +78,7 @@ def smooth_pulse() -> None:
         df = df.groupby(
             by=['xtab_var', 'xtab_val', 'q_var', 'q_val'],
             sort=False
-        ).apply(smooth_group)
+        ).progress_apply(smooth_group)
     df.drop(columns='end_date', inplace=True)
     sql.update_values(table='smoothed', df=df)
     sql.close_connection()
