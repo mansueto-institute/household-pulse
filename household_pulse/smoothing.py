@@ -14,8 +14,11 @@ import warnings
 
 import pandas as pd
 import statsmodels.api as sm
+from tqdm import tqdm
 
 from household_pulse.mysql_wrapper import PulseSQL
+
+tqdm.pandas()
 
 
 def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
@@ -37,6 +40,33 @@ def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
         group.drop(columns=wcol, inplace=True)
 
     return group
+
+
+def normalize_smoothed(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Normalizes all smoothed pweights and hweights shares so that they add up
+    to one within a week-xtab_val-xtab_var-q_var level
+
+    Args:
+        df (pd.DataFrame): dataframe with smoothed shares
+
+    Returns:
+        pd.DataFrame: dataframe with normalized smoothed shares
+    """
+    wcols = [
+        'pweight_share_smoothed',
+        'pweight_lower_share_smoothed',
+        'pweight_upper_share_smoothed',
+        'hweight_share_smoothed',
+        'hweight_lower_share_smoothed',
+        'hweight_upper_share_smoothed'
+    ]
+    grpdf = df.groupby(['week', 'xtab_var', 'xtab_val', 'q_var'])
+
+    for wcol in wcols:
+        df[wcol] = df[wcol] / grpdf[wcol].transform('sum')
+
+    return df
 
 
 def smooth_pulse() -> None:
@@ -74,7 +104,8 @@ def smooth_pulse() -> None:
         df = df.groupby(
             by=['xtab_var', 'xtab_val', 'q_var', 'q_val'],
             sort=False
-        ).apply(smooth_group)
+        ).progress_apply(smooth_group)
     df.drop(columns='end_date', inplace=True)
+    df = normalize_smoothed(df)
     sql.update_values(table='smoothed', df=df)
     sql.close_connection()
