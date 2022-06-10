@@ -36,11 +36,37 @@ def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
             endog=group[wcol],
             frac=frac,
             is_sorted=True)
-        smoothed[:, 1] = smoothed[:, 1] / smoothed[:, 1].sum()
         group[f'{wcol}_smoothed'] = smoothed[:, 1]
         group.drop(columns=wcol, inplace=True)
 
     return group
+
+
+def normalize_smoothed(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Normalizes all smoothed pweights and hweights shares so that they add up
+    to one within a week-xtab_val-xtab_var-q_var level
+
+    Args:
+        df (pd.DataFrame): dataframe with smoothed shares
+
+    Returns:
+        pd.DataFrame: dataframe with normalized smoothed shares
+    """
+    wcols = [
+        'pweight_share_smoothed',
+        'pweight_lower_share_smoothed',
+        'pweight_upper_share_smoothed',
+        'hweight_share_smoothed',
+        'hweight_lower_share_smoothed',
+        'hweight_upper_share_smoothed'
+    ]
+    grpdf = df.groupby(['week', 'xtab_var', 'xtab_val', 'q_var'])
+
+    for wcol in wcols:
+        df[wcol] = df[wcol] / grpdf[wcol].transform('sum')
+
+    return df
 
 
 def smooth_pulse() -> None:
@@ -80,5 +106,6 @@ def smooth_pulse() -> None:
             sort=False
         ).progress_apply(smooth_group)
     df.drop(columns='end_date', inplace=True)
+    df = normalize_smoothed(df)
     sql.update_values(table='smoothed', df=df)
     sql.close_connection()
