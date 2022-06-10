@@ -12,6 +12,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional
 
+import requests
 from tqdm import tqdm
 
 from household_pulse.downloader import DataLoader
@@ -106,6 +107,9 @@ class PulseCLI:
 
             elif self.args.build_front_cache:
                 build_front_cache()
+
+            elif self.args.send_build_request:
+                self._build_request()
 
         elif self.args.subcommand == 'fetch':
             if self.args.subsubcommand == 'download-pulse':
@@ -208,6 +212,11 @@ class PulseCLI:
         execgroup.add_argument(
             '--build-front-cache',
             help='Builds a cache of all data from RDS for the front end',
+            action='store_true',
+            default=False)
+        execgroup.add_argument(
+            '--send-build-request',
+            help='Sends a build request to the website`s front end',
             action='store_true',
             default=False)
 
@@ -332,6 +341,16 @@ class PulseCLI:
             outfile = path.joinpath(f'{file_prefix}-{week}.csv')
 
         return outfile
+
+    @staticmethod
+    def _build_request() -> None:
+        """
+        Sends a build request to the vercel app
+        """
+        url = ('https://api.vercel.com/v1/integrations/deploy/'
+               'prj_k6aFic5qukpPKfa7lZAAMMUmdpZO/mOJDLGgcJw')
+        r = requests.get(url)
+        print(r.json())
 
 
 if __name__ == "__main__":

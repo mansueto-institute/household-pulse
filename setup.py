@@ -17,7 +17,7 @@ setuptools.setup(
         'tqdm>=4.63.0',
         'statsmodels>=0.13.2'
     ],
-    version='1.4.1',
+    version='1.5.0',
     author="Manuel Martinez",
     author_email="manmart@uchicago.edu",
     description=(
