@@ -277,9 +277,12 @@ def get_xtab_labels():
     msa_xtabs['xtab_var'] = "EST_MSA"
 
     text_xtab = get_sheet("response_mapping").fillna('')
+    text_xtab["label"] = text_xtab.apply(lambda x: reconcile(x["label_recode"], x["label"]), axis=1)
+    text_xtab["variable"] = text_xtab.apply(lambda x: reconcile(x["variable_recode"], x["variable"]), axis=1)
+    text_xtab["value"] = text_xtab.apply(lambda x: reconcile(x["value_recode"], x["value"]), axis=1)
     text_xtab = text_xtab[
         text_xtab.variable_recode.isin(xtab_labels.query_value)][[
-            "variable_recode", "value", "label"]]
+            "variable", "value", "label"]]
     text_xtab.columns = ["xtab_var", "xtab_val", "xtab_label"]
 
     combined_xtabs = pd.concat(
