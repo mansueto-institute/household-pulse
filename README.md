@@ -75,7 +75,6 @@ python -m household_pulse fetch --help
 Clone and setup environment:
 ```bash
 git clone https://github.com/mansueto-institute/household-pulse
-pip install -e household-pulse/
 cd ./household-pulse   
 conda create --name pulse python=3.9.7 --yes   
 source activate pulse 
