@@ -70,6 +70,28 @@ Another of the features that the CLI has is the ability to download the processe
 python -m household_pulse fetch --help
 ```
 
+### Updating vignette
+
+Clone and setup environment:
+```bash
+git clone https://github.com/mansueto-institute/household-pulse
+pip install -e household-pulse/
+cd ./household-pulse   
+conda create --name pulse python=3.9.7 --yes   
+source activate pulse 
+pip install git+https://github.com/mansueto-institute/household-pulse
+```
+
+Add the `s3.json` and `rds-mysql.json` credentials to the repository's folder `./household-pulse/household_pulse` (link to credentials [here](https://drive.google.com/drive/folders/1f1N6_LbMW454YmHWf6QZ7PDoPSNeGUix?usp=sharing)).
+
+Update the time series, smooth the estimates, and send build request to front end:
+```bash
+python -m household_pulse etl --backfill  
+python -m household_pulse etl --run-smoothing 
+python -m household_pulse etl --build-front-cache
+python -m household_pulse etl --send-build-request 
+```
+
 ## Run workflow on AWS
 
 The workflow can be run on AWS in many different ways, depending on the need. We chose to create a Docker file that can be uploaded to ECR and then mounted as a Lambda function on AWS. The lambda function can be triggered remotely via an API, or can be scheduled to be triggered via CloudWatch as an event.
