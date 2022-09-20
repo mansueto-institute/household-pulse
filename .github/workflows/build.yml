@@ -29,6 +29,7 @@ jobs:
       - name: Install test requirements
         run: |
           pip install -r dev-requirements.txt
+          mypy --install-types
 
       - name: Lint with flake8
         run: |
