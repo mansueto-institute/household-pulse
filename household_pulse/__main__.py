@@ -25,23 +25,24 @@ from household_pulse.smoothing import smooth_pulse
 class PulseCLI:
     def __init__(self) -> None:
         parser = ArgumentParser(
-            description='Basic CLI for managing the Household Pulse ETL'
+            description="Basic CLI for managing the Household Pulse ETL"
         )
 
         subparsers = parser.add_subparsers(
-            dest='subcommand',
-            help='The different sub-commands available'
+            dest="subcommand", help="The different sub-commands available"
         )
 
         etlparser = subparsers.add_parser(
-            name='etl',
-            help='Subcommands for managing / running the main ETL process'
+            name="etl",
+            help="Subcommands for managing / running the main ETL process",
         )
         self._etlparser(etlparser)
 
         dataparser = subparsers.add_parser(
-            name='fetch',
-            help='Subcommands for fetching different data from the ETL process'
+            name="fetch",
+            help=(
+                "Subcommands for fetching different data from the ETL process"
+            ),
         )
         self._dataparser(dataparser)
 
@@ -51,71 +52,11 @@ class PulseCLI:
         """
         Main command distributor for the CLI
         """
-        if self.args.subcommand == 'etl':
-            if self.args.get_latest_week:
-                week = self.get_latest_week(target=self.args.get_latest_week)
-                print(
-                    f'Latest week available on {self.args.get_latest_week} '
-                    f'is {week}')
+        if self.args.subcommand == "etl":
+            self.etl_subcommand()
 
-            elif self.args.get_all_weeks:
-                weeks = self.get_all_weeks(target=self.args.get_all_weeks)
-                print(
-                    f'Available weeks on {self.args.get_all_weeks} are '
-                    f'{weeks}')
-
-            elif self.args.run_single_week:
-                pulse = Pulse(week=self.args.run_single_week)
-                pulse.process_data()
-                pulse.upload_data()
-
-            elif self.args.run_latest_week:
-                pulse = Pulse(week=self.get_latest_week(target='census'))
-                pulse.process_data()
-                pulse.upload_data()
-
-            elif self.args.run_multiple_weeks:
-                weeks = self.args.run_multiple_weeks
-                for week in tqdm(weeks, desc='Processing weeks'):
-                    pulse = Pulse(week=week)
-                    pulse.process_data()
-                    pulse.upload_data()
-
-            elif self.args.run_all_weeks:
-                weeks = self.get_all_weeks(target='census')
-                for week in tqdm(weeks, desc='Processing weeks'):
-                    pulse = Pulse(week=week)
-                    pulse.process_data()
-                    pulse.upload_data()
-
-            elif self.args.backfill:
-                dl = DataLoader()
-                cenweeks = dl.weekyrmap.keys()
-
-                sql = PulseSQL()
-                rdsweeks = sql.get_available_weeks()
-                sql.close_connection()
-
-                missingweeks = set(cenweeks) - set(rdsweeks)
-                for week in missingweeks:
-                    pulse = Pulse(week=week)
-                    pulse.process_data()
-                    pulse.upload_data()
-
-            elif self.args.run_smoothing:
-                smooth_pulse()
-
-            elif self.args.build_front_cache:
-                build_front_cache()
-
-            elif self.args.send_build_request:
-                self._build_request()
-
-        elif self.args.subcommand == 'fetch':
-            if self.args.subsubcommand == 'download-pulse':
-                self.download_pulse()
-            elif self.args.subsubcommand == 'download-raw':
-                self.download_raw()
+        elif self.args.subcommand == "fetch":
+            self.fetch_subcommand()
 
     def download_pulse(self) -> None:
         """
@@ -123,8 +64,8 @@ class PulseCLI:
         """
         outfile = self._resolve_outpath(
             filepath=self.args.output,
-            file_prefix='pulse-data',
-            week=self.args.week
+            file_prefix="pulse-data",
+            week=self.args.week,
         )
 
         sql = PulseSQL()
@@ -132,7 +73,7 @@ class PulseCLI:
         if self.args.week is None:
             df = sql.get_pulse_table()
         else:
-            query = f'SELECT * FROM pulse.pulse WHERE week = {self.args.week}'
+            query = f"SELECT * FROM pulse.pulse WHERE week = {self.args.week}"
             df = sql.get_pulse_table(query)
 
         df.to_csv(outfile, index=False)
@@ -145,12 +86,85 @@ class PulseCLI:
         """
         outfile = self._resolve_outpath(
             filepath=self.args.output,
-            file_prefix='pulse-raw',
-            week=self.args.week
+            file_prefix="pulse-raw",
+            week=self.args.week,
         )
         dl = DataLoader()
         df = dl.load_week(week=self.args.week)
         df.to_csv(outfile, index=False)
+
+    def etl_subcommand(self) -> None:
+        """
+        Runs the `etl` subcommand.
+        """
+        if self.args.get_latest_week:
+            week = self.get_latest_week(target=self.args.get_latest_week)
+            print(
+                f"Latest week available on {self.args.get_latest_week} "
+                f"is {week}"
+            )
+
+        elif self.args.get_all_weeks:
+            weeks = self.get_all_weeks(target=self.args.get_all_weeks)
+            print(
+                f"Available weeks on {self.args.get_all_weeks} are " f"{weeks}"
+            )
+
+        elif self.args.run_single_week:
+            pulse = Pulse(week=self.args.run_single_week)
+            pulse.process_data()
+            pulse.upload_data()
+
+        elif self.args.run_latest_week:
+            pulse = Pulse(week=self.get_latest_week(target="census"))
+            pulse.process_data()
+            pulse.upload_data()
+
+        elif self.args.run_multiple_weeks:
+            weeks = self.args.run_multiple_weeks
+            for week in tqdm(weeks, desc="Processing weeks"):
+                pulse = Pulse(week=week)
+                pulse.process_data()
+                pulse.upload_data()
+
+        elif self.args.run_all_weeks:
+            weeks = self.get_all_weeks(target="census")
+            for week in tqdm(weeks, desc="Processing weeks"):
+                pulse = Pulse(week=week)
+                pulse.process_data()
+                pulse.upload_data()
+
+        elif self.args.backfill:
+            dl = DataLoader()
+            cenweeks = dl.weekyrmap.keys()
+
+            sql = PulseSQL()
+            rdsweeks = sql.get_available_weeks()
+            sql.close_connection()
+
+            missingweeks = set(cenweeks) - set(rdsweeks)
+            for week in missingweeks:
+                pulse = Pulse(week=week)
+                pulse.process_data()
+                pulse.upload_data()
+
+        elif self.args.run_smoothing:
+            smooth_pulse()
+
+        elif self.args.build_front_cache:
+            build_front_cache()
+
+        elif self.args.send_build_request:
+            self._build_request()
+
+    def fetch_subcommand(self) -> None:
+        """
+        Runs the `fetch` subcommand.
+        """
+        if self.args.subsubcommand == "download-pulse":
+            self.download_pulse()
+        elif self.args.subsubcommand == "download-raw":
+            self.download_raw()
 
     def _etlparser(self, parser: ArgumentParser) -> None:
         """
@@ -162,63 +176,76 @@ class PulseCLI:
         execgroup = parser.add_mutually_exclusive_group()
 
         execgroup.add_argument(
-            '--get-latest-week',
+            "--get-latest-week",
             help=(
-                'Returns the latest available week on the passed target. '
-                'Must be one of {"rds", "census"}'),
+                "Returns the latest available week on the passed target. "
+                'Must be one of {"rds", "census"}'
+            ),
             type=str,
-            metavar='TARGET')
+            metavar="TARGET",
+        )
         execgroup.add_argument(
-            '--get-all-weeks',
+            "--get-all-weeks",
             help=(
-                'Returns all available weeks on the passed target. Must be '
-                'one of {"rds", "census"}'),
+                "Returns all available weeks on the passed target. Must be "
+                'one of {"rds", "census"}'
+            ),
             type=str,
-            metavar='TARGET')
+            metavar="TARGET",
+        )
         execgroup.add_argument(
-            '--run-single-week',
-            help='Runs the entire pipeline for the specified week.',
+            "--run-single-week",
+            help="Runs the entire pipeline for the specified week.",
             type=int,
-            metavar='WEEK')
+            metavar="WEEK",
+        )
         execgroup.add_argument(
-            '--run-latest-week',
-            help='Runs the entire pipeline for the latest census week',
-            action='store_true',
-            default=False)
+            "--run-latest-week",
+            help="Runs the entire pipeline for the latest census week",
+            action="store_true",
+            default=False,
+        )
         execgroup.add_argument(
-            '--run-multiple-weeks',
+            "--run-multiple-weeks",
             help=(
-                'Runs the entire pipeline for one more more weeks passed as a '
-                'space separated list of integers'),
-            nargs='*',
+                "Runs the entire pipeline for one more more weeks passed as a "
+                "space separated list of integers"
+            ),
+            nargs="*",
             type=int,
             default=[],
-            metavar='WEEKS')
+            metavar="WEEKS",
+        )
         execgroup.add_argument(
-            '--run-all-weeks',
-            help='Runs ALL available weeks on the census',
-            action='store_true',
-            default=False)
+            "--run-all-weeks",
+            help="Runs ALL available weeks on the census",
+            action="store_true",
+            default=False,
+        )
         execgroup.add_argument(
-            '--backfill',
-            help='Runs all weeks in the census that are not in the RDS DB',
-            action='store_true',
-            default=False)
+            "--backfill",
+            help="Runs all weeks in the census that are not in the RDS DB",
+            action="store_true",
+            default=False,
+        )
         execgroup.add_argument(
-            '--run-smoothing',
-            help='Runs a LOWESS on the time series for each question',
-            action='store_true',
-            default=False)
+            "--run-smoothing",
+            help="Runs a LOWESS on the time series for each question",
+            action="store_true",
+            default=False,
+        )
         execgroup.add_argument(
-            '--build-front-cache',
-            help='Builds a cache of all data from RDS for the front end',
-            action='store_true',
-            default=False)
+            "--build-front-cache",
+            help="Builds a cache of all data from RDS for the front end",
+            action="store_true",
+            default=False,
+        )
         execgroup.add_argument(
-            '--send-build-request',
-            help='Sends a build request to the website`s front end',
-            action='store_true',
-            default=False)
+            "--send-build-request",
+            help="Sends a build request to the website`s front end",
+            action="store_true",
+            default=False,
+        )
 
     def _dataparser(self, parser: ArgumentParser) -> None:
         """
@@ -228,42 +255,31 @@ class PulseCLI:
             parser (ArgumentParser): the edited subparser
         """
         subparsers = parser.add_subparsers(
-            dest='subsubcommand',
-            help='The different sub-commands available'
+            dest="subsubcommand", help="The different sub-commands available"
         )
 
         dloadpulse = subparsers.add_parser(
-            name='download-pulse',
-            help='Subcommand for downloading the processed pulse data'
+            name="download-pulse",
+            help="Subcommand for downloading the processed pulse data",
         )
 
         dloadpulse.add_argument(
-            '--week',
-            help='Week to download',
-            type=int,
-            default=None
+            "--week", help="Week to download", type=int, default=None
         )
 
         dloadpulse.add_argument(
-            'output',
-            help='The target directory for the .csv file.',
-            type=str
+            "output", help="The target directory for the .csv file.", type=str
         )
 
         dloadraw = subparsers.add_parser(
-            name='download-raw',
-            help='Subcommand for downloading the raw pulse data'
+            name="download-raw",
+            help="Subcommand for downloading the raw pulse data",
         )
         dloadraw.add_argument(
-            '--week',
-            help='Week to download',
-            type=int,
-            required=True
+            "--week", help="Week to download", type=int, required=True
         )
         dloadraw.add_argument(
-            'output',
-            help='The target directory for the .csv file',
-            type=str
+            "output", help="The target directory for the .csv file", type=str
         )
 
     @staticmethod
@@ -277,14 +293,14 @@ class PulseCLI:
         Returns:
             int: The latest week value as an integer.
         """
-        if target not in {'rds', 'census'}:
+        if target not in {"rds", "census"}:
             raise ValueError(f'{target} must be one of {{"rds", "census"}}')
 
-        if target == 'rds':
+        if target == "rds":
             sql = PulseSQL()
             week = sql.get_latest_week()
             sql.close_connection()
-        elif target == 'census':
+        elif target == "census":
             dl = DataLoader()
             week = max(dl.weekyrmap.keys())
 
@@ -301,23 +317,23 @@ class PulseCLI:
         Returns:
             tuple[int]: The set of available weeks as a tuple
         """
-        if target not in {'rds', 'census'}:
+        if target not in {"rds", "census"}:
             raise ValueError(f'{target} must be one of {{"rds", "census"}}')
 
-        if target == 'rds':
+        if target == "rds":
             sql = PulseSQL()
             weeks = sql.get_available_weeks()
             sql.close_connection()
-        elif target == 'census':
+        elif target == "census":
             dl = DataLoader()
             weeks = tuple(sorted(dl.weekyrmap.keys()))
 
         return weeks
 
     @staticmethod
-    def _resolve_outpath(filepath: str,
-                         file_prefix: str,
-                         week: Optional[int] = None) -> Path:
+    def _resolve_outpath(
+        filepath: str, file_prefix: str, week: Optional[int] = None
+    ) -> Path:
         """
         Resolves an output path for saving a csv file locally
 
@@ -333,12 +349,12 @@ class PulseCLI:
         path = path.resolve()
 
         if not path.exists():
-            raise FileNotFoundError(f'directory {path} does not exist')
+            raise FileNotFoundError(f"directory {path} does not exist")
 
         if week is None:
-            outfile = path.joinpath(f'{file_prefix}.csv')
+            outfile = path.joinpath(f"{file_prefix}.csv")
         else:
-            outfile = path.joinpath(f'{file_prefix}-{week}.csv')
+            outfile = path.joinpath(f"{file_prefix}-{week}.csv")
 
         return outfile
 
@@ -347,8 +363,10 @@ class PulseCLI:
         """
         Sends a build request to the vercel app
         """
-        url = ('https://api.vercel.com/v1/integrations/deploy/'
-               'prj_k6aFic5qukpPKfa7lZAAMMUmdpZO/mOJDLGgcJw')
+        url = (
+            "https://api.vercel.com/v1/integrations/deploy/"
+            "prj_k6aFic5qukpPKfa7lZAAMMUmdpZO/mOJDLGgcJw"
+        )
         r = requests.get(url)
         print(r.json())
 
