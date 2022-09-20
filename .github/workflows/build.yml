@@ -36,7 +36,7 @@ jobs:
 
       - name: Lint with mypy
         run: |
-          mypy household_pulse/ --ignore-missing-imports --install-types
+          mypy household_pulse/ --ignore-missing-imports
 
       - name: Test with pytest
         run: |
