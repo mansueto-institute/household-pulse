@@ -29,7 +29,6 @@ jobs:
       - name: Install test requirements
         run: |
           pip install -r dev-requirements.txt
-          mypy --install-types
 
       - name: Lint with flake8
         run: |
@@ -37,7 +36,7 @@ jobs:
 
       - name: Lint with mypy
         run: |
-          mypy household_pulse/ --ignore-missing-imports
+          mypy household_pulse/ --ignore-missing-imports --install-types
 
       - name: Test with pytest
         run: |
