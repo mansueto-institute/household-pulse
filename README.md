@@ -2,6 +2,8 @@
 
 Automates the processing of Census Household Pulse biweekly data into a crosstabs
 
+![Main Branch Tests](https://github.com/mansueto-institute/household-pulse/actions/workflows/build.yml/badge.svg?branch=main)
+
 ## External links
 
 * [Project workplan](https://docs.google.com/document/d/1w9o-pM68D3nr9rKDgwtDZqzrRjwVasWdZGQk5tnHXYE/edit):
@@ -75,9 +77,9 @@ python -m household_pulse fetch --help
 Clone and setup environment:
 ```bash
 git clone https://github.com/mansueto-institute/household-pulse
-cd ./household-pulse   
-conda create --name pulse python=3.9.7 --yes   
-source activate pulse 
+cd ./household-pulse
+conda create --name pulse python=3.9.7 --yes
+source activate pulse
 pip install git+https://github.com/mansueto-institute/household-pulse
 ```
 
@@ -85,10 +87,10 @@ Add the `s3.json` and `rds-mysql.json` credentials to the repository's folder `.
 
 Update the time series, smooth the estimates, and send build request to front end:
 ```bash
-python -m household_pulse etl --backfill  
-python -m household_pulse etl --run-smoothing 
+python -m household_pulse etl --backfill
+python -m household_pulse etl --run-smoothing
 python -m household_pulse etl --build-front-cache
-python -m household_pulse etl --send-build-request 
+python -m household_pulse etl --send-build-request
 ```
 
 ## Run workflow on AWS
