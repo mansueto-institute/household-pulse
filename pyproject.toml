@@ -33,11 +33,12 @@ household-pulse = "household_pulse.__main__:main"
 line-length = 80
 
 [tool.mypy]
-ignore-missing-imports = true
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = [
     "--cov=household_pulse",
     "--cov-branch",
-    "--cov-report=term-missing"
+    "--cov-report=term-missing",
+    "--cov-report=xml",
 ]
