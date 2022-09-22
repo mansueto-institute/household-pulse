@@ -1,34 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Monday, 19th September 2022 7:10:23 pm
+===============================================================================
+@filename:  setup.py
+@author:    Manuel Martinez (manmart@uchicago.edu)
+@project:   household pulse
+@purpose:   setup.py
+===============================================================================
+"""
+
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
 
-
-setuptools.setup(
-    name="household_pulse",
-    install_requires=[
-        'numpy>=1.21.2',
-        'pandas>=1.3.3',
-        'requests>=2.26.0',
-        'beautifulsoup4>=4.10.0',
-        'mysql-connector-python>=8.0.26',
-        'boto3>=1.20.24',
-        'pyarrow>=4.0.1',
-        'tqdm>=4.63.0',
-        'statsmodels>=0.13.2'
-    ],
-    version='1.5.0',
-    author="Manuel Martinez",
-    author_email="manmart@uchicago.edu",
-    description=(
-        'Python package containing functionality to run the ETL pipeline that '
-        'serves the Household Pulse project.'),
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/mansueto-institute/household-pulse",
-    packages=setuptools.find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Operating System :: OS Independent",
-    ],
-    python_requires='>=3.9')
+setuptools.setup()
