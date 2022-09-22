@@ -24,10 +24,7 @@ jobs:
       - name: Install package
         run: |
           python -m pip install --upgrade pip
-
-      - name: Install test requirements
-        run: |
-          pip install -r dev-requirements.txt
+          pip install .[dev]
 
       - name: Lint with flake8
         run: |
