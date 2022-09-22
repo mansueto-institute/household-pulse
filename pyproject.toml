@@ -40,6 +40,5 @@ addopts = [
     "--cov=household_pulse",
     "--cov-branch",
     "--cov-report=term-missing",
-    "--cov-report=xml",
     "--junitxml=pytest.xml"
 ]
