@@ -41,4 +41,5 @@ addopts = [
     "--cov-branch",
     "--cov-report=term-missing",
     "--cov-report=xml",
+    "--junitxml=pytest.xml"
 ]

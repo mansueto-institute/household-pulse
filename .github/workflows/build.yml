@@ -37,9 +37,10 @@ jobs:
 
       - name: Test with pytest
         run: |
-          pytest
+          pytest | tee pytest-coverage.txt
 
       - name: Pytest-cov comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-xml-coverage-path: ./coverage.xml
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
