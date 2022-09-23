@@ -27,10 +27,9 @@ class PulseSQL:
     def __init__(self) -> None:
         self._establish_connection()
 
-    def append_values(self,
-                      table: str,
-                      df: pd.DataFrame,
-                      commit: bool = True) -> None:
+    def append_values(
+        self, table: str, df: pd.DataFrame, commit: bool = True
+    ) -> None:
         """
         appends an entire dataframe to an existing table
 
@@ -40,12 +39,12 @@ class PulseSQL:
             commit (bool): if to commit the transaction after the insert
         """
         self._refresh_connection()
-        cols = ', '.join(df.columns.tolist())
-        vals = ', '.join(['%s'] * len(df.columns))
-        query = f'''
+        cols = ", ".join(df.columns.tolist())
+        vals = ", ".join(["%s"] * len(df.columns))
+        query = f"""
             INSERT INTO {table} ({cols})
             VALUES ({vals})
-        '''
+        """
         df = self._convert_nans(df=df)
         try:
             c: MySQLCursor = self.conn.cursor()
@@ -59,9 +58,7 @@ class PulseSQL:
             self.conn.close()
             raise error
 
-    def update_values(self,
-                      table: str,
-                      df: pd.DataFrame) -> None:
+    def update_values(self, table: str, df: pd.DataFrame) -> None:
         """
         deletes old values from the passed `df` week and inserts the new
         values passed in `df`
@@ -73,13 +70,12 @@ class PulseSQL:
             Error: any issues with the DB connection
         """
         try:
-            weeks = [int(w) for w in df['week'].unique()]
+            weeks = [int(w) for w in df["week"].unique()]
             for week in weeks:
                 self._delete_week(week=week, table=table, commit=False)
                 self.append_values(
-                    table=table,
-                    df=df[df['week'] == week],
-                    commit=False)
+                    table=table, df=df[df["week"] == week], commit=False
+                )
             self.conn.commit()
         except Error as e:
             self.conn.rollback()
@@ -94,7 +90,7 @@ class PulseSQL:
             int: latest week loaded into RDS
         """
         c: MySQLCursor = self.conn.cursor()
-        c.execute('SELECT MAX(week) FROM pulse;')
+        c.execute("SELECT MAX(week) FROM pulse;")
         result = int(c.fetchone()[0])
         c.close()
 
@@ -102,7 +98,7 @@ class PulseSQL:
 
     def get_available_weeks(self) -> tuple[int, ...]:
         c: MySQLCursor = self.conn.cursor()
-        c.execute('SELECT DISTINCT(week) FROM pulse ORDER BY week')
+        c.execute("SELECT DISTINCT(week) FROM pulse ORDER BY week")
         result = tuple(int(x[0]) for x in c.fetchall())
         c.close()
 
@@ -110,7 +106,7 @@ class PulseSQL:
 
     def get_collection_weeks(self) -> set[int]:
         c: MySQLCursor = self.conn.cursor()
-        c.execute('SELECT DISTINCT week FROM collection_dates')
+        c.execute("SELECT DISTINCT week FROM collection_dates")
         result = set(x[0] for x in c.fetchall())
         c.close()
         return result
@@ -128,17 +124,18 @@ class PulseSQL:
         """
         c: MySQLCursor = self.conn.cursor()
         c.execute(
-            '''
+            """
             SELECT *
             FROM collection_dates
             WHERE week = %s
-            ''',
-            (week, ))
+            """,
+            (week,),
+        )
         colnames = [desc[0] for desc in c.description]
         results = c.fetchall()
         c.close()
         if len(results) == 0:
-            raise KeyError(f'week {week} not found in collection_dates table')
+            raise KeyError(f"week {week} not found in collection_dates table")
         return dict(zip(colnames, *results))
 
     def close_connection(self) -> None:
@@ -162,14 +159,14 @@ class PulseSQL:
         """
         try:
             if query is None:
-                query = '''
+                query = """
                     SELECT * FROM pulse.pulse;
-                '''
+                """
 
             with warnings.catch_warnings():
                 # we ignore the warning that pandas gives us for not using
                 # sql alchemy
-                warnings.simplefilter('ignore')
+                warnings.simplefilter("ignore")
                 df = pd.read_sql(sql=query, con=self.conn)
         except Error as e:
             self.conn.rollback()
@@ -186,7 +183,7 @@ class PulseSQL:
         Returns:
             pd.DataFrame: pulse columns with the added smoothed pweight share
         """
-        query = '''
+        query = """
             SELECT week,
                 xtab_var,
                 xtab_val,
@@ -197,11 +194,11 @@ class PulseSQL:
             FROM pulse
             INNER JOIN smoothed
             USING (week, xtab_var, xtab_val, q_var, q_val);
-            '''
+            """
         with warnings.catch_warnings():
             # we ignore the warning that pandas gives us for not using
             # sql alchemy
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             df = pd.read_sql(sql=query, con=self.conn)
         return df
 
@@ -213,13 +210,13 @@ class PulseSQL:
         dl = DataLoader()
         collection_dates = dl.load_collection_dates()
         c: MySQLCursor = self.conn.cursor()
-        c.execute('TRUNCATE pulse.collection_dates')
+        c.execute("TRUNCATE pulse.collection_dates")
         c.close()
 
-        datdf = pd.DataFrame.from_dict(collection_dates, orient='index')
+        datdf = pd.DataFrame.from_dict(collection_dates, orient="index")
         datdf.reset_index(inplace=True)
-        datdf.rename(columns={'index': 'week'}, inplace=True)
-        self.append_values(table='collection_dates', df=datdf)
+        datdf.rename(columns={"index": "week"}, inplace=True)
+        self.append_values(table="collection_dates", df=datdf)
 
     def _establish_connection(self) -> None:
         """
@@ -227,7 +224,8 @@ class PulseSQL:
         is instantiated, ability to re run it to reconnect if needed.
         """
         self.conn: MySQLConnection = mysql.connector.connect(
-            **self._load_rds_creds())
+            **self._load_rds_creds()
+        )
 
     def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -251,13 +249,13 @@ class PulseSQL:
             commit (bool): whether to commit the deletion or delay it
         """
         self._refresh_connection()
-        query = f'''
+        query = f"""
             DELETE FROM {table}
             WHERE week = %s
-        '''
+        """
         try:
             c: MySQLCursor = self.conn.cursor()
-            c.execute(query, (week, ))
+            c.execute(query, (week,))
             if commit:
                 self.conn.commit()
             c.close()
@@ -282,6 +280,6 @@ class PulseSQL:
         Returns:
             dict[str, str]: connection config dict
         """
-        fname = resource_filename('household_pulse', 'rds-mysql.json')
-        with open(fname, 'r') as file:
+        fname = resource_filename("household_pulse", "rds-mysql.json")
+        with open(fname, "r") as file:
             return json.loads(file.read())

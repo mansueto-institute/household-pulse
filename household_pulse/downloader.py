@@ -32,9 +32,10 @@ class DataLoader:
     """
 
     def __init__(self) -> None:
-        self.s3 = boto3.client('s3', **self._load_s3_creds())
+        self.s3 = boto3.client("s3", **self._load_s3_creds())
         self.base_census_url = (
-            'https://www2.census.gov/programs-surveys/demo/datasets/hhp/')
+            "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
+        )
         self._build_week_year_map()
 
     @property
@@ -58,7 +59,7 @@ class DataLoader:
         try:
             df = self._download_from_s3(week=week)
         except ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
+            if e.response["Error"]["Code"] == "NoSuchKey":
                 df = self._download_from_census(week=week)
                 self._upload_to_s3(df=df, week=week)
             else:
@@ -66,10 +67,9 @@ class DataLoader:
 
         return df
 
-    def tar_and_upload_to_s3(self,
-                             bucket: str,
-                             tarname: str,
-                             files: dict[str, dict]) -> None:
+    def tar_and_upload_to_s3(
+        self, bucket: str, tarname: str, files: dict[str, dict]
+    ) -> None:
         """
         this method takes in a dictionary that contain json serializable data
         as values and corresponding file names as keys. all the key-value
@@ -83,7 +83,7 @@ class DataLoader:
                 the data as its values.
         """
         fileobj = BytesIO()
-        with tarfile.open(mode='w:gz', fileobj=fileobj) as tar_file:
+        with tarfile.open(mode="w:gz", fileobj=fileobj) as tar_file:
             for fname, data in files.items():
                 with BytesIO() as out_stream:
                     if isinstance(data, dict):
@@ -94,10 +94,7 @@ class DataLoader:
                     finfo = tarfile.TarInfo(fname)
                     finfo.size = len(out_stream.getbuffer())
                     tar_file.addfile(finfo, out_stream)
-        self.s3.put_object(
-            Body=fileobj.getvalue(),
-            Bucket=bucket,
-            Key=tarname)
+        self.s3.put_object(Body=fileobj.getvalue(), Bucket=bucket, Key=tarname)
         fileobj.close()
 
     def _download_from_s3(self, week: int) -> pd.DataFrame:
@@ -111,10 +108,10 @@ class DataLoader:
             pd.DataFrame: Raw response data with availaible weights merged
         """
         s3obj = self.s3.get_object(
-            Bucket='household-pulse',
-            Key=f'raw-files/pulse-{week}.parquet.gzip')
+            Bucket="household-pulse", Key=f"raw-files/pulse-{week}.parquet.gzip"
+        )
 
-        df = pd.read_parquet(BytesIO(s3obj['Body'].read()))
+        df = pd.read_parquet(BytesIO(s3obj["Body"].read()))
 
         return df
 
@@ -131,28 +128,32 @@ class DataLoader:
                 weights csv
         """
 
-        url = ''.join((self.base_census_url, self._make_data_url(week)))
+        url = "".join((self.base_census_url, self._make_data_url(week)))
         r = requests.get(url)
         read_zip = ZipFile(BytesIO(r.content))
 
         data_df: pd.DataFrame = pd.read_csv(
-            read_zip.open(self._make_data_fname(week, 'd')),
-            dtype={'SCRAM': 'string'})
+            read_zip.open(self._make_data_fname(week, "d")),
+            dtype={"SCRAM": "string"},
+        )
         weight_df: pd.DataFrame = pd.read_csv(
-            read_zip.open(self._make_data_fname(week, 'w')),
-            dtype={'SCRAM': 'string'})
+            read_zip.open(self._make_data_fname(week, "w")),
+            dtype={"SCRAM": "string"},
+        )
 
         if week < 13:
-            hweight_url = ''.join((
-                self.base_census_url,
-                self._make_data_url(week=week, hweights=True)))
+            hweight_url = "".join(
+                (
+                    self.base_census_url,
+                    self._make_data_url(week=week, hweights=True),
+                )
+            )
             hwgdf = pd.read_csv(hweight_url)
             weight_df = weight_df.merge(
-                hwgdf,
-                how='inner',
-                on=['SCRAM', 'WEEK'])
+                hwgdf, how="inner", on=["SCRAM", "WEEK"]
+            )
 
-        df = data_df.merge(weight_df, how='left', on=['SCRAM', 'WEEK'])
+        df = data_df.merge(weight_df, how="left", on=["SCRAM", "WEEK"])
         df = df.copy()
 
         return df
@@ -167,11 +168,11 @@ class DataLoader:
             week (int): The pulse survey week. Used for the file key.
         """
         buffer = BytesIO()
-        df.to_parquet(buffer, index=False, compression='gzip')
+        df.to_parquet(buffer, index=False, compression="gzip")
         self.s3.put_object(
-            Bucket='household-pulse',
-            Key=f'raw-files/pulse-{week}.parquet.gzip',
-            Body=buffer.getvalue()
+            Bucket="household-pulse",
+            Key=f"raw-files/pulse-{week}.parquet.gzip",
+            Body=buffer.getvalue(),
         )
 
     def _build_week_year_map(self) -> None:
@@ -179,20 +180,20 @@ class DataLoader:
         creates a dictionary that maps each week to a year
         """
         r = requests.get(self.base_census_url)
-        soup = BeautifulSoup(r.text, 'html.parser')
+        soup = BeautifulSoup(r.text, "html.parser")
 
-        yearlinks = soup.find_all('a', {'href': re.compile(r'\d{4}/')})
+        yearlinks = soup.find_all("a", {"href": re.compile(r"\d{4}/")})
         years: list[str] = [yearlink.get_text() for yearlink in yearlinks]
 
         weekyrmap = {}
         for year in years:
-            yearint = int(re.sub(r'\D', '', year))
-            r = requests.get(''.join((self.base_census_url, year)))
-            soup = BeautifulSoup(r.text, 'html.parser')
-            weeklinks = soup.find_all('a', {'href': re.compile(r'wk\d{1,2}/')})
+            yearint = int(re.sub(r"\D", "", year))
+            r = requests.get("".join((self.base_census_url, year)))
+            soup = BeautifulSoup(r.text, "html.parser")
+            weeklinks = soup.find_all("a", {"href": re.compile(r"wk\d{1,2}/")})
             weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
             for week in weeks:
-                weekint = int(re.sub(r'\D', '', week))
+                weekint = int(re.sub(r"\D", "", week))
                 weekyrmap[weekint] = yearint
 
         self.__weekyrmap = weekyrmap
@@ -210,12 +211,12 @@ class DataLoader:
             str: the year/week/file.zip to be downloaded
         """
         if hweights and week > 12:
-            raise ValueError('hweights can only be passed for weeks 1-12')
+            raise ValueError("hweights can only be passed for weeks 1-12")
 
         year = self.weekyrmap[week]
         weekstr: str = str(week).zfill(2)
         if hweights:
-            return f'{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv'
+            return f"{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv"
         else:
             return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
 
@@ -231,12 +232,12 @@ class DataLoader:
         Returns:
             str: name of file downloaded
         """
-        if fname not in {'d', 'w'}:
+        if fname not in {"d", "w"}:
             raise ValueError("fname muts be in {'d', 'w'}")
 
         year = self.weekyrmap[week]
         weekstr: str = str(week).zfill(2)
-        if fname == 'd':
+        if fname == "d":
             return f"pulse{year}_puf_{weekstr}.csv"
         else:
             return f"pulse{year}_repwgt_puf_{weekstr}.csv"
@@ -250,8 +251,8 @@ class DataLoader:
         Returns:
             dict[str, str]: IAM credentials.
         """
-        fname = resource_filename('household_pulse', 's3.json')
-        with open(fname, 'r') as file:
+        fname = resource_filename("household_pulse", "s3.json")
+        with open(fname, "r") as file:
             return json.loads(file.read())
 
     @staticmethod
@@ -267,23 +268,23 @@ class DataLoader:
         Returns:
             pd.DataFrame: loaded crosstab
         """
-        baseurl = 'https://docs.google.com/spreadsheets/d'
-        ssid = '1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo'
+        baseurl = "https://docs.google.com/spreadsheets/d"
+        ssid = "1xrfmQT7Ub1ayoNe05AQAFDhqL7qcKNSW6Y7XuA8s8uo"
 
         sheetids = {
-            'question_mapping': '34639438',
-            'response_mapping': '1561671071',
-            'county_metro_state': '974836931',
-            'numeric_mapping': '1572193173'
+            "question_mapping": "34639438",
+            "response_mapping": "1561671071",
+            "county_metro_state": "974836931",
+            "numeric_mapping": "1572193173",
         }
 
         if sheetname not in sheetids:
-            raise ValueError(f'{sheetname} not in {sheetids.keys()}')
+            raise ValueError(f"{sheetname} not in {sheetids.keys()}")
 
         df = pd.read_csv(
-            f'{baseurl}/{ssid}/export?format=csv&gid={sheetids[sheetname]}'
+            f"{baseurl}/{ssid}/export?format=csv&gid={sheetids[sheetname]}"
         )
-        df = df.dropna(how='all')
+        df = df.dropna(how="all")
 
         return df
 
@@ -297,37 +298,39 @@ class DataLoader:
             dict[int, dict[str, date]]]: dictionary with weeks as keys and the
                 publication and collection dates.
         """
-        weekpat = re.compile(r'Week (\d{1,2})')
-        monthpat = re.compile(r'[A-z]+ \d{1,2}(?:, \d{4})?')
+        weekpat = re.compile(r"Week (\d{1,2})")
+        monthpat = re.compile(r"[A-z]+ \d{1,2}(?:, \d{4})?")
 
-        URL = '/'.join(
+        URL = "/".join(
             (
-                'https://www.census.gov',
-                'programs-surveys',
-                'household-pulse-survey',
-                'data.html'
+                "https://www.census.gov",
+                "programs-surveys",
+                "household-pulse-survey",
+                "data.html",
             )
         )
         page = requests.get(URL)
-        soup = BeautifulSoup(page.content, 'html.parser')
+        soup = BeautifulSoup(page.content, "html.parser")
         phases = soup.find_all(
-            'div',
-            {'class': 'data-uscb-list-articles-container'})
+            "div", {"class": "data-uscb-list-articles-container"}
+        )
         results = {}
         for phase in phases:
-            if 'Data Tool' in phase.text:
+            if "Data Tool" in phase.text:
                 break
 
-            wektexts = phase.find_all('p', 'uscb-margin-TB-02 uscb-title-3')
-            pubtexts = phase.find_all('div', 'uscb-list-metadata')
+            wektexts = phase.find_all("p", "uscb-margin-TB-02 uscb-title-3")
+            pubtexts = phase.find_all("div", "uscb-list-metadata")
             coltexts = phase.find_all(
-                'p',
-                ('uscb-sub-heading-2 uscb-color-secondary-1 '
-                 'uscb-line-height-20-18 uscb-margin-TB-02')
+                "p",
+                (
+                    "uscb-sub-heading-2 uscb-color-secondary-1 "
+                    "uscb-line-height-20-18 uscb-margin-TB-02"
+                ),
             )
             for pubtext, coltext, wektext in zip(pubtexts, coltexts, wektexts):
-                pubstr = pubtext.find_all('span')[-1].text
-                pubdate = datetime.strptime(pubstr, '%B %d, %Y')
+                pubstr = pubtext.find_all("span")[-1].text
+                pubdate = datetime.strptime(pubstr, "%B %d, %Y")
 
                 colstrs = re.findall(monthpat, coltext.text)
 
@@ -335,26 +338,26 @@ class DataLoader:
                 # put the year on the start date :flip-table:
                 if len(colstrs[1].split()) == 2:
                     enddate = datetime.strptime(
-                        ', '.join((colstrs[1], str(pubdate.year))),
-                        '%B %d, %Y')
+                        ", ".join((colstrs[1], str(pubdate.year))), "%B %d, %Y"
+                    )
                     startdate = datetime.strptime(
-                        ', '.join((colstrs[0], str(enddate.year))),
-                        '%B %d, %Y')
+                        ", ".join((colstrs[0], str(enddate.year))), "%B %d, %Y"
+                    )
                 elif len(colstrs[0].split()) == 2:
-                    enddate = datetime.strptime(colstrs[1], '%B %d, %Y')
+                    enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
                     startdate = datetime.strptime(
-                        ', '.join((colstrs[0], str(enddate.year))),
-                        '%B %d, %Y')
+                        ", ".join((colstrs[0], str(enddate.year))), "%B %d, %Y"
+                    )
                 else:
-                    startdate = datetime.strptime(colstrs[0], '%B %d, %Y')
-                    enddate = datetime.strptime(colstrs[1], '%B %d, %Y')
+                    startdate = datetime.strptime(colstrs[0], "%B %d, %Y")
+                    enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
 
                 week = int(re.findall(weekpat, wektext.text)[0])
 
                 results[week] = {
-                    'pub_date': pubdate.date(),
-                    'start_date': startdate.date(),
-                    'end_date': enddate.date()
+                    "pub_date": pubdate.date(),
+                    "start_date": startdate.date(),
+                    "end_date": enddate.date(),
                 }
 
         return results

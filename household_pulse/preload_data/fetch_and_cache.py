@@ -1,10 +1,15 @@
-
 import pandas as pd
 from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.preload_data.fetch_and_cache_utils import (
-    get_dates, get_label_groupings, get_question_groupings, get_question_order,
-    get_questions, get_xtab_labels, run_query)
+    get_dates,
+    get_label_groupings,
+    get_question_groupings,
+    get_question_order,
+    get_questions,
+    get_xtab_labels,
+    run_query,
+)
 from tqdm import tqdm
 
 # PARAMS
@@ -21,39 +26,38 @@ def get_meta(pulsesql: PulseSQL):
     label_groupings = get_label_groupings()
 
     return {
-        'dates': dates,
-        'xtabs': combined_xtabs,
-        'questions': questions,
-        'question_groupings': question_groupings,
-        'label_groupings': label_groupings,
+        "dates": dates,
+        "xtabs": combined_xtabs,
+        "questions": questions,
+        "question_groupings": question_groupings,
+        "label_groupings": label_groupings,
     }
 
 
-def cache_queries(df: pd.DataFrame,
-                  dates,
-                  combined_xtabs,
-                  question_groupings,
-                  label_groupings):
+def cache_queries(
+    df: pd.DataFrame, dates, combined_xtabs, question_groupings, label_groupings
+):
 
     week_range = [dates.week.min(), dates.week.max()]
-    xtabs = combined_xtabs['xtab_var'].unique()
+    xtabs = combined_xtabs["xtab_var"].unique()
     cached = {}
 
     for xtab in xtabs:
         xtab_labels = combined_xtabs[combined_xtabs.xtab_var == xtab]
         for row in tqdm(
-                question_groupings.itertuples(),
-                total=len(question_groupings),
-                desc=f'Working on xtab: {xtab}'):
+            question_groupings.itertuples(),
+            total=len(question_groupings),
+            desc=f"Working on xtab: {xtab}",
+        ):
 
             var_group = row.variable_group
             response_labels = label_groupings[var_group]
 
-            fnamepre = f'{row.variable_group}-{xtab}'
+            fnamepre = f"{row.variable_group}-{xtab}"
 
             for smoothed in (True, False):
                 if smoothed:
-                    fname = '-'.join((fnamepre, 'SMOOTHED'))
+                    fname = "-".join((fnamepre, "SMOOTHED"))
                 else:
                     fname = fnamepre
                 data = run_query(
@@ -64,9 +68,10 @@ def cache_queries(df: pd.DataFrame,
                     xtab=xtab,
                     week_range=week_range,
                     dates=dates,
-                    smoothed=smoothed)
+                    smoothed=smoothed,
+                )
 
-                cached['.'.join((fname, 'json'))] = data
+                cached[".".join((fname, "json"))] = data
 
     return cached
 
@@ -81,25 +86,24 @@ def build_front_cache():
 
     cache = cache_queries(
         df,
-        meta['dates'],
-        meta['xtabs'],
-        meta['question_groupings'],
-        meta['label_groupings'])
+        meta["dates"],
+        meta["xtabs"],
+        meta["question_groupings"],
+        meta["label_groupings"],
+    )
 
     dl = DataLoader()
     dl.tar_and_upload_to_s3(
-        bucket='household-pulse',
-        tarname='output_cache.tar.gz',
-        files=cache)
+        bucket="household-pulse", tarname="output_cache.tar.gz", files=cache
+    )
 
     for fname, data in meta.items():
         if isinstance(data, pd.DataFrame):
-            meta[fname] = meta[fname].to_json(orient='records')
-    metacache = {f'{k}.json': v for k, v in meta.items()}
+            meta[fname] = meta[fname].to_json(orient="records")
+    metacache = {f"{k}.json": v for k, v in meta.items()}
     dl.tar_and_upload_to_s3(
-        bucket='household-pulse',
-        tarname='output_meta.tar.gz',
-        files=metacache)
+        bucket="household-pulse", tarname="output_meta.tar.gz", files=metacache
+    )
 
 
 if __name__ == "__main__":
