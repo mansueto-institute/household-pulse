@@ -34,7 +34,7 @@ jobs:
 
       - name: Lint with mypy
         run: |
-          mypy household_pulse/ --ignore-missing-imports
+          mypy household_pulse/
 
       - name: Lint with black
         uses: psf/black@stable
@@ -49,4 +49,5 @@ jobs:
       - name: Pytest-cov comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          junitxml-path: ./pytest.xml
+          pytest-xml-coverage-path: ./coverage.xml
+          junitxml-path: ./coverage-junit.xml
