@@ -1,8 +1,8 @@
-black>=22.8.0
-flake8>=4.0.1
-mypy>=0.910
-pylint>=2.14.5
-pytest-cov>=3.0.0
-pytest>=7.1.2
+black
+flake8
+mypy
+pylint
+pytest-cov
+pytest
 types-requests
 types-setuptools
