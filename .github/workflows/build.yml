@@ -35,6 +35,12 @@ jobs:
         run: |
           mypy household_pulse/ --ignore-missing-imports
 
+      - name: Lint with black
+        uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          src: "./household_pulse"
+
       - name: Test with pytest
         run: |
           pytest | tee pytest-coverage.txt
