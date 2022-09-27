@@ -23,6 +23,9 @@ from household_pulse.smoothing import smooth_pulse
 
 
 class PulseCLI:
+    """
+    This class represents a CLI instance.
+    """
     def __init__(self) -> None:
         parser = ArgumentParser(
             description="Basic CLI for managing the Household Pulse ETL"
@@ -372,6 +375,9 @@ class PulseCLI:
 
 
 def main() -> None:
+    """
+    Main driver method for the CLI.
+    """
     PulseCLI().main()
 
 
