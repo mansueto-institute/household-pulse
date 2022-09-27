@@ -108,7 +108,8 @@ class DataLoader:
             pd.DataFrame: Raw response data with availaible weights merged
         """
         s3obj = self.s3.get_object(
-            Bucket="household-pulse", Key=f"raw-files/pulse-{week}.parquet.gzip"
+            Bucket="household-pulse",
+            Key=f"raw-files/pulse-{week}.parquet.gzip",
         )
 
         df = pd.read_parquet(BytesIO(s3obj["Body"].read()))

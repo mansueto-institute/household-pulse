@@ -35,7 +35,11 @@ def get_meta(pulsesql: PulseSQL):
 
 
 def cache_queries(
-    df: pd.DataFrame, dates, combined_xtabs, question_groupings, label_groupings
+    df: pd.DataFrame,
+    dates,
+    combined_xtabs,
+    question_groupings,
+    label_groupings,
 ):
 
     week_range = [dates.week.min(), dates.week.max()]

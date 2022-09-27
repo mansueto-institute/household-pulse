@@ -32,7 +32,10 @@ def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
     ]
     for wcol in wcols:
         smoothed = sm.nonparametric.lowess(
-            exog=group["end_date"], endog=group[wcol], frac=frac, is_sorted=True
+            exog=group["end_date"],
+            endog=group[wcol],
+            frac=frac,
+            is_sorted=True,
         )
         group[f"{wcol}_smoothed"] = smoothed[:, 1]
         group.drop(columns=wcol, inplace=True)

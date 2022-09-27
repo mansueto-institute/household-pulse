@@ -3,7 +3,7 @@
 rds-mysql.json
 s3.json
 .vscode
-pytest.xml
+coverage-junit.xml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

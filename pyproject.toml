@@ -30,7 +30,7 @@ build-backend = "setuptools.build_meta"
 household-pulse = "household_pulse.__main__:main"
 
 [tool.black]
-line-length = 80
+line-length = 79
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -40,5 +40,6 @@ addopts = [
     "--cov=household_pulse",
     "--cov-branch",
     "--cov-report=term-missing",
-    "--junitxml=pytest.xml"
+    "--cov-report=xml:coverage.xml",
+    "--junitxml=coverage-junit.xml"
 ]
