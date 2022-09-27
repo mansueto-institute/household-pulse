@@ -14,21 +14,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python 3.9
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
+          cache: pip
 
       - name: Install package
         run: |
           python -m pip install --upgrade pip
-          pip install .
-
-      - name: Install test requirements
-        run: |
-          pip install -r dev-requirements.txt
+          pip install .[dev]
 
       - name: Lint with flake8
         run: |
@@ -38,6 +35,18 @@ jobs:
         run: |
           mypy household_pulse/ --ignore-missing-imports
 
+      - name: Lint with black
+        uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          src: "./household_pulse"
+
       - name: Test with pytest
         run: |
-          pytest
+          pytest | tee pytest-coverage.txt
+
+      - name: Pytest-cov comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml

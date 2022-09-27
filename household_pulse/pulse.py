@@ -19,15 +19,15 @@ from household_pulse.mysql_wrapper import PulseSQL
 
 
 class Pulse:
-    meltvars = ('SCRAM', 'WEEK')
+    meltvars = ("SCRAM", "WEEK")
     xtabs = (
-        'TOPLINE',
-        'RRACE',
-        'EEDUC',
-        'EST_MSA',
-        'INCOME',
-        'EGENDER_EGENID_BIRTH',
-        'TBIRTH_YEAR'
+        "TOPLINE",
+        "RRACE",
+        "EEDUC",
+        "EST_MSA",
+        "INCOME",
+        "EGENDER_EGENID_BIRTH",
+        "TBIRTH_YEAR",
     )
 
     def __init__(self, week: int) -> None:
@@ -39,10 +39,10 @@ class Pulse:
         """
         self.dl = DataLoader()
         self.week = week
-        self.cmsdf = self.dl.load_gsheet('county_metro_state')
-        self.qumdf = self.dl.load_gsheet('question_mapping')
-        self.resdf = self.dl.load_gsheet('response_mapping')
-        self.mapdf = self.dl.load_gsheet('numeric_mapping')
+        self.cmsdf = self.dl.load_gsheet("county_metro_state")
+        self.qumdf = self.dl.load_gsheet("question_mapping")
+        self.resdf = self.dl.load_gsheet("response_mapping")
+        self.mapdf = self.dl.load_gsheet("numeric_mapping")
         self.ctabdf: pd.DataFrame
 
     def process_data(self) -> None:
@@ -69,12 +69,13 @@ class Pulse:
         data for this particular week if any, and then update. if there is no
         old data for this particular week, it does not delete anything.
         """
-        if not hasattr(self, 'ctabdf'):
+        if not hasattr(self, "ctabdf"):
             raise AttributeError(
-                'this should be only run after running the '
-                '.process_pulse_data() method')
+                "this should be only run after running the "
+                ".process_pulse_data() method"
+            )
         sql = PulseSQL()
-        sql.update_values(table='pulse', df=self.ctabdf)
+        sql.update_values(table="pulse", df=self.ctabdf)
 
         if self.week not in sql.get_collection_weeks():
             sql.update_collection_dates()
@@ -86,7 +87,7 @@ class Pulse:
         downloads puf data and stores it into the class' state
         """
         self.df = self.dl.load_week(week=self.week)
-        self.df['TOPLINE'] = 1
+        self.df["TOPLINE"] = 1
 
     def _calculate_ages(self) -> None:
         """
@@ -102,8 +103,8 @@ class Pulse:
         sql.close_connection()
 
         df = self.df
-        df['TBIRTH_YEAR'] = dates['end_date'].year - df['TBIRTH_YEAR']
-        df['TBIRTH_YEAR'].clip(lower=18, inplace=True)
+        df["TBIRTH_YEAR"] = dates["end_date"].year - df["TBIRTH_YEAR"]
+        df["TBIRTH_YEAR"].clip(lower=18, inplace=True)
 
     def _parse_question_cols(self) -> None:
         """
@@ -116,28 +117,29 @@ class Pulse:
 
         # first we get the select one question
         soneqs: pd.Series = qumdf.loc[
-            qumdf['question_type'].isin(['Select one', 'Yes / No']),
-            'variable_recode_final']
+            qumdf["question_type"].isin(["Select one", "Yes / No"]),
+            "variable_recode_final",
+        ]
         soneqs = soneqs[soneqs.isin(df.columns)]
         # here we just drop grouping variables from actual questions
         soneqs = soneqs[~soneqs.isin(self.xtabs + self.meltvars)]
 
         # next we get the select all questions
         sallqs: pd.Series = qumdf.loc[
-            qumdf['question_type'] == 'Select all',
-            'variable_recode_final']
+            qumdf["question_type"] == "Select all", "variable_recode_final"
+        ]
         sallqs = sallqs[sallqs.isin(df.columns)]
 
         self.soneqs = soneqs.tolist()
         self.sallqs = sallqs.tolist()
         self.allqs = qumdf.loc[
-            qumdf['variable'].isin(self.df.columns),
-            'variable_recode_final']
-        self.allqs = self.allqs[~self.allqs.str.contains('WEIGHT')]
+            qumdf["variable"].isin(self.df.columns), "variable_recode_final"
+        ]
+        self.allqs = self.allqs[~self.allqs.str.contains("WEIGHT")]
         self.allqs = self.allqs.tolist()
 
         # finally we get the all the weight columns
-        self.wgtcols = self.df.columns[self.df.columns.str.contains('WEIGHT')]
+        self.wgtcols = self.df.columns[self.df.columns.str.contains("WEIGHT")]
         self.wgtcols = self.wgtcols.tolist()
 
     def _bucketize_numeric_cols(self) -> pd.DataFrame:
@@ -150,16 +152,16 @@ class Pulse:
         """
         df = self.df
         mapdf = self.mapdf
-        numcols = mapdf['variable'].unique()
+        numcols = mapdf["variable"].unique()
 
         for col in numcols:
             if col not in df.columns:
                 continue
-            auxdf = mapdf[mapdf['variable'] == col]
+            auxdf = mapdf[mapdf["variable"] == col]
             bins = pd.IntervalIndex.from_arrays(
-                left=auxdf['min_value'],
-                right=auxdf['max_value'],
-                closed='both',
+                left=auxdf["min_value"],
+                right=auxdf["max_value"],
+                closed="both",
             )
             bucketized: pd.Series = pd.cut(df[col], bins=bins)
             if bucketized.isnull().sum() > 0:
@@ -167,12 +169,12 @@ class Pulse:
                 unmapped = set(df[col][bucketized.isnull()])
                 if len(allowed - unmapped) != 0:
                     raise ValueError(
-                        f'Unmapped values bining col {col}, {unmapped}')
+                        f"Unmapped values bining col {col}, {unmapped}"
+                    )
             # map the category codes if not missing, otherwise keep the missing
             df[col] = np.where(
-                bucketized.cat.codes == -1,
-                df[col],
-                bucketized.cat.codes)
+                bucketized.cat.codes == -1, df[col], bucketized.cat.codes
+            )
 
     def _reshape_long(self) -> None:
         """
@@ -182,10 +184,11 @@ class Pulse:
         self.longdf = self.df.melt(
             id_vars=self.meltvars + self.xtabs,
             value_vars=self.allqs,
-            var_name='q_var',
-            value_name='q_val')
-        self.longdf.dropna(subset='q_val', inplace=True)
-        self.longdf['q_val'] = self.longdf['q_val'].astype(int)
+            var_name="q_var",
+            value_name="q_val",
+        )
+        self.longdf.dropna(subset="q_val", inplace=True)
+        self.longdf["q_val"] = self.longdf["q_val"].astype(int)
 
     def _drop_missing_responses(self) -> None:
         """
@@ -195,39 +198,52 @@ class Pulse:
         longdf = self.longdf
         qumdf = self.qumdf
         longdf = longdf.merge(
-            qumdf[['variable', 'question_type']].rename(
-                columns={'variable': 'q_var'}
+            qumdf[["variable", "question_type"]].rename(
+                columns={"variable": "q_var"}
             ),
-            how='left',
-            on='q_var')
+            how="left",
+            on="q_var",
+        )
 
         # drop skipped select all
         longdf = longdf[
-            ~((longdf['question_type'] == 'Select all') &
-              (longdf['q_val'] == -88))]
+            ~(
+                (longdf["question_type"] == "Select all")
+                & (longdf["q_val"] == -88)
+            )
+        ]
 
         # drop skipped select one
         longdf = longdf[
-            ~((longdf['question_type'] == 'Select one') &
-              (longdf['q_val'].isin((-88, -99))))]
+            ~(
+                (longdf["question_type"] == "Select one")
+                & (longdf["q_val"].isin((-88, -99)))
+            )
+        ]
 
         # drop skipped yes/no
         longdf = longdf[
-            ~((longdf['question_type'] == 'Yes / No') &
-              (longdf['q_val'].isin((-88, -99))))]
+            ~(
+                (longdf["question_type"] == "Yes / No")
+                & (longdf["q_val"].isin((-88, -99)))
+            )
+        ]
 
         # drop skipped input value questions
         longdf = longdf[
-            ~((longdf['question_type'] == 'Input value') &
-              (longdf['q_val'].isin((-88, -99))))]
+            ~(
+                (longdf["question_type"] == "Input value")
+                & (longdf["q_val"].isin((-88, -99)))
+            )
+        ]
 
-        longdf = longdf[~longdf['INCOME'].isin({-88, -99})]
+        longdf = longdf[~longdf["INCOME"].isin({-88, -99})]
 
         for col in self.xtabs:
             if len({-88, -99} & set(longdf[col].unique())) > 0:
-                raise ValueError(f'xtab_var {col} has some -99 or -88 values')
+                raise ValueError(f"xtab_var {col} has some -99 or -88 values")
 
-        longdf.drop(columns='question_type', inplace=True)
+        longdf.drop(columns="question_type", inplace=True)
         self.longdf = longdf
 
     def _recode_values(self) -> None:
@@ -238,34 +254,37 @@ class Pulse:
         resdf = self.resdf
         longdf = self.longdf
 
-        auxdf = resdf.drop_duplicates(subset=['variable_recode', 'value'])
+        auxdf = resdf.drop_duplicates(subset=["variable_recode", "value"])
 
         longdf = longdf.merge(
-            auxdf[['variable_recode', 'value', 'value_recode']],
-            how='left',
-            left_on=['q_var', 'q_val'],
-            right_on=['variable_recode', 'value'],
+            auxdf[["variable_recode", "value", "value_recode"]],
+            how="left",
+            left_on=["q_var", "q_val"],
+            right_on=["variable_recode", "value"],
             copy=False,
-            validate='m:1')
+            validate="m:1",
+        )
         # coalesce old values and new values
-        longdf['value_recode'] = longdf['value_recode'].combine_first(
-            longdf['q_val'])
-        longdf['q_val'] = longdf['value_recode']
+        longdf["value_recode"] = longdf["value_recode"].combine_first(
+            longdf["q_val"]
+        )
+        longdf["q_val"] = longdf["value_recode"]
         longdf.drop(
-            columns=['variable_recode', 'value', 'value_recode'],
-            inplace=True)
+            columns=["variable_recode", "value", "value_recode"], inplace=True
+        )
 
         # recode xtabs separately
         for xtab in self.xtabs:
-            auxdf = resdf[resdf['variable_recode'] == xtab].copy()
-            auxdf['value'] = auxdf['value'].astype(longdf[xtab].dtype)
-            auxdf['value_recode'] = auxdf['value_recode'].astype(
-                longdf[xtab].dtype)
+            auxdf = resdf[resdf["variable_recode"] == xtab].copy()
+            auxdf["value"] = auxdf["value"].astype(longdf[xtab].dtype)
+            auxdf["value_recode"] = auxdf["value_recode"].astype(
+                longdf[xtab].dtype
+            )
 
-            valuemap = dict(zip(auxdf['value'], auxdf['value_recode']))
+            valuemap = dict(zip(auxdf["value"], auxdf["value_recode"]))
             longdf[xtab] = longdf[xtab].replace(valuemap)
 
-        longdf['q_val'] = longdf['q_val'].astype(int)
+        longdf["q_val"] = longdf["q_val"].astype(int)
 
         self.longdf = longdf
 
@@ -276,8 +295,8 @@ class Pulse:
         question in the final time series processed data.
         """
         qumdf = self.qumdf
-        auxdf = qumdf[qumdf['variable_recode'].notnull()]
-        recodemap = dict(zip(auxdf['variable'], auxdf['variable_recode']))
+        auxdf = qumdf[qumdf["variable_recode"].notnull()]
+        recodemap = dict(zip(auxdf["variable"], auxdf["variable_recode"]))
         self.df = self.df.rename(columns=recodemap)
 
     def _coalesce_races(self) -> None:
@@ -285,9 +304,9 @@ class Pulse:
         Coalesces the `RRACE` and `RHISPANIC` variables into a single variable
         called `RRACE` that has a new category for hispanic/latino.
         """
-        self.df['RRACE'] = self.df['RRACE'].where(
-            cond=self.df['RHISPANIC'] == 1,
-            other=5)
+        self.df["RRACE"] = self.df["RRACE"].where(
+            cond=self.df["RHISPANIC"] == 1, other=5
+        )
 
     def _merge_cbsa_info(self) -> None:
         """
@@ -297,15 +316,16 @@ class Pulse:
         ctabdf = self.ctabdf
         cmsdf = self.cmsdf
 
-        cmsdf.drop_duplicates(subset='cbsa_fips', inplace=True)
+        cmsdf.drop_duplicates(subset="cbsa_fips", inplace=True)
 
         ctabdf = ctabdf.merge(
-            cmsdf[['cbsa_title', 'cbsa_fips']],
-            how='left',
-            left_on='xtab_val',
-            right_on='cbsa_fips')
+            cmsdf[["cbsa_title", "cbsa_fips"]],
+            how="left",
+            left_on="xtab_val",
+            right_on="cbsa_fips",
+        )
 
-        ctabdf.drop(columns='cbsa_fips', inplace=True)
+        ctabdf.drop(columns="cbsa_fips", inplace=True)
         self.ctabdf = ctabdf
 
     def _reorganize_cols(self) -> None:
@@ -313,22 +333,22 @@ class Pulse:
         reorganize columns before upload for easier inspection
         """
         ctabdf = self.ctabdf
-        wgtcols = ctabdf.columns[ctabdf.columns.str.contains('weight')]
-        ctabdf['week'] = self.week
+        wgtcols = ctabdf.columns[ctabdf.columns.str.contains("weight")]
+        ctabdf["week"] = self.week
         colorder = [
-            'week',
-            'xtab_var',
-            'xtab_val',
-            'cbsa_title',
-            'q_var',
-            'q_val',
+            "week",
+            "xtab_var",
+            "xtab_val",
+            "cbsa_title",
+            "q_var",
+            "q_val",
         ]
         colorder.extend(wgtcols.tolist())
-        assert ctabdf.columns.isin(colorder).all(), 'missing a column'
+        assert ctabdf.columns.isin(colorder).all(), "missing a column"
         ctabdf = ctabdf[colorder]
         ctabdf.sort_values(
-            by=['xtab_var', 'xtab_val', 'q_var', 'q_val'],
-            inplace=True)
+            by=["xtab_var", "xtab_val", "q_var", "q_val"], inplace=True
+        )
         self.ctabdf = ctabdf
 
     def _aggregate_counts(self, weight_type: str) -> pd.DataFrame:
@@ -342,42 +362,40 @@ class Pulse:
         Returns:
             pd.DataFrame: aggregated weights with confidence intervals
         """
-        allowed = {'PWEIGHT', 'HWEIGHT'}
+        allowed = {"PWEIGHT", "HWEIGHT"}
         if weight_type not in allowed:
-            raise ValueError(f'{weight_type} must be in {allowed}')
+            raise ValueError(f"{weight_type} must be in {allowed}")
 
         # we fetch the passed weight type
-        wgtdf = self.df.set_index('SCRAM').filter(like=weight_type)
+        wgtdf = self.df.set_index("SCRAM").filter(like=weight_type)
         wgtcols = wgtdf.columns
 
-        df = self.longdf.merge(wgtdf, on='SCRAM')
+        df = self.longdf.merge(wgtdf, on="SCRAM")
 
         auxs = []
         for xtab_var in self.xtabs:
-            auxdf = df.groupby([xtab_var, 'q_var', 'q_val'])[wgtcols].sum()
+            auxdf = df.groupby([xtab_var, "q_var", "q_val"])[wgtcols].sum()
             self._get_conf_intervals(auxdf, weight_type)
 
             # we can get the confidence intervals as shares after aggregating
-            sumdf = auxdf.groupby(['q_var', xtab_var]).transform('sum')
+            sumdf = auxdf.groupby(["q_var", xtab_var]).transform("sum")
             shadf = auxdf / sumdf
-            shadf.columns = shadf.columns + '_SHARE'
+            shadf.columns = shadf.columns + "_SHARE"
             xtabdf = auxdf.merge(
-                shadf,
-                how='left',
-                left_index=True,
-                right_index=True)
+                shadf, how="left", left_index=True, right_index=True
+            )
 
             # here we reformat some data to append the crosstabs together
             xtabdf.reset_index(inplace=True)
-            xtabdf['xtab_var'] = xtab_var
-            xtabdf['xtab_val'] = xtabdf[xtab_var]
+            xtabdf["xtab_var"] = xtab_var
+            xtabdf["xtab_val"] = xtabdf[xtab_var]
             xtabdf.drop(columns=xtab_var, inplace=True)
             auxs.append(xtabdf)
 
         resdf = pd.concat(auxs)
         resdf.set_index(
-            ['xtab_var', 'xtab_val', 'q_var', 'q_val'],
-            inplace=True)
+            ["xtab_var", "xtab_val", "q_var", "q_val"], inplace=True
+        )
 
         return resdf
 
@@ -390,7 +408,7 @@ class Pulse:
         Returns:
             pd.DataFrame: aggregated xtabs for all questions and weight types
         """
-        weights = ('PWEIGHT', 'HWEIGHT')
+        weights = ("PWEIGHT", "HWEIGHT")
         auxs = []
         for weight_type in weights:
             auxs.append(self._aggregate_counts(weight_type))
@@ -400,9 +418,9 @@ class Pulse:
         self.ctabdf = ctabdf
 
     @staticmethod
-    def _get_conf_intervals(df: pd.DataFrame,
-                            weight_type: str,
-                            cval: float = 1.645) -> None:
+    def _get_conf_intervals(
+        df: pd.DataFrame, weight_type: str, cval: float = 1.645
+    ) -> None:
         """
         Generate the upper and lower confidence intervals of the passed
         weights using the replicate weights to calculate their standard error.
@@ -418,15 +436,19 @@ class Pulse:
         """
         # here we subtract the replicate weights from the main weight col
         # broadcasting across the columns
-        diffdf = df.filter(regex=fr'{weight_type}.*\d{{1,2}}').sub(
-            df[weight_type],
-            axis=0)
-        df[f'{weight_type}_SE'] = (diffdf.pow(2).sum(axis=1) * (4/80)).pow(1/2)
-        df[f'{weight_type}_LOWER'] = (
-            df[weight_type] - (cval * df[f'{weight_type}_SE']))
-        df[f'{weight_type}_UPPER'] = (
-            df[weight_type] + (cval * df[f'{weight_type}_SE']))
+        diffdf = df.filter(regex=rf"{weight_type}.*\d{{1,2}}").sub(
+            df[weight_type], axis=0
+        )
+        df[f"{weight_type}_SE"] = (diffdf.pow(2).sum(axis=1) * (4 / 80)).pow(
+            1 / 2
+        )
+        df[f"{weight_type}_LOWER"] = df[weight_type] - (
+            cval * df[f"{weight_type}_SE"]
+        )
+        df[f"{weight_type}_UPPER"] = df[weight_type] + (
+            cval * df[f"{weight_type}_SE"]
+        )
 
         # drop the replicate weights and the standard error column
-        repcols = df.columns[df.columns.str.match(r'.*\d{1,2}')]
-        df.drop(columns=repcols.tolist() + [f'{weight_type}_SE'], inplace=True)
+        repcols = df.columns[df.columns.str.match(r".*\d{1,2}")]
+        df.drop(columns=repcols.tolist() + [f"{weight_type}_SE"], inplace=True)

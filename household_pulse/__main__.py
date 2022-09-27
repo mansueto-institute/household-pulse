@@ -371,5 +371,9 @@ class PulseCLI:
         print(r.json())
 
 
-if __name__ == "__main__":
+def main() -> None:
     PulseCLI().main()
+
+
+if __name__ == "__main__":
+    main()
