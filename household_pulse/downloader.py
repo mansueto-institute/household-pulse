@@ -39,7 +39,15 @@ class DataLoader:
         self._build_week_year_map()
 
     @property
-    def weekyrmap(self):
+    def weekyrmap(self) -> dict[int, int]:
+        """
+        Property for fetching the mapping between weeks and years.
+
+        Returns:
+            dict[int, int]: A mapping where the keys are the week integer
+                values and the values are the years to which each week belongs
+                to (in terms of the collection of data).
+        """
         return self.__weekyrmap
 
     def load_week(self, week: int) -> pd.DataFrame:
@@ -63,7 +71,7 @@ class DataLoader:
                 df = self._download_from_census(week=week)
                 self._upload_to_s3(df=df, week=week)
             else:
-                raise ClientError(e)
+                raise e
 
         return df
 
@@ -253,7 +261,7 @@ class DataLoader:
             dict[str, str]: IAM credentials.
         """
         fname = resource_filename("household_pulse", "s3.json")
-        with open(fname, "r") as file:
+        with open(fname, "r", encoding="utf-8") as file:
             return json.loads(file.read())
 
     @staticmethod
@@ -302,7 +310,7 @@ class DataLoader:
         weekpat = re.compile(r"Week (\d{1,2})")
         monthpat = re.compile(r"[A-z]+ \d{1,2}(?:, \d{4})?")
 
-        URL = "/".join(
+        url = "/".join(
             (
                 "https://www.census.gov",
                 "programs-surveys",
@@ -310,7 +318,7 @@ class DataLoader:
                 "data.html",
             )
         )
-        page = requests.get(URL)
+        page = requests.get(url)
         soup = BeautifulSoup(page.content, "html.parser")
         phases = soup.find_all(
             "div", {"class": "data-uscb-list-articles-container"}
