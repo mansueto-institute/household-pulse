@@ -14,6 +14,7 @@ import json
 import re
 import tarfile
 from datetime import date, datetime
+from functools import lru_cache
 from io import BytesIO
 from zipfile import ZipFile
 
@@ -36,19 +37,6 @@ class DataLoader:
         self.base_census_url = (
             "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
         )
-        self._build_week_year_map()
-
-    @property
-    def weekyrmap(self) -> dict[int, int]:
-        """
-        Property for fetching the mapping between weeks and years.
-
-        Returns:
-            dict[int, int]: A mapping where the keys are the week integer
-                values and the values are the years to which each week belongs
-                to (in terms of the collection of data).
-        """
-        return self.__weekyrmap
 
     def load_week(self, week: int) -> pd.DataFrame:
         """
@@ -139,16 +127,13 @@ class DataLoader:
 
         url = "".join((self.base_census_url, self._make_data_url(week)))
         r = requests.get(url)
-        read_zip = ZipFile(BytesIO(r.content))
 
-        data_df: pd.DataFrame = pd.read_csv(
-            read_zip.open(self._make_data_fname(week, "d")),
-            dtype={"SCRAM": "string"},
-        )
-        weight_df: pd.DataFrame = pd.read_csv(
-            read_zip.open(self._make_data_fname(week, "w")),
-            dtype={"SCRAM": "string"},
-        )
+        with ZipFile(BytesIO(r.content), mode="r") as zipfile:
+            with zipfile.open(self._make_data_fname(week, "d")) as datacsv:
+                data_df = pd.read_csv(datacsv, dtype={"SCRAM": "string"})
+
+            with zipfile.open(self._make_data_fname(week, "w")) as weightcsv:
+                weight_df = pd.read_csv(weightcsv, dtype={"SCRAM": "string"})
 
         if week < 13:
             hweight_url = "".join(
@@ -184,7 +169,8 @@ class DataLoader:
             Body=buffer.getvalue(),
         )
 
-    def _build_week_year_map(self) -> None:
+    @lru_cache(maxsize=10)
+    def _get_week_year_map(self) -> dict[int, int]:
         """
         creates a dictionary that maps each week to a year
         """
@@ -205,7 +191,7 @@ class DataLoader:
                 weekint = int(re.sub(r"\D", "", week))
                 weekyrmap[weekint] = yearint
 
-        self.__weekyrmap = weekyrmap
+        return weekyrmap
 
     def _make_data_url(self, week: int, hweights: bool = False) -> str:
         """
@@ -222,7 +208,7 @@ class DataLoader:
         if hweights and week > 12:
             raise ValueError("hweights can only be passed for weeks 1-12")
 
-        year = self.weekyrmap[week]
+        year = self._get_week_year_map()[week]
         weekstr: str = str(week).zfill(2)
         if hweights:
             return f"{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv"
@@ -244,12 +230,11 @@ class DataLoader:
         if fname not in {"d", "w"}:
             raise ValueError("fname muts be in {'d', 'w'}")
 
-        year = self.weekyrmap[week]
+        year = self._get_week_year_map()[week]
         weekstr: str = str(week).zfill(2)
         if fname == "d":
             return f"pulse{year}_puf_{weekstr}.csv"
-        else:
-            return f"pulse{year}_repwgt_puf_{weekstr}.csv"
+        return f"pulse{year}_repwgt_puf_{weekstr}.csv"
 
     @staticmethod
     def _load_s3_creds() -> dict[str, str]:
