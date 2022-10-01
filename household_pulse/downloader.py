@@ -93,6 +93,30 @@ class DataLoader:
         self.s3.put_object(Body=fileobj.getvalue(), Bucket=bucket, Key=tarname)
         fileobj.close()
 
+    @lru_cache(maxsize=10)
+    def get_week_year_map(self) -> dict[int, int]:
+        """
+        creates a dictionary that maps each week to a year
+        """
+        r = requests.get(self.base_census_url)
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        yearlinks = soup.find_all("a", {"href": re.compile(r"\d{4}/")})
+        years: list[str] = [yearlink.get_text() for yearlink in yearlinks]
+
+        weekyrmap = {}
+        for year in years:
+            yearint = int(re.sub(r"\D", "", year))
+            r = requests.get("".join((self.base_census_url, year)))
+            soup = BeautifulSoup(r.text, "html.parser")
+            weeklinks = soup.find_all("a", {"href": re.compile(r"wk\d{1,2}/")})
+            weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
+            for week in weeks:
+                weekint = int(re.sub(r"\D", "", week))
+                weekyrmap[weekint] = yearint
+
+        return weekyrmap
+
     def _download_from_s3(self, week: int) -> pd.DataFrame:
         """
         Downloads a pulse raw file from S3.
@@ -188,30 +212,6 @@ class DataLoader:
             Body=buffer.getvalue(),
         )
 
-    @lru_cache(maxsize=10)
-    def _get_week_year_map(self) -> dict[int, int]:
-        """
-        creates a dictionary that maps each week to a year
-        """
-        r = requests.get(self.base_census_url)
-        soup = BeautifulSoup(r.text, "html.parser")
-
-        yearlinks = soup.find_all("a", {"href": re.compile(r"\d{4}/")})
-        years: list[str] = [yearlink.get_text() for yearlink in yearlinks]
-
-        weekyrmap = {}
-        for year in years:
-            yearint = int(re.sub(r"\D", "", year))
-            r = requests.get("".join((self.base_census_url, year)))
-            soup = BeautifulSoup(r.text, "html.parser")
-            weeklinks = soup.find_all("a", {"href": re.compile(r"wk\d{1,2}/")})
-            weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
-            for week in weeks:
-                weekint = int(re.sub(r"\D", "", week))
-                weekyrmap[weekint] = yearint
-
-        return weekyrmap
-
     def _make_data_url(self, week: int, hweights: bool = False) -> str:
         """
         Helper function to get string for file to download from census api
@@ -227,7 +227,7 @@ class DataLoader:
         if hweights and week > 12:
             raise ValueError("hweights can only be passed for weeks 1-12")
 
-        year = self._get_week_year_map()[week]
+        year = self.get_week_year_map()[week]
         weekstr: str = str(week).zfill(2)
         if hweights:
             return f"{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv"
@@ -249,7 +249,7 @@ class DataLoader:
         if fname not in {"d", "w"}:
             raise ValueError("fname muts be in {'d', 'w'}")
 
-        year = self._get_week_year_map()[week]
+        year = self.get_week_year_map()[week]
         weekstr: str = str(week).zfill(2)
         if fname == "d":
             return f"pulse{year}_puf_{weekstr}.csv"

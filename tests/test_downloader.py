@@ -84,7 +84,7 @@ class TestMethods:
 
     @staticmethod
     def test_weekyrmap(dataloader: DataLoader) -> None:
-        weekyrmap = dataloader._get_week_year_map()
+        weekyrmap = dataloader.get_week_year_map()
         assert isinstance(weekyrmap, dict)
         assert len(weekyrmap) > 0
         assert all(isinstance(week, int) for week in weekyrmap.keys())
@@ -158,7 +158,7 @@ class TestMethods:
     @staticmethod
     @patch.object(
         DataLoader,
-        "_get_week_year_map",
+        "get_week_year_map",
         MagicMock(return_value={10: 2020}),
     )
     @patch.object(
@@ -181,7 +181,7 @@ class TestMethods:
     @staticmethod
     @patch.object(
         DataLoader,
-        "_get_week_year_map",
+        "get_week_year_map",
         MagicMock(return_value={40: 2021}),
     )
     def test_download_from_census_late(
@@ -220,7 +220,7 @@ class TestMethods:
     @staticmethod
     @patch.object(
         DataLoader,
-        "_get_week_year_map",
+        "get_week_year_map",
         MagicMock(return_value={10: 2020, 13: 2020}),
     )
     @pytest.mark.parametrize(
@@ -242,7 +242,7 @@ class TestMethods:
     @staticmethod
     @patch.object(
         DataLoader,
-        "_get_week_year_map",
+        "get_week_year_map",
         MagicMock(return_value={10: 2020, 13: 2020}),
     )
     @pytest.mark.parametrize(
