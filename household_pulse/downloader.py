@@ -136,13 +136,7 @@ class DataLoader:
                 weight_df = pd.read_csv(weightcsv, dtype={"SCRAM": "string"})
 
         if week < 13:
-            hweight_url = "".join(
-                (
-                    self.base_census_url,
-                    self._make_data_url(week=week, hweights=True),
-                )
-            )
-            hwgdf = pd.read_csv(hweight_url)
+            hwgdf = self._download_hh_weights(week=week)
             weight_df = weight_df.merge(
                 hwgdf, how="inner", on=["SCRAM", "WEEK"]
             )
@@ -151,6 +145,31 @@ class DataLoader:
         df = df.copy()
 
         return df
+
+    def _download_hh_weights(self, week: int) -> pd.DataFrame:
+        """
+        For weeks below 13, the household weights are in a separate file. This
+        method fetches those weights directly from the census' website.
+
+        Args:
+            week (int): The week of data to download
+
+        Returns:
+            pd.DataFrame: household weights file
+        """
+        if week >= 13:
+            raise ValueError(
+                f"This should only be used for weeks < 13. Week is {week}"
+            )
+
+        hweight_url = "".join(
+            (
+                self.base_census_url,
+                self._make_data_url(week=week, hweights=True),
+            )
+        )
+        hwgdf = pd.read_csv(hweight_url)
+        return hwgdf
 
     def _upload_to_s3(self, df: pd.DataFrame, week: int) -> None:
         """
