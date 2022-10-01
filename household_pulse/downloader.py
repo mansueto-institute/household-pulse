@@ -328,42 +328,26 @@ class DataLoader:
             "div", {"class": "data-uscb-list-articles-container"}
         )
         results = {}
-        for phase in phases:
+        for phase in phases:  # pragma: no branch
             if "Data Tool" in phase.text:
                 break
 
-            wektexts = phase.find_all("p", "uscb-margin-TB-02 uscb-title-3")
-            pubtexts = phase.find_all("div", "uscb-list-metadata")
-            coltexts = phase.find_all(
-                "p",
-                (
-                    "uscb-sub-heading-2 uscb-color-secondary-1 "
-                    "uscb-line-height-20-18 uscb-margin-TB-02"
-                ),
-            )
-            for pubtext, coltext, wektext in zip(pubtexts, coltexts, wektexts):
-                pubstr = pubtext.find_all("span")[-1].text
-                pubdate = datetime.strptime(pubstr, "%B %d, %Y")
+            wektexts = phase.find_all("div", "uscb-default-x-column-title")
+            pubtexts = phase.find_all("div", "uscb-default-x-column-date")
+            coltexts = phase.find_all("div", "uscb-default-x-column-content")
+            for wektext, pubtext, coltext in zip(wektexts, pubtexts, coltexts):
+                pubdate = datetime.strptime(pubtext.text, "%B %d, %Y")
 
                 colstrs = re.findall(monthpat, coltext.text)
-
+                enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
                 # if both collections dates happen in the same year they don't
                 # put the year on the start date :flip-table:
-                if len(colstrs[1].split()) == 2:
-                    enddate = datetime.strptime(
-                        ", ".join((colstrs[1], str(pubdate.year))), "%B %d, %Y"
-                    )
-                    startdate = datetime.strptime(
-                        ", ".join((colstrs[0], str(enddate.year))), "%B %d, %Y"
-                    )
-                elif len(colstrs[0].split()) == 2:
-                    enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
-                    startdate = datetime.strptime(
-                        ", ".join((colstrs[0], str(enddate.year))), "%B %d, %Y"
-                    )
-                else:
+                try:
                     startdate = datetime.strptime(colstrs[0], "%B %d, %Y")
-                    enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
+                except ValueError:
+                    startdate = datetime.strptime(
+                        ", ".join((colstrs[0], str(enddate.year))), "%B %d, %Y"
+                    )
 
                 week = int(re.findall(weekpat, wektext.text)[0])
 
