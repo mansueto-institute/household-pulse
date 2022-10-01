@@ -46,11 +46,26 @@ def mock_zip_10() -> bytes:
         filebytes = file.read()
         return filebytes
 
+
 @pytest.fixture
 def mock_zip_40() -> bytes:
     with open("tests/HPS_Week40_PUF_CSV.zip", "rb") as file:
         filebytes = file.read()
         return filebytes
+
+
+@pytest.fixture
+def mock_data_site() -> str:
+    with open("tests/test_page.txt", "r", encoding="utf-8") as file:
+        filestr = file.read()
+        return filestr
+
+
+@pytest.fixture
+def mock_df() -> Generator[pd.DataFrame, None, None]:
+    df = pd.DataFrame(data={"a": [0, 1, 2, 3], "b": [4, 5, 6, 7]})
+    yield df
+
 
 class TestInstantiation:
     """
@@ -146,6 +161,13 @@ class TestMethods:
         "_get_week_year_map",
         MagicMock(return_value={10: 2020}),
     )
+    @patch.object(
+        DataLoader,
+        "_download_hh_weights",
+        MagicMock(
+            return_value=pd.read_csv("tests/pulse2020_puf_hhwgt_10.csv")
+        ),
+    )
     def test_download_from_census_early(
         mock_zip_10: bytes, dataloader: DataLoader
     ) -> None:
@@ -171,3 +193,94 @@ class TestMethods:
             mock_get.content = mock_zip_40
             df = dataloader._download_from_census(week=40)
             assert len(df) == 4
+
+    @staticmethod
+    @patch.object(DataLoader, "_make_data_url", MagicMock(return_value=""))
+    @pytest.mark.parametrize("week", (10, 13))
+    def test_download_hh_weights(week: int, dataloader: DataLoader) -> None:
+        dataloader.base_census_url = "tests/pulse2020_puf_hhwgt_10.csv"
+        if week == 13:
+            with pytest.raises(ValueError):
+                hhwdf = dataloader._download_hh_weights(week=week)
+        else:
+            hhwdf = dataloader._download_hh_weights(week=week)
+            assert hhwdf.equals(
+                pd.read_csv("tests/pulse2020_puf_hhwgt_10.csv")
+            )
+
+    @staticmethod
+    @patch.object(pd.DataFrame, "to_parquet", MagicMock())
+    def test_upload_to_s3(
+        dataloader: DataLoader, mock_df: pd.DataFrame
+    ) -> None:
+        dataloader._upload_to_s3(df=mock_df, week=10)
+        mock_df.to_parquet.assert_called_once()
+        dataloader.s3.put_object.assert_called_once()
+
+    @staticmethod
+    @patch.object(
+        DataLoader,
+        "_get_week_year_map",
+        MagicMock(return_value={10: 2020, 13: 2020}),
+    )
+    @pytest.mark.parametrize(
+        "week,hweights", ((13, True), (13, False), (10, True), (10, False))
+    )
+    def test_make_data_url(
+        week: int, hweights: bool, dataloader: DataLoader
+    ) -> None:
+        if week == 13 and hweights:
+            with pytest.raises(ValueError):
+                dataloader._make_data_url(week=week, hweights=hweights)
+        else:
+            if hweights:
+                expected = f"2020/wk{week}/pulse2020_puf_hhwgt_{week}.csv"
+            else:
+                expected = f"2020/wk{week}/HPS_Week{week}_PUF_CSV.zip"
+            assert expected == dataloader._make_data_url(week, hweights)
+
+    @staticmethod
+    @patch.object(
+        DataLoader,
+        "_get_week_year_map",
+        MagicMock(return_value={10: 2020, 13: 2020}),
+    )
+    @pytest.mark.parametrize(
+        "week,fname", ((13, "j"), (13, "d"), (10, "w"), (10, "d"))
+    )
+    def test_make_data_fname(
+        week: int, fname: str, dataloader: DataLoader
+    ) -> None:
+        if fname not in {"d", "w"}:
+            with pytest.raises(ValueError):
+                dataloader._make_data_fname(week=week, fname=fname)
+        else:
+            if fname == "d":
+                expected = f"pulse2020_puf_{week}.csv"
+            else:
+                expected = f"pulse2020_repwgt_puf_{week}.csv"
+            assert expected == dataloader._make_data_fname(
+                week=week, fname=fname
+            )
+
+    @staticmethod
+    @patch.object(pd, "read_csv", MagicMock(return_value=MagicMock()))
+    @pytest.mark.parametrize("sheetname", ("badname", "question_mapping"))
+    def test_load_gsheet(sheetname: str, dataloader: DataLoader) -> None:
+        if sheetname == "badname":
+            with pytest.raises(ValueError):
+                dataloader.load_gsheet(sheetname=sheetname)
+        else:
+            dataloader.load_gsheet(sheetname=sheetname)
+            pd.read_csv.assert_called_once()
+
+    @staticmethod
+    def test_load_collection_dates(
+        dataloader: DataLoader, mock_data_site: str
+    ) -> None:
+        with patch("household_pulse.downloader.requests") as mock_requests:
+            mock_get = MagicMock()
+            mock_requests.get.return_value = mock_get
+            mock_get.content = mock_data_site.encode()
+            dates = dataloader.load_collection_dates()
+            assert len(dates) > 0
