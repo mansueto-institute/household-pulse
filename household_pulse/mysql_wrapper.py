@@ -28,6 +28,7 @@ class PulseSQL:
     This class represents a connection to the RDS database where we store
     the processed data results.
     """
+
     def __init__(self) -> None:
         self._establish_connection()
 
