@@ -244,6 +244,12 @@ def run_query(
         except KeyError:
             print(f"Missing resdftab {resdftab} from label dict")
             print(xtab_labels)
+        except IndexError as error:
+            error_msg = (
+                f"Missing resdftab {resdftab} in week {week} on xtab "
+                f"{xtab}"
+            )
+            raise IndexError(error_msg) from error
 
     return return_dict
 
