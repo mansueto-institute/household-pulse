@@ -24,6 +24,10 @@ from household_pulse.downloader import DataLoader
 
 
 class PulseSQL:
+    """
+    This class represents a connection to the RDS database where we store
+    the processed data results.
+    """
     def __init__(self) -> None:
         self._establish_connection()
 
@@ -97,17 +101,29 @@ class PulseSQL:
         return result
 
     def get_available_weeks(self) -> tuple[int, ...]:
+        """
+        Gets all the weeks from RDS
+
+        Returns:
+            tuple[int, ...]: All the weeks that are available on the RDS DB.
+        """
         c: MySQLCursor = self.conn.cursor()
-        c.execute("SELECT DISTINCT(week) FROM pulse ORDER BY week")
+        c.execute("SELECT DISTINCT(week) FROM pulse ORDER BY week;")
         result = tuple(int(x[0]) for x in c.fetchall())
         c.close()
 
         return result
 
     def get_collection_weeks(self) -> set[int]:
+        """
+        Gets all the collection weeks from RDS.
+
+        Returns:
+            set[int]: All available collection weeks from RDS.
+        """
         c: MySQLCursor = self.conn.cursor()
-        c.execute("SELECT DISTINCT week FROM collection_dates")
-        result = set(x[0] for x in c.fetchall())
+        c.execute("SELECT DISTINCT week FROM collection_dates;")
+        result = set(int(x[0]) for x in c.fetchall())
         c.close()
         return result
 
@@ -159,9 +175,7 @@ class PulseSQL:
         """
         try:
             if query is None:
-                query = """
-                    SELECT * FROM pulse.pulse;
-                """
+                query = """SELECT * FROM pulse.pulse;"""
 
             with warnings.catch_warnings():
                 # we ignore the warning that pandas gives us for not using
@@ -171,7 +185,7 @@ class PulseSQL:
         except Error as e:
             self.conn.rollback()
             self.close_connection()
-            raise Error(e)
+            raise Error(e) from e
 
         return df
 
@@ -281,5 +295,5 @@ class PulseSQL:
             dict[str, str]: connection config dict
         """
         fname = resource_filename("household_pulse", "rds-mysql.json")
-        with open(fname, "r") as file:
+        with open(fname, "r", encoding="utf-8") as file:
             return json.loads(file.read())
