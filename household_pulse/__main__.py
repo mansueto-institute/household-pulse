@@ -23,6 +23,10 @@ from household_pulse.smoothing import smooth_pulse
 
 
 class PulseCLI:
+    """
+    This class represents a CLI instance.
+    """
+
     def __init__(self) -> None:
         parser = ArgumentParser(
             description="Basic CLI for managing the Household Pulse ETL"
@@ -136,7 +140,7 @@ class PulseCLI:
 
         elif self.args.backfill:
             dl = DataLoader()
-            cenweeks = dl.weekyrmap.keys()
+            cenweeks = dl.get_week_year_map().keys()
 
             sql = PulseSQL()
             rdsweeks = sql.get_available_weeks()
@@ -302,7 +306,7 @@ class PulseCLI:
             sql.close_connection()
         elif target == "census":
             dl = DataLoader()
-            week = max(dl.weekyrmap.keys())
+            week = max(dl.get_week_year_map().keys())
 
         return week
 
@@ -326,7 +330,7 @@ class PulseCLI:
             sql.close_connection()
         elif target == "census":
             dl = DataLoader()
-            weeks = tuple(sorted(dl.weekyrmap.keys()))
+            weeks = tuple(sorted(dl.get_week_year_map().keys()))
 
         return weeks
 
@@ -372,6 +376,9 @@ class PulseCLI:
 
 
 def main() -> None:
+    """
+    Main driver method for the CLI.
+    """
     PulseCLI().main()
 
 

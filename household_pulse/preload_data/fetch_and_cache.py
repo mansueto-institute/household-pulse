@@ -108,7 +108,3 @@ def build_front_cache():
     dl.tar_and_upload_to_s3(
         bucket="household-pulse", tarname="output_meta.tar.gz", files=metacache
     )
-
-
-if __name__ == "__main__":
-    build_front_cache()

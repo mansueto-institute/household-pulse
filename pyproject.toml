@@ -41,5 +41,6 @@ addopts = [
     "--cov-branch",
     "--cov-report=term-missing",
     "--cov-report=xml:coverage.xml",
-    "--junitxml=coverage-junit.xml"
+    "--junitxml=coverage-junit.xml",
+    "--durations=5"
 ]

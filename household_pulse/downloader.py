@@ -14,6 +14,7 @@ import json
 import re
 import tarfile
 from datetime import date, datetime
+from functools import lru_cache
 from io import BytesIO
 from zipfile import ZipFile
 
@@ -36,11 +37,6 @@ class DataLoader:
         self.base_census_url = (
             "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
         )
-        self._build_week_year_map()
-
-    @property
-    def weekyrmap(self):
-        return self.__weekyrmap
 
     def load_week(self, week: int) -> pd.DataFrame:
         """
@@ -63,7 +59,7 @@ class DataLoader:
                 df = self._download_from_census(week=week)
                 self._upload_to_s3(df=df, week=week)
             else:
-                raise ClientError(e)
+                raise e
 
         return df
 
@@ -96,6 +92,30 @@ class DataLoader:
                     tar_file.addfile(finfo, out_stream)
         self.s3.put_object(Body=fileobj.getvalue(), Bucket=bucket, Key=tarname)
         fileobj.close()
+
+    @lru_cache(maxsize=10)
+    def get_week_year_map(self) -> dict[int, int]:
+        """
+        creates a dictionary that maps each week to a year
+        """
+        r = requests.get(self.base_census_url)
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        yearlinks = soup.find_all("a", {"href": re.compile(r"\d{4}/")})
+        years: list[str] = [yearlink.get_text() for yearlink in yearlinks]
+
+        weekyrmap = {}
+        for year in years:
+            yearint = int(re.sub(r"\D", "", year))
+            r = requests.get("".join((self.base_census_url, year)))
+            soup = BeautifulSoup(r.text, "html.parser")
+            weeklinks = soup.find_all("a", {"href": re.compile(r"wk\d{1,2}/")})
+            weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
+            for week in weeks:
+                weekint = int(re.sub(r"\D", "", week))
+                weekyrmap[weekint] = yearint
+
+        return weekyrmap
 
     def _download_from_s3(self, week: int) -> pd.DataFrame:
         """
@@ -131,25 +151,16 @@ class DataLoader:
 
         url = "".join((self.base_census_url, self._make_data_url(week)))
         r = requests.get(url)
-        read_zip = ZipFile(BytesIO(r.content))
 
-        data_df: pd.DataFrame = pd.read_csv(
-            read_zip.open(self._make_data_fname(week, "d")),
-            dtype={"SCRAM": "string"},
-        )
-        weight_df: pd.DataFrame = pd.read_csv(
-            read_zip.open(self._make_data_fname(week, "w")),
-            dtype={"SCRAM": "string"},
-        )
+        with ZipFile(BytesIO(r.content), mode="r") as zipfile:
+            with zipfile.open(self._make_data_fname(week, "d")) as datacsv:
+                data_df = pd.read_csv(datacsv, dtype={"SCRAM": "string"})
+
+            with zipfile.open(self._make_data_fname(week, "w")) as weightcsv:
+                weight_df = pd.read_csv(weightcsv, dtype={"SCRAM": "string"})
 
         if week < 13:
-            hweight_url = "".join(
-                (
-                    self.base_census_url,
-                    self._make_data_url(week=week, hweights=True),
-                )
-            )
-            hwgdf = pd.read_csv(hweight_url)
+            hwgdf = self._download_hh_weights(week=week)
             weight_df = weight_df.merge(
                 hwgdf, how="inner", on=["SCRAM", "WEEK"]
             )
@@ -158,6 +169,31 @@ class DataLoader:
         df = df.copy()
 
         return df
+
+    def _download_hh_weights(self, week: int) -> pd.DataFrame:
+        """
+        For weeks below 13, the household weights are in a separate file. This
+        method fetches those weights directly from the census' website.
+
+        Args:
+            week (int): The week of data to download
+
+        Returns:
+            pd.DataFrame: household weights file
+        """
+        if week >= 13:
+            raise ValueError(
+                f"This should only be used for weeks < 13. Week is {week}"
+            )
+
+        hweight_url = "".join(
+            (
+                self.base_census_url,
+                self._make_data_url(week=week, hweights=True),
+            )
+        )
+        hwgdf = pd.read_csv(hweight_url)
+        return hwgdf
 
     def _upload_to_s3(self, df: pd.DataFrame, week: int) -> None:
         """
@@ -176,29 +212,6 @@ class DataLoader:
             Body=buffer.getvalue(),
         )
 
-    def _build_week_year_map(self) -> None:
-        """
-        creates a dictionary that maps each week to a year
-        """
-        r = requests.get(self.base_census_url)
-        soup = BeautifulSoup(r.text, "html.parser")
-
-        yearlinks = soup.find_all("a", {"href": re.compile(r"\d{4}/")})
-        years: list[str] = [yearlink.get_text() for yearlink in yearlinks]
-
-        weekyrmap = {}
-        for year in years:
-            yearint = int(re.sub(r"\D", "", year))
-            r = requests.get("".join((self.base_census_url, year)))
-            soup = BeautifulSoup(r.text, "html.parser")
-            weeklinks = soup.find_all("a", {"href": re.compile(r"wk\d{1,2}/")})
-            weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
-            for week in weeks:
-                weekint = int(re.sub(r"\D", "", week))
-                weekyrmap[weekint] = yearint
-
-        self.__weekyrmap = weekyrmap
-
     def _make_data_url(self, week: int, hweights: bool = False) -> str:
         """
         Helper function to get string for file to download from census api
@@ -214,7 +227,7 @@ class DataLoader:
         if hweights and week > 12:
             raise ValueError("hweights can only be passed for weeks 1-12")
 
-        year = self.weekyrmap[week]
+        year = self.get_week_year_map()[week]
         weekstr: str = str(week).zfill(2)
         if hweights:
             return f"{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv"
@@ -236,12 +249,11 @@ class DataLoader:
         if fname not in {"d", "w"}:
             raise ValueError("fname muts be in {'d', 'w'}")
 
-        year = self.weekyrmap[week]
+        year = self.get_week_year_map()[week]
         weekstr: str = str(week).zfill(2)
         if fname == "d":
             return f"pulse{year}_puf_{weekstr}.csv"
-        else:
-            return f"pulse{year}_repwgt_puf_{weekstr}.csv"
+        return f"pulse{year}_repwgt_puf_{weekstr}.csv"
 
     @staticmethod
     def _load_s3_creds() -> dict[str, str]:
@@ -253,7 +265,7 @@ class DataLoader:
             dict[str, str]: IAM credentials.
         """
         fname = resource_filename("household_pulse", "s3.json")
-        with open(fname, "r") as file:
+        with open(fname, "r", encoding="utf-8") as file:
             return json.loads(file.read())
 
     @staticmethod
@@ -302,7 +314,7 @@ class DataLoader:
         weekpat = re.compile(r"Week (\d{1,2})")
         monthpat = re.compile(r"[A-z]+ \d{1,2}(?:, \d{4})?")
 
-        URL = "/".join(
+        url = "/".join(
             (
                 "https://www.census.gov",
                 "programs-surveys",
@@ -310,48 +322,32 @@ class DataLoader:
                 "data.html",
             )
         )
-        page = requests.get(URL)
+        page = requests.get(url)
         soup = BeautifulSoup(page.content, "html.parser")
         phases = soup.find_all(
             "div", {"class": "data-uscb-list-articles-container"}
         )
         results = {}
-        for phase in phases:
+        for phase in phases:  # pragma: no branch
             if "Data Tool" in phase.text:
                 break
 
-            wektexts = phase.find_all("p", "uscb-margin-TB-02 uscb-title-3")
-            pubtexts = phase.find_all("div", "uscb-list-metadata")
-            coltexts = phase.find_all(
-                "p",
-                (
-                    "uscb-sub-heading-2 uscb-color-secondary-1 "
-                    "uscb-line-height-20-18 uscb-margin-TB-02"
-                ),
-            )
-            for pubtext, coltext, wektext in zip(pubtexts, coltexts, wektexts):
-                pubstr = pubtext.find_all("span")[-1].text
-                pubdate = datetime.strptime(pubstr, "%B %d, %Y")
+            wektexts = phase.find_all("div", "uscb-default-x-column-title")
+            pubtexts = phase.find_all("div", "uscb-default-x-column-date")
+            coltexts = phase.find_all("div", "uscb-default-x-column-content")
+            for wektext, pubtext, coltext in zip(wektexts, pubtexts, coltexts):
+                pubdate = datetime.strptime(pubtext.text, "%B %d, %Y")
 
                 colstrs = re.findall(monthpat, coltext.text)
-
+                enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
                 # if both collections dates happen in the same year they don't
                 # put the year on the start date :flip-table:
-                if len(colstrs[1].split()) == 2:
-                    enddate = datetime.strptime(
-                        ", ".join((colstrs[1], str(pubdate.year))), "%B %d, %Y"
-                    )
-                    startdate = datetime.strptime(
-                        ", ".join((colstrs[0], str(enddate.year))), "%B %d, %Y"
-                    )
-                elif len(colstrs[0].split()) == 2:
-                    enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
-                    startdate = datetime.strptime(
-                        ", ".join((colstrs[0], str(enddate.year))), "%B %d, %Y"
-                    )
-                else:
+                try:
                     startdate = datetime.strptime(colstrs[0], "%B %d, %Y")
-                    enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
+                except ValueError:
+                    startdate = datetime.strptime(
+                        ", ".join((colstrs[0], str(enddate.year))), "%B %d, %Y"
+                    )
 
                 week = int(re.findall(weekpat, wektext.text)[0])
 
