@@ -170,8 +170,8 @@ class Pulse:
             bucketized: pd.Series = pd.cut(df[col], bins=bins)
             if bucketized.isnull().sum() > 0:
                 allowed = {-88, -99}
-                unmapped = set(df[col][bucketized.isnull()])
-                if len(allowed - unmapped) != 0:
+                unmapped = set(df[col][bucketized.isnull()].astype(int))
+                if len(unmapped - allowed) != 0:
                     raise ValueError(
                         f"Unmapped values bining col {col}, {unmapped}"
                     )
