@@ -269,6 +269,7 @@ class DataLoader:
             return json.loads(file.read())
 
     @staticmethod
+    @lru_cache(maxsize=10)
     def load_gsheet(sheetname: str) -> pd.DataFrame:
         """
         Loads one of the three crosstabs used for mapping responses. It has to

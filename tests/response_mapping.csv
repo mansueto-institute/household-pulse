@@ -1,0 +1,1594 @@
+variable,variable_recode,order,value,label,value_recode,label_recode,drop_no,do_not_join
+SCRAM,SCRAM,0,0,,,,0,1
+WEEK,WEEK,1,0,,,,0,1
+PWEIGHT,PWEIGHT,2,0,,,,0,1
+HWEIGHT,HWEIGHT,3,0,,,,0,1
+EST_MSA,EST_MSA,4,0,,,,0,1
+EST_ST,EST_ST,5,0,,,,0,1
+REGION,REGION,6,1,Northeast,1.0,Northeast,0,1
+REGION,REGION,6,2,South,2.0,South,0,1
+REGION,REGION,6,3,Midwest,3.0,Midwest,0,1
+REGION,REGION,6,4,West,4.0,West,0,1
+AHHLD_NUMKID,AHHLD_NUMKID,7,1,Imputed,1.0,Imputed,0,1
+AHHLD_NUMKID,AHHLD_NUMKID,7,2,Not imputed,2.0,Not imputed,0,1
+AHHLD_NUMPER,AHHLD_NUMPER,8,1,Imputed,1.0,Imputed,0,1
+AHHLD_NUMPER,AHHLD_NUMPER,8,2,Not imputed,2.0,Not imputed,0,1
+ABIRTH_YEAR,ABIRTH_YEAR,9,1,Imputed,1.0,Imputed,0,1
+ABIRTH_YEAR,ABIRTH_YEAR,9,2,Not imputed,2.0,Not imputed,0,1
+AGENID_BIRTH,AGENID_BIRTH,10,1,Imputed,1.0,Imputed,0,1
+AGENID_BIRTH,AGENID_BIRTH,10,2,Not imputed,2.0,Not imputed,0,1
+AGENDER,AGENDER,11,1,Imputed,1.0,Imputed,0,1
+AGENDER,AGENDER,11,2,Not imputed,2.0,Not imputed,0,1
+AEDUC,AEDUC,12,1,Imputed,1.0,Imputed,0,1
+AEDUC,AEDUC,12,2,Not imputed,2.0,Not imputed,0,1
+AHISPANIC,AHISPANIC,13,1,Imputed,1.0,Imputed,0,1
+AHISPANIC,AHISPANIC,13,2,Not imputed,2.0,Not imputed,0,1
+ARACE,ARACE,14,1,Imputed,1.0,Imputed,0,1
+ARACE,ARACE,14,2,Not imputed,2.0,Not imputed,0,1
+EGENID_BIRTH,EGENDER_EGENID_BIRTH,16,1,Male,1.0,Male,0,1
+EGENID_BIRTH,EGENDER_EGENID_BIRTH,16,2,Female,2.0,Female,0,1
+EGENDER,EGENDER_EGENID_BIRTH,17,1,Male,1.0,Male,0,1
+EGENDER,EGENDER_EGENID_BIRTH,17,2,Female,2.0,Female,0,1
+GENID_DESCRIBE,GENID_DESCRIBE,18,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+GENID_DESCRIBE,GENID_DESCRIBE,18,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+GENID_DESCRIBE,GENID_DESCRIBE,18,1,Male,1.0,Male,0,1
+GENID_DESCRIBE,GENID_DESCRIBE,18,2,Female,2.0,Female,0,1
+GENID_DESCRIBE,GENID_DESCRIBE,18,3,Transgender,3.0,Transgender,0,1
+GENID_DESCRIBE,GENID_DESCRIBE,18,4,None of these,4.0,None of these,0,1
+SEXUAL_ORIENTATION,SEXUAL_ORIENTATION,19,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+SEXUAL_ORIENTATION,SEXUAL_ORIENTATION,19,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+SEXUAL_ORIENTATION,SEXUAL_ORIENTATION,19,1,Gay or lesbian,1.0,Gay or lesbian,0,1
+SEXUAL_ORIENTATION,SEXUAL_ORIENTATION,19,2,"Straight, that is not gay or lesbian",2.0,Straight,0,1
+SEXUAL_ORIENTATION,SEXUAL_ORIENTATION,19,3,Bisexual,3.0,Bisexual,0,1
+SEXUAL_ORIENTATION,SEXUAL_ORIENTATION,19,4,Something else,4.0,Something else,0,1
+SEXUAL_ORIENTATION,SEXUAL_ORIENTATION,19,5,I don't know,4.0,Something else,0,1
+RHISPANIC,RHISPANIC,20,1,"No, not of Hispanic, Latino, or Spanish origin",1.0,Not Latino,0,1
+RHISPANIC,RHISPANIC,20,2,"Yes, of Hispanic, Latino, or Spanish origin",2.0,Latino,0,1
+RRACE,RRACE,21,1,"White, Alone",1.0,White,0,1
+RRACE,RRACE,21,2,"Black, Alone",2.0,Black,0,1
+RRACE,RRACE,21,3,"Asian, Alone",3.0,Asian,0,1
+RRACE,RRACE,21,4,"Any other race alone, or race in combination",5.0,Other,0,1
+RRACE,RRACE,21,5,"Latino, Alone",4.0,Latino/a,0,1
+EEDUC,EEDUC,22,1,Less than high school,1.0,High school or less,0,1
+EEDUC,EEDUC,22,2,Some high school,1.0,High school or less,0,1
+EEDUC,EEDUC,22,3,High school graduate or equivalent (for example GED),1.0,High school or less,0,1
+EEDUC,EEDUC,22,4,"Some college, but degree not received or is in progress",2.0,Associate's degree or some college,0,1
+EEDUC,EEDUC,22,5,"Associate's degree (for example AA, AS)",2.0,Associate's degree or some college,0,1
+EEDUC,EEDUC,22,6,"Bachelor's degree (for example BA, BS, AB)",3.0,Bachelor's degree or higher,0,1
+EEDUC,EEDUC,22,7,"Graduate degree (for example master's, professional, doctorate)",3.0,Bachelor's degree or higher,0,1
+INCOME,INCOME,23,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+INCOME,INCOME,23,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+INCOME,INCOME,23,1,"Less than $25,000",1.0,Less than $35k,0,1
+INCOME,INCOME,23,2,"$25,000 - $34,999",1.0,Less than $35k,0,1
+INCOME,INCOME,23,3,"$35,000 - $49,999",2.0,$35k to $74k,0,1
+INCOME,INCOME,23,4,"$50,000 - $74,999",2.0,$35k to $74k,0,1
+INCOME,INCOME,23,5,"$75,000 - $99,999",3.0,$75k to $99k,0,1
+INCOME,INCOME,23,6,"$100,000 - $149,999",4.0,$100k or more,0,1
+INCOME,INCOME,23,7,"$150,000 - $199,999",4.0,$100k or more,0,1
+INCOME,INCOME,23,8,"$200,000 and above",4.0,$100k or more,0,1
+TENURE,TENURE,24,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TENURE,TENURE,24,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+TENURE,TENURE,24,1,Owned free and clear,1.0,Owned free and clear,0,1
+TENURE,TENURE,24,2,Owned with a mortgage or loan (including home equitly loans),2.0,Owned with a mortgage,0,1
+TENURE,TENURE,24,3,Rented,3.0,Rented,0,1
+TENURE,TENURE,24,4,Occupied without payment of rent,4.0,Occupied without payment,0,1
+HLTHINS1,HLTHINS1,25,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+HLTHINS1,HLTHINS1,25,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+HLTHINS1,HLTHINS1,25,1,Insurance through a current or former employer or union (through yourself or another family member) ,1.0,Employer insurance,0,1
+HLTHINS1,HLTHINS1,25,2,No,6.0,No,1,1
+HLTHINS2,HLTHINS2,26,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+HLTHINS2,HLTHINS2,26,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+HLTHINS2,HLTHINS2,26,1,"Insurance purchased directly from an insurance company, including marketplace coverage (through yourself or another family member) ",2.0,Marketplace insurance,0,1
+HLTHINS2,HLTHINS2,26,2,No,6.0,No,1,1
+HLTHINS3,HLTHINS3,27,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+HLTHINS3,HLTHINS3,27,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+HLTHINS3,HLTHINS3,27,1,"Medicare, for people 65 and older, or people with certain disabilities",3.0,Medicare,0,1
+HLTHINS3,HLTHINS3,27,2,No,6.0,No,1,1
+HLTHINS4,HLTHINS4,28,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+HLTHINS4,HLTHINS4,28,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+HLTHINS4,HLTHINS4,28,1,"Medicaid, Medical Assistance, or any kind of government-assistance plan for those with low incomes or a disability",4.0,Medicaid,0,1
+HLTHINS4,HLTHINS4,28,2,No,6.0,No,1,1
+HLTHINS5,HLTHINS5,29,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+HLTHINS5,HLTHINS5,29,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+HLTHINS5,HLTHINS5,29,1,TRICARE or other military health care,5.0,Other,0,1
+HLTHINS5,HLTHINS5,29,2,No,6.0,No,1,1
+HLTHINS6,HLTHINS6,30,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+HLTHINS6,HLTHINS6,30,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+HLTHINS6,HLTHINS6,30,1,VA (including those who have ever used or enrolled for VA health care),5.0,Other,0,1
+HLTHINS6,HLTHINS6,30,2,No,6.0,No,1,1
+HLTHINS7,HLTHINS7,31,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+HLTHINS7,HLTHINS7,31,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+HLTHINS7,HLTHINS7,31,1,Indian Health Service,5.0,Other,0,1
+HLTHINS7,HLTHINS7,31,2,No,6.0,No,1,1
+HLTHINS8,HLTHINS8,32,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+HLTHINS8,HLTHINS8,32,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+HLTHINS8,HLTHINS8,32,1,Other,5.0,Other,0,1
+HLTHINS8,HLTHINS8,32,2,No,6.0,No,1,1
+PRIVHLTH,PRIVHLTH,33,1,"Yes, Has Private Health Insurance",1.0,Private Health Insurance,0,1
+PRIVHLTH,PRIVHLTH,33,2,No Private Health Insurance,2.0,No Private Health Insurance,1,1
+PRIVHLTH,PRIVHLTH,33,3,Missing,-88.0,Missing / Did not report,0,1
+PUBHLTH,PUBHLTH,34,1,"Yes, Has Public Health Insurance",1.0,Public Health Insurance,0,1
+PUBHLTH,PUBHLTH,34,2,No Public Health Insurance,2.0,No Public Health Insurance,1,1
+PUBHLTH,PUBHLTH,34,3,Missing,-88.0,Missing / Did not report,0,1
+MS,MS,35,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+MS,MS,35,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+MS,MS,35,1,Now married,1.0,Married,0,1
+MS,MS,35,2,Widowed,2.0,Unmarried or alone,0,1
+MS,MS,35,3,Divorced,2.0,Unmarried or alone,0,1
+MS,MS,35,4,Separated,2.0,Unmarried or alone,0,1
+MS,MS,35,5,Never married,2.0,Unmarried or alone,0,1
+KIDS_LT5Y,KIDS_LT5Y,36,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+KIDS_LT5Y,KIDS_LT5Y,36,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+KIDS_LT5Y,KIDS_LT5Y,36,1,Children under 5 in household,1.0,Children under 5 in home,0,1
+KIDS_5_11Y,KIDS_5_11Y,37,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+KIDS_5_11Y,KIDS_5_11Y,37,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+KIDS_5_11Y,KIDS_5_11Y,37,1,Children 5 through 11 years old,2.0,Children 5 to 11 years old,0,1
+KIDS_12_17Y,KIDS_12_17Y,38,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+KIDS_12_17Y,KIDS_12_17Y,38,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+KIDS_12_17Y,KIDS_12_17Y,38,1,Children 12 through 17 years old,3.0,Children 12 to 17 years old,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,1,A mobile home,1.0,A mobile home,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,2,A one-family house detached from any other house,2.0,A one-family house detached from any other house,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,3,A one-family house attached to one or more houses,3.0,A one-family house attached to one or more houses,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,4,A building with 2 apartments,4.0,A building with 2 apartments,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,5,A building with 3 or 4 apartment,5.0,A building with 3 or 4 apartments,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,6,A building with 5 to 9 apartments,6.0,A building with 5 or more apartments,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,7,A building with 10 to 19 apartments,6.0,A building with 5 or more apartments,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,8,A building with 20 to 49 apartments,6.0,A building with 5 or more apartments,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,9,A building with 50 or more apartments,6.0,A building with 5 or more apartments,0,1
+LIVQTR,LIVQTR_LIVQTRRV,39,10,"Boat, RV, van, etc.",7.0,"Boat, RV, van, etc.",0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,1,A mobile home,1.0,A mobile home,0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,2,A one-family house detached from any other house,2.0,Single detached home,0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,3,A one-family house attached to one or more houses,3.0,Single home attached to another,0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,4,A building with 2 apartments,4.0,Building with 2 apartments,0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,5,A building with 3 or 4 apartments,5.0,Building with 3 or 4 apartments,0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,6,A building with 5 or more apartments,6.0,Building with 5 or more apartments,0,1
+LIVQTRRV,LIVQTR_LIVQTRRV,40,7,"Boat, RV, van, etc.",7.0,"Boat, RV, van, etc.",0,1
+TBEDROOMS,TBEDROOMS,41,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TBEDROOMS,TBEDROOMS,41,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+ACTVDUTY1,ACTVDUTY1,42,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+ACTVDUTY1,ACTVDUTY1,42,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+ACTVDUTY1,ACTVDUTY1,42,1,No,1.0,Not serving in U.S. Armed Forces,0,1
+ACTVDUTY2,ACTVDUTY2,43,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+ACTVDUTY2,ACTVDUTY2,43,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+ACTVDUTY2,ACTVDUTY2,43,1,"Yes, I'm serving on active duty",2.0,Active duty,0,1
+ACTVDUTY3,ACTVDUTY3,44,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+ACTVDUTY3,ACTVDUTY3,44,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+ACTVDUTY3,ACTVDUTY3,44,1,"Yes, I'm serving in the Reserve or National Guard",3.0,Reserve or National Guard,0,1
+ACTVDUTY4,ACTVDUTY4,45,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+ACTVDUTY4,ACTVDUTY4,45,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+ACTVDUTY4,ACTVDUTY4,45,1,"Yes, my spouse is serving on active duty",4.0,Spouse is serving on active duty,0,1
+ACTVDUTY5,ACTVDUTY5,46,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+ACTVDUTY5,ACTVDUTY5,46,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+ACTVDUTY5,ACTVDUTY5,46,1,"Yes, my spouse is serving in the Reserve or National Guard",5.0,Spouse serving in the Reserve or National Guard,0,1
+THHLD_NUMADLT,THHLD_NUMADLT,47,0,Recode,,,0,1
+ANYWORK,ANYWORK,50,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ANYWORK,ANYWORK,50,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ANYWORK,ANYWORK,50,1,Yes,1.0,Worked for either pay or profit,0,0
+ANYWORK,ANYWORK,50,2,No,2.0,Did not work for either pay or profit,1,0
+ACTIVITY1,ACTIVITY1,51,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ACTIVITY1,ACTIVITY1,51,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ACTIVITY1,ACTIVITY1,51,1,Yes,1.0,Worked onsite at a workplace,0,0
+ACTIVITY1,ACTIVITY1,51,2,No,2.0,Did not work onsite at a workplace,1,0
+ACTIVITY2,ACTIVITY2,52,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ACTIVITY2,ACTIVITY2,52,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ACTIVITY2,ACTIVITY2,52,1,Yes,1.0,Teleworked or worked from home,0,0
+ACTIVITY2,ACTIVITY2,52,2,No,2.0,Did not telework or work from home,1,0
+ACTIVITY3,ACTIVITY3,53,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ACTIVITY3,ACTIVITY3,53,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ACTIVITY3,ACTIVITY3,53,1,Yes,1.0,In-store shopping,0,0
+ACTIVITY3,ACTIVITY3,53,2,No,2.0,Did not shop indoors,1,0
+ACTIVITY4,ACTIVITY4,54,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ACTIVITY4,ACTIVITY4,54,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ACTIVITY4,ACTIVITY4,54,1,Yes,1.0,Eating indoors at restaurants,0,0
+ACTIVITY4,ACTIVITY4,54,2,No,2.0,Did not eat indoors at restaurants,1,0
+ACTIVITY5,ACTIVITY5,55,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ACTIVITY5,ACTIVITY5,55,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ACTIVITY5,ACTIVITY5,55,1,Yes,1.0,Had in-person medical or dental appointments,0,0
+ACTIVITY5,ACTIVITY5,55,2,No,2.0,Did not have in-person appointments,1,0
+ACTIVITY6,ACTIVITY6,56,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ACTIVITY6,ACTIVITY6,56,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ACTIVITY6,ACTIVITY6,56,1,Yes,1.0,Had in-home housekeeping or caregiving services,0,0
+ACTIVITY6,ACTIVITY6,56,2,No,2.0,Did not have in-home housekeeping,1,0
+KINDWORK,KINDWORK,57,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KINDWORK,KINDWORK,57,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KINDWORK,KINDWORK,57,1,Government,1.0,Government,0,0
+KINDWORK,KINDWORK,57,2,Private company,2.0,Private company,0,0
+KINDWORK,KINDWORK,57,3,Non-profit organization including tax exempt and charitable organizations,3.0,Non-profit organization,0,0
+KINDWORK,KINDWORK,57,4,Self-employed,4.0,Self-employed,0,0
+KINDWORK,KINDWORK,57,5,Working in a family business,5.0,Working in a family business,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,1,I did not want to be employed at this time,1.0,Did not want to be employed at this time,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,2,I am/was sick with coronavirus symptoms,2.0,Sick with COVID symptoms,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,3,I am/was caring for someone with coronavirus symptoms,11.0,Other reason,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,4,I am/was caring for children not in school or daycare,3.0,Caring for children not in school or daycare,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,5,I am/was caring for an elderly person,4.0,Caring for an elderly person,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,6,I am/was sick (not coronavirus related) or disabled,5.0,Sick (not COVID related) or disabled,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,7,I am retired,6.0,Retired,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,8,My employer experienced a reduction in business (including furlough) due to coronavirus pandemic,11.0,Other reason,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,9,I am/was laid off due to coronavirus pandemic,7.0,Laid off due to pandemic,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,10,My employer closed temporarily due to the coronavirus pandemic,8.0,Employer closed temporarily due to pandemic,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,11,My employer went out of business due to the coronavirus pandemic,9.0,Employer went out of business due to pandemic,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,12,"Other reason, please specify",11.0,Other reason,0,0
+RSNNOWRK,RSNNOWRK_RSNNOWRKRV,58,13,I was concerned about getting or spreading the coronavirus,10.0,Concerned about getting or spreading COVID,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,1,I did not want to be employed at this time,1.0,Did not want to be employed at this time,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,2,I am/was sick with coronavirus symptoms or caring for someone who was sick with coronavirus symptoms,2.0,Sick with COVID symptoms,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,3,I am/was caring for children not in school or daycare,3.0,Caring for children not in school or daycare,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,4,I am/was caring for an elderly person,4.0,Caring for an elderly person,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,5,I was concerned about getting or spreading the coronavirus,10.0,Concerned about getting or spreading COVID,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,6,I am/was sick (not coronavirus related or disabled),5.0,Sick (not COVID related) or disabled,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,7,I am retired,6.0,Retired,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,8,I am/was laid off or furloughed due to coronavirus pandemic,7.0,Laid off due to pandemic,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,9,My employer closed temporarily due to the coronavirus pandemic,8.0,Employer closed temporarily due to pandemic,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,10,My employer went out of business due to the coronavirus pandemic,9.0,Employer went out of business due to pandemic,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,11,I do/did not have transportation to work,11.0,Other reason,0,0
+RSNNOWRKRV,RSNNOWRK_RSNNOWRKRV,59,12,"Other reason, please specify",11.0,Other reason,0,0
+WRKLOSSRV,WRKLOSSRV,60,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WRKLOSSRV,WRKLOSSRV,60,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WRKLOSSRV,WRKLOSSRV,60,1,Yes,1.0,Lost employment income,0,0
+WRKLOSSRV,WRKLOSSRV,60,2,No,2.0,Did not lose employment income,1,0
+WRKLOSS,WRKLOSS,61,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WRKLOSS,WRKLOSS,61,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WRKLOSS,WRKLOSS,61,1,Yes,1.0,Recent home job loss,0,0
+WRKLOSS,WRKLOSS,61,2,No,2.0,No recent home job loss,1,0
+EXPCTLOSS,EXPCTLOSS,62,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EXPCTLOSS,EXPCTLOSS,62,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EXPCTLOSS,EXPCTLOSS,62,1,Yes,1.0,Expected home job loss,0,0
+EXPCTLOSS,EXPCTLOSS,62,2,No,2.0,No expected home job loss,1,0
+UNEMPPAY,UNEMPPAY,63,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+UNEMPPAY,UNEMPPAY,63,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+UNEMPPAY,UNEMPPAY,63,1,"Yes, I use paid leave",1.0,Used paid leave,0,0
+UNEMPPAY,UNEMPPAY,63,2,"Yes, I receive full pay but do not have to take leave",2.0,Received full pay but do not have to take leave,0,0
+UNEMPPAY,UNEMPPAY,63,3,"Yes, I receive partial pay",3.0,Received partial pay,0,0
+UNEMPPAY,UNEMPPAY,63,4,"No, I receive no pay",4.0,Received no pay,0,0
+UI_APPLY,UI_APPLY_UI_APPLYRV,64,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+UI_APPLY,UI_APPLY_UI_APPLYRV,64,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+UI_APPLY,UI_APPLY_UI_APPLYRV,64,1,Yes,1.0,Applied for UI,0,0
+UI_APPLY,UI_APPLY_UI_APPLYRV,64,2,No,2.0,Did not apply for UI,1,0
+UI_APPLYRV,UI_APPLY_UI_APPLYRV,65,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+UI_APPLYRV,UI_APPLY_UI_APPLYRV,65,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+UI_APPLYRV,UI_APPLY_UI_APPLYRV,65,1,Yes,1.0,Applied for UI,0,0
+UI_APPLYRV,UI_APPLY_UI_APPLYRV,65,2,No,2.0,Did not apply for UI,1,0
+UI_RECV,UI_RECV_UI_RECVRV,66,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+UI_RECV,UI_RECV_UI_RECVRV,66,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+UI_RECV,UI_RECV_UI_RECVRV,66,1,Yes,2.0,Applied and received UI,0,0
+UI_RECV,UI_RECV_UI_RECVRV,66,2,No,1.0,"Applied for UI, but did not receive",1,0
+UI_RECVRV,UI_RECV_UI_RECVRV,67,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+UI_RECVRV,UI_RECV_UI_RECVRV,67,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+UI_RECVRV,UI_RECV_UI_RECVRV,67,1,Yes,1.0,Recieved UI,0,0
+UI_RECVRV,UI_RECV_UI_RECVRV,67,2,No,2.0,Did not recieve UI,1,0
+UI_RECVNOW,UI_RECVNOW,68,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+UI_RECVNOW,UI_RECVNOW,68,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+UI_RECVNOW,UI_RECVNOW,68,1,Yes,1.0,Recieved UI in last 7 days,0,0
+UI_RECVNOW,UI_RECVNOW,68,2,No,2.0,Did not recieve UI,1,0
+TW_START,TW_START,70,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TW_START,TW_START,70,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TW_START,TW_START,70,1,"Yes, at least one adult substituted some or all of their typical in-person work for telework",1.0,Someone substituted in-person work for telework,0,0
+TW_START,TW_START,70,2,"No, no adults substituted their typical in-person work for telework",2.0,No adults substituted in-person work for telework,0,0
+TW_START,TW_START,70,3,"No, there has been no change in telework",3.0,There has been no change in telework,0,0
+TW_YN,TW_YN,71,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TW_YN,TW_YN,71,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TW_YN,TW_YN,71,1,Yes,1.0,Teleworked in last 7 days,0,0
+TW_YN,TW_YN,71,2,No,2.0,Did not telework in last 7 days,1,0
+TW_COV,TW_COV,72,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TW_COV,TW_COV,72,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TW_COV,TW_COV,72,1,Yes,1.0,Teleworked due to pandemic,0,0
+TW_COV,TW_COV,72,2,No,2.0,Did not telework due to pandemic,1,0
+PRVRIDESHR,PRVRIDESHR,73,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVRIDESHR,PRVRIDESHR,73,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVRIDESHR,PRVRIDESHR,73,1,Yes,1.0,"Used bus, rail, or ride-sharing services",0,0
+PRVRIDESHR,PRVRIDESHR,73,2,No,2.0,"Did not use bus, rail, or ride-sharing services",1,0
+FEWRTRANS,FEWRTRANS,74,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FEWRTRANS,FEWRTRANS,74,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FEWRTRANS,FEWRTRANS,74,1,Yes,1.0,"Fewer trips by bus, rail, or ride-share",0,0
+FEWRTRANS,FEWRTRANS,74,2,No,2.0,"Usual number of trips by bus, rail, or ride-share",0,0
+FEWRTRANS,FEWRTRANS,74,3,Did not use before,3.0,Did not use before,0,0
+WKVOL,WKVOL,75,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WKVOL,WKVOL,75,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WKVOL,WKVOL,75,1,Yes,1.0,Worked or volunteered outside home,0,0
+WKVOL,WKVOL,75,2,No,2.0,Did not work or volunteer outside home,1,0
+SETTING,SETTING,76,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SETTING,SETTING,76,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SETTING,SETTING,76,1,"Healthcare (e.g., hospital, doctor, dentist or mental health specialist office, outpatient facility, long-term care, home health care, pharmacy, medical laboratory",1.0,Healthcare,0,0
+SETTING,SETTING,76,2,"Social service (e.g., child, youth, family, elderly, disability services",2.0,Social service,0,0
+SETTING,SETTING,76,3,Preschool or daycare,3.0,Preschool or daycare,0,0
+SETTING,SETTING,76,4,K-12 school,4.0,K-12 school,0,0
+SETTING,SETTING,76,5,"Other schools and instructional settings (e.g. college, university, professional, business, technical or trade school, driving school, test preparation, tutoring",5.0,Other schools and instructional settings,0,0
+SETTING,SETTING,76,6,"First response (e.g., police or fire protection, emergency relief services",6.0,"First response (e.g., police, emergency services)",0,0
+SETTING,SETTING,76,7,"Death care (e.g., funeral home, crematory, cemetery",7.0,"Death care (e.g., funeral home)",0,0
+SETTING,SETTING,76,8,"Correctional facility (e.g., jail, prison, detention center, reformatory",8.0,Correctional facility,0,0
+SETTING,SETTING,76,9,"Food and beverage store (e.g., grocery store, warehouse club, supercenters, convenience store, specialty food store, bakery",9.0,Food and beverage store,0,0
+SETTING,SETTING,76,10,"Agriculture, forestry, fishing, or hunting",10.0,"Agriculture, forestry, fishing, or hunting",0,0
+SETTING,SETTING,76,11,"Food manufacturing facility (e.g., meat-processing, produce packing, food or beverage manufacturing",11.0,Food manufacturing facility,0,0
+SETTING,SETTING,76,12,"Non-food manufacturing facility (e.g. metals, equipment and machinery, electronics",12.0,Non-food manufacturing facility,0,0
+SETTING,SETTING,76,13,"Public transit (e.g., bus, commuter rail, subway, school bus",13.0,Public transit,0,0
+SETTING,SETTING,76,14,United States Postal Service,14.0,United States Postal Service,0,0
+SETTING,SETTING,76,15,"Other job deemed ""essential"" during the COVID-19 pandemic",15.0,"Other job deemed ""essential"" during the pandemic",0,0
+SETTING,SETTING,76,16,None of the above,16.0,None of the above,0,0
+SSA_RECV,SSA_RECV,77,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSA_RECV,SSA_RECV,77,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSA_RECV,SSA_RECV,77,1,Yes,1.0,Receives social security,0,0
+SSA_RECV,SSA_RECV,77,2,No,2.0,Does not receive social security,1,0
+SSA_APPLYRV,SSA_APPLY_SSA_APPLYRV,78,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSA_APPLYRV,SSA_APPLY_SSA_APPLYRV,78,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSA_APPLYRV,SSA_APPLY_SSA_APPLYRV,78,1,"Yes, applied or attempted to apply",1.0,Applied for social security,0,0
+SSA_APPLYRV,SSA_APPLY_SSA_APPLYRV,78,2,No,2.0,Did not apply for social security,1,0
+SSA_APPLY,SSA_APPLY_SSA_APPLYRV,79,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSA_APPLY,SSA_APPLY_SSA_APPLYRV,79,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSA_APPLY,SSA_APPLY_SSA_APPLYRV,79,1,"Yes, applied or attempted to apply",1.0,Applied for social security,0,0
+SSA_APPLY,SSA_APPLY_SSA_APPLYRV,79,2,No,2.0,Did not apply for social security,1,0
+SSALIKELY,SSALIKELY_SSALIKELYRV,80,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSALIKELY,SSALIKELY_SSALIKELYRV,80,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSALIKELY,SSALIKELY_SSALIKELYRV,80,1,Extremely likely,1.0,Extremely likely,0,0
+SSALIKELY,SSALIKELY_SSALIKELYRV,80,2,Very likely,2.0,Very likely,0,0
+SSALIKELY,SSALIKELY_SSALIKELYRV,80,3,Somewhat likely,3.0,Somewhat likely,0,0
+SSALIKELY,SSALIKELY_SSALIKELYRV,80,4,Not at all likely,4.0,Not at all likely,0,0
+SSALIKELYRV,SSALIKELY_SSALIKELYRV,81,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSALIKELYRV,SSALIKELY_SSALIKELYRV,81,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSALIKELYRV,SSALIKELY_SSALIKELYRV,81,1,Extremely likely,1.0,Extremely likely,0,0
+SSALIKELYRV,SSALIKELY_SSALIKELYRV,81,2,Very likely,2.0,Very likely,0,0
+SSALIKELYRV,SSALIKELY_SSALIKELYRV,81,3,Somewhat likely,3.0,Somewhat likely,0,0
+SSALIKELYRV,SSALIKELY_SSALIKELYRV,81,4,Not at all likely,4.0,Not at all likely,0,0
+SSADECISN,SSADECISN,82,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSADECISN,SSADECISN,82,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSADECISN,SSADECISN,82,1,The coronavirus pandemic has not affected my decision about applying for benefits,1.0,Pandemic has not affected my decision to apply,0,0
+SSADECISN,SSADECISN,82,2,I have decided not to apply,2.0,I have decided not to apply,0,0
+SSADECISN,SSADECISN,82,3,I applied or decided to apply earlier than expected,3.0,Applied or decided to apply earlier than expected,0,0
+SSADECISN,SSADECISN,82,4,I applied or decided to apply later than expected,4.0,I applied or decided to apply later than expected,0,0
+SSAPGM1,SSAPGM1_SSAPGMRV1,83,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGM1,SSAPGM1_SSAPGMRV1,83,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGM1,SSAPGM1_SSAPGMRV1,83,1,Social Security Retirement,1.0,Social Security Retirement,0,0
+SSAPGM2,SSAPGM2_SSAPGMRV2,84,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGM2,SSAPGM2_SSAPGMRV2,84,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGM2,SSAPGM2_SSAPGMRV2,84,1,Social Security Disability,2.0,Social Security Disability,0,0
+SSAPGM3,SSAPGM3_SSAPGMRV3,85,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGM3,SSAPGM3_SSAPGMRV3,85,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGM3,SSAPGM3_SSAPGMRV3,85,1,Social Security Survivors,3.0,Social Security Survivors,0,0
+SSAPGM4,SSAPGM4_SSAPGMRV4,86,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGM4,SSAPGM4_SSAPGMRV4,86,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGM4,SSAPGM4_SSAPGMRV4,86,1,Supplemental Security Income (SSI,4.0,Supplemental Security Income,0,0
+SSAPGM5,SSAPGM5_SSAPGMRV5,87,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGM5,SSAPGM5_SSAPGMRV5,87,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGM5,SSAPGM5_SSAPGMRV5,87,1,Medicare,5.0,Medicare,0,0
+SSAPGMRV1,SSAPGM1_SSAPGMRV1,88,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGMRV1,SSAPGM1_SSAPGMRV1,88,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGMRV1,SSAPGM1_SSAPGMRV1,88,1,Social Security Retirement,1.0,Social Security Retirement,0,0
+SSAPGMRV2,SSAPGM2_SSAPGMRV2,89,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGMRV2,SSAPGM2_SSAPGMRV2,89,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGMRV2,SSAPGM2_SSAPGMRV2,89,1,Social Security Disability,2.0,Social Security Disability,0,0
+SSAPGMRV3,SSAPGM3_SSAPGMRV3,90,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGMRV3,SSAPGM3_SSAPGMRV3,90,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGMRV3,SSAPGM3_SSAPGMRV3,90,1,Social Security Survivors,3.0,Social Security Survivors,0,0
+SSAPGMRV4,SSAPGM4_SSAPGMRV4,91,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGMRV4,SSAPGM4_SSAPGMRV4,91,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGMRV4,SSAPGM4_SSAPGMRV4,91,1,Supplemental Security Income (SSI,4.0,Supplemental Security Income,0,0
+SSAPGMRV5,SSAPGM5_SSAPGMRV5,92,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAPGMRV5,SSAPGM5_SSAPGMRV5,92,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAPGMRV5,SSAPGM5_SSAPGMRV5,92,1,Medicare,5.0,Medicare,0,0
+SSAEXPCT1,SSAEXPCT1,93,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAEXPCT1,SSAEXPCT1,93,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAEXPCT1,SSAEXPCT1,93,1,Social Security Retirement,1.0,Social Security Retirement,0,0
+SSAEXPCT2,SSAEXPCT2,94,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAEXPCT2,SSAEXPCT2,94,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAEXPCT2,SSAEXPCT2,94,1,Social Security Disability,2.0,Social Security Disability,0,0
+SSAEXPCT3,SSAEXPCT3,95,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAEXPCT3,SSAEXPCT3,95,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAEXPCT3,SSAEXPCT3,95,1,Social Security Survivors,3.0,Social Security Survivors,0,0
+SSAEXPCT4,SSAEXPCT4,96,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAEXPCT4,SSAEXPCT4,96,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAEXPCT4,SSAEXPCT4,96,1,Supplemental Security Income (SSI,4.0,Supplemental Security Income,0,0
+SSAEXPCT5,SSAEXPCT5,97,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SSAEXPCT5,SSAEXPCT5,97,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SSAEXPCT5,SSAEXPCT5,97,1,Medicare,5.0,Medicare,0,0
+SPND_SRC1,SPND_SRC1_SPNDSRC1,98,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC1,SPND_SRC1_SPNDSRC1,98,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC1,SPND_SRC1_SPNDSRC1,98,1,Regular income sources like those received before the pandemic,1.0,Regular income sources,0,0
+SPND_SRC2,SPND_SRC2_SPNDSRC2,99,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC2,SPND_SRC2_SPNDSRC2,99,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC2,SPND_SRC2_SPNDSRC2,99,1,Credit cards or loans,2.0,Credit cards or loans,0,0
+SPND_SRC3,SPND_SRC3_SPNDSRC3,100,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC3,SPND_SRC3_SPNDSRC3,100,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC3,SPND_SRC3_SPNDSRC3,100,1,Money from savings or selling assets or possessions (including withdrawals from retirement accounts,3.0,Money from savings or selling assets,0,0
+SPND_SRC4,SPND_SRC4_SPNDSRC4,101,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC4,SPND_SRC4_SPNDSRC4,101,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC4,SPND_SRC4_SPNDSRC4,101,1,Borrowing from friends or family,4.0,Borrowing from friends or family,0,0
+SPND_SRC5,SPND_SRC5_SPNDSRC5,102,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC5,SPND_SRC5_SPNDSRC5,102,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC5,SPND_SRC5_SPNDSRC5,102,1,Unemployment insurance benefit payments,5.0,UI benefit payments,0,0
+SPND_SRC6,SPND_SRC6_SPNDSRC6,103,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC6,SPND_SRC6_SPNDSRC6,103,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC6,SPND_SRC6_SPNDSRC6,103,1,Stimulus economic impact payment,6.0,Stimulus economic impact payment,0,0
+SPND_SRC7,SPND_SRC7,104,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC7,SPND_SRC7,104,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC7,SPND_SRC7,104,1,Child Tax Credit payment,7.0,Child Tax Credit payment,0,0
+SPND_SRC8,SPND_SRC8_SPNDSRC7,105,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC8,SPND_SRC8_SPNDSRC7,105,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC8,SPND_SRC8_SPNDSRC7,105,1,Money saved from deferred or forgiven payments (to meet your spending needs),8.0,Money saved from deferred or forgiven payments,0,0
+SPND_SRC9,SPND_SRC9_SPNDSRC8,106,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC9,SPND_SRC9_SPNDSRC8,106,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC9,SPND_SRC9_SPNDSRC8,106,1,Supplemental Nutrition Assistance Program (SNAP),9.0,Supplemental Nutrition Assistance Program (SNAP),0,0
+SPND_SRC10,SPND_SRC10,107,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC10,SPND_SRC10,107,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC10,SPND_SRC10,107,1,School meal debit/EBT cards,10.0,School meal debit/EBT cards,0,0
+SPND_SRC11,SPND_SRC11,108,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC11,SPND_SRC11,108,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC11,SPND_SRC11,108,1,Government rental assistance,11.0,Government rental assistance,0,0
+SPND_SRC12,SPND_SRC12_SPNDSRC9,109,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPND_SRC12,SPND_SRC12_SPNDSRC9,109,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPND_SRC12,SPND_SRC12_SPNDSRC9,109,1,Other,12.0,Other,0,0
+SPNDSRC1,SPND_SRC1_SPNDSRC1,110,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC1,SPND_SRC1_SPNDSRC1,110,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC1,SPND_SRC1_SPNDSRC1,110,1,Regular income sources like those received before the pandemic,1.0,Regular income sources,0,0
+SPNDSRC2,SPND_SRC2_SPNDSRC2,111,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC2,SPND_SRC2_SPNDSRC2,111,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC2,SPND_SRC2_SPNDSRC2,111,1,Credit cards or loans,2.0,Credit cards or loans,0,0
+SPNDSRC3,SPND_SRC3_SPNDSRC3,112,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC3,SPND_SRC3_SPNDSRC3,112,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC3,SPND_SRC3_SPNDSRC3,112,1,Money from savings or selling assets,3.0,Money from savings or selling assets,0,0
+SPNDSRC4,SPND_SRC4_SPNDSRC4,113,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC4,SPND_SRC4_SPNDSRC4,113,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC4,SPND_SRC4_SPNDSRC4,113,1,Borrowing from friends or family,4.0,Borrowing from friends or family,0,0
+SPNDSRC5,SPND_SRC5_SPNDSRC5,114,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC5,SPND_SRC5_SPNDSRC5,114,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC5,SPND_SRC5_SPNDSRC5,114,1,Unemployment insurance benefit payments,5.0,UI benefit payments,0,0
+SPNDSRC6,SPND_SRC6_SPNDSRC6,115,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC6,SPND_SRC6_SPNDSRC6,115,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC6,SPND_SRC6_SPNDSRC6,115,1,Stimulus economic impact payment,6.0,Stimulus economic impact payment,0,0
+SPNDSRC7,SPND_SRC8_SPNDSRC7,116,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC7,SPND_SRC8_SPNDSRC7,116,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC7,SPND_SRC8_SPNDSRC7,116,1,Money saved from deferred or forgiven payments (to meet your spending needs,8.0,Money saved from deferred or forgiven payments,0,0
+SPNDSRC8,SPND_SRC9_SPNDSRC8,117,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC8,SPND_SRC9_SPNDSRC8,117,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC8,SPND_SRC9_SPNDSRC8,117,1,Supplemental Nutrition Assistance Program (SNAP),9.0,Supplemental Nutrition Assistance Program (SNAP),0,0
+SPNDSRC9,SPND_SRC12_SPNDSRC9,118,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SPNDSRC9,SPND_SRC12_SPNDSRC9,118,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SPNDSRC9,SPND_SRC12_SPNDSRC9,118,1,Other_specify,12.0,Other,0,0
+EXPNS_DIF,EXPNS_DIF,119,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EXPNS_DIF,EXPNS_DIF,119,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EXPNS_DIF,EXPNS_DIF,119,1,Not at all difficult,1.0,Not at all difficult,0,0
+EXPNS_DIF,EXPNS_DIF,119,2,A little difficult,2.0,A little difficult,0,0
+EXPNS_DIF,EXPNS_DIF,119,3,Somewhat difficult,3.0,Somewhat difficult,0,0
+EXPNS_DIF,EXPNS_DIF,119,4,Very difficult,4.0,Very difficult,0,0
+ENERGY,ENERGY,120,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ENERGY,ENERGY,120,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ENERGY,ENERGY,120,1,Almost every month,1.0,Almost every month,0,0
+ENERGY,ENERGY,120,2,Some months,2.0,Some months,0,0
+ENERGY,ENERGY,120,3,1 or 2 months,3.0,1 or 2 months,0,0
+ENERGY,ENERGY,120,4,Never,4.0,Never,0,0
+ENRGY_BILL,ENRGY_BILL,121,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ENRGY_BILL,ENRGY_BILL,121,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ENRGY_BILL,ENRGY_BILL,121,1,Almost every month,1.0,Almost every month,0,0
+ENRGY_BILL,ENRGY_BILL,121,2,Some months,2.0,Some months,0,0
+ENRGY_BILL,ENRGY_BILL,121,3,1 or 2 months,3.0,1 or 2 months,0,0
+ENRGY_BILL,ENRGY_BILL,121,4,Never,4.0,Never,0,0
+EIP,EIP,122,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIP,EIP,122,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIP,EIP,122,1,Mostly spend it,1.0,Mostly spend it,0,0
+EIP,EIP,122,2,Mostly save it,2.0,Mostly save it,0,0
+EIP,EIP,122,3,Mostly use it to pay off debt,3.0,Mostly use it to pay off debt,0,0
+EIP,EIP,122,4,"Not applicable, I did not receive the stimulus payment",4.0,Did not receive the stimulus payment,0,0
+EIP_YN,EIP_YN,123,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIP_YN,EIP_YN,123,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIP_YN,EIP_YN,123,1,Yes,1.0,Receive a stimulus payment,0,0
+EIP_YN,EIP_YN,123,2,No,2.0,Did not receive a stimulus payment,1,0
+EIPRV,EIPRV,124,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPRV,EIPRV,124,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPRV,EIPRV,124,1,Mostly spend it,1.0,Mostly spend it,0,0
+EIPRV,EIPRV,124,2,Mostly save it,2.0,Mostly save it,0,0
+EIPRV,EIPRV,124,3,Mostly use it to pay off debt,3.0,Mostly use it to pay off debt,0,0
+EIPSPEND,EIPSPEND,125,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPEND,EIPSPEND,125,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPEND,EIPSPEND,125,1,"Food (groceries, eating out, take out",1.0,Food,0,0
+EIPSPEND,EIPSPEND,125,2,"Clothing (clothing, accessories, shoes",2.0,Clothing,0,0
+EIPSPEND,EIPSPEND,125,3,Household supplies and personal care products,3.0,Household supplies and personal care products,0,0
+EIPSPEND,EIPSPEND,125,4,"Household items (TV, electronics, furniture, appliances",4.0,"Household items (electronics, furniture, appliances)",0,0
+EIPSPEND,EIPSPEND,125,5,"Recreational goods (sports and fitness equipment, bicycles, toys, games",5.0,Recreational goods,0,0
+EIPSPEND,EIPSPEND,125,6,Rent,6.0,Rent,0,0
+EIPSPEND,EIPSPEND,125,7,Mortgage (scheduled or monthly,7.0,Mortgage,0,0
+EIPSPEND,EIPSPEND,125,8,"Utilities and telecommunications (natural gas, electricity, cable, internet, cellphone",8.0,Utilities and telecommunications,0,0
+EIPSPEND,EIPSPEND,125,9,Vehicle payments (scheduled or monthly,9.0,Vehicle payments,0,0
+EIPSPEND,EIPSPEND,125,10,"Paying down credit card, student loans, or other debts",10.0,"Paying down credit card, loans, or other debts",0,0
+EIPSPEND,EIPSPEND,125,11,Charitable donations or giving to family members,11.0,Charitable donations or giving to family members,0,0
+EIPSPEND,EIPSPEND,125,12,Savings or investments,12.0,Savings or investments,0,0
+EIPSPEND,EIPSPEND,125,13,"Other, specify",13.0,Other,0,0
+EIPSPND1,EIPSPND1,126,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND1,EIPSPND1,126,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND1,EIPSPND1,126,1,"Food (groceries, eating out, take out)",1.0,Food,0,0
+EIPSPND2,EIPSPND2,127,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND2,EIPSPND2,127,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND2,EIPSPND2,127,1,"Clothing (clothing, accessories, shoes)",2.0,Clothing,0,0
+EIPSPND3,EIPSPND3,128,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND3,EIPSPND3,128,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND3,EIPSPND3,128,1,Household supplies and personal care products,3.0,Household supplies and personal care products,0,0
+EIPSPND4,EIPSPND4,129,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND4,EIPSPND4,129,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND4,EIPSPND4,129,1,"Household items (TV, electronics, furniture, appliances",4.0,"Household items (electronics, furniture, appliances)",0,0
+EIPSPND5,EIPSPND5,130,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND5,EIPSPND5,130,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND5,EIPSPND5,130,1,"Recreational goods (sports and fitness equipment, bicycles, toys, games",5.0,Recreational goods,0,0
+EIPSPND6,EIPSPND6,131,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND6,EIPSPND6,131,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND6,EIPSPND6,131,1,Rent,6.0,Rent,0,0
+EIPSPND7,EIPSPND7,132,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND7,EIPSPND7,132,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND7,EIPSPND7,132,1,Mortgage (scheduled or monthly,7.0,Mortgage,0,0
+EIPSPND8,EIPSPND8,133,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND8,EIPSPND8,133,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND8,EIPSPND8,133,1,"Utilities and telecommunications (natural gas, electricity, cable, internet, cellphone",8.0,Utilities and telecommunications,0,0
+EIPSPND9,EIPSPND9,134,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND9,EIPSPND9,134,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND9,EIPSPND9,134,1,Vehicle payments (scheduled or monthly,9.0,Vehicle payments,0,0
+EIPSPND10,EIPSPND10,135,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND10,EIPSPND10,135,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND10,EIPSPND10,135,1,"Paying down credit card, student loans, or other debts",10.0,"Paying down credit card, loans, or other debts",0,0
+EIPSPND11,EIPSPND11,136,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND11,EIPSPND11,136,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND11,EIPSPND11,136,1,Charitable donations or giving to family members,11.0,Charitable donations or giving to family members,0,0
+EIPSPND12,EIPSPND12,137,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND12,EIPSPND12,137,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND12,EIPSPND12,137,1,Savings or investments,12.0,Savings or investments,0,0
+EIPSPND13,EIPSPND13,138,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EIPSPND13,EIPSPND13,138,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EIPSPND13,EIPSPND13,138,1,Other,13.0,Other,0,0
+CHNGSHOP1,CHNGSHOP1,139,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSHOP1,CHNGSHOP1,139,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSHOP1,CHNGSHOP1,139,1,Yes,1.0,Online purchases,0,0
+CHNGSHOP1,CHNGSHOP1,139,2,No,2.0,No online purchases,1,0
+CHNGSHOP2,CHNGSHOP2,140,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSHOP2,CHNGSHOP2,140,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSHOP2,CHNGSHOP2,140,1,Yes,1.0,Curbside pick-up,0,0
+CHNGSHOP2,CHNGSHOP2,140,2,No,2.0,No curbside pick-up,1,0
+CHNGSHOP3,CHNGSHOP3,141,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSHOP3,CHNGSHOP3,141,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSHOP3,CHNGSHOP3,141,1,Yes,1.0,In-store shopping,0,0
+CHNGSHOP3,CHNGSHOP3,141,2,No,2.0,No in-store shopping,1,0
+CHNGSHP1ML,CHNGSHP1ML,142,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSHP1ML,CHNGSHP1ML,142,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSHP1ML,CHNGSHP1ML,142,1,More,1.0,More online purchases,0,0
+CHNGSHP1ML,CHNGSHP1ML,142,2,Less,2.0,Less online purchases,0,0
+CHNGSHP2ML,CHNGSHP2ML,143,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSHP2ML,CHNGSHP2ML,143,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSHP2ML,CHNGSHP2ML,143,1,More,1.0,More curbside pick-up,0,0
+CHNGSHP2ML,CHNGSHP2ML,143,2,Less,2.0,Less curbside pick-up,0,0
+CHNGSHP3ML,CHNGSHP3ML,144,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSHP3ML,CHNGSHP3ML,144,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSHP3ML,CHNGSHP3ML,144,1,More,1.0,More in-store shopping,0,0
+CHNGSHP3ML,CHNGSHP3ML,144,2,Less,2.0,Less in-store shopping,0,0
+CHNGSVC1ML,CHNGSVC1ML,145,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSVC1ML,CHNGSVC1ML,145,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSVC1ML,CHNGSVC1ML,145,1,More,1.0,More eating indoors at restaurants,0,0
+CHNGSVC1ML,CHNGSVC1ML,145,2,Less,2.0,Less eating indoors at restaurants,0,0
+CHNGSVC2ML,CHNGSVC2ML,146,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSVC2ML,CHNGSVC2ML,146,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSVC2ML,CHNGSVC2ML,146,1,More,1.0,More in-person medical or dental appointments,0,0
+CHNGSVC2ML,CHNGSVC2ML,146,2,Less,2.0,Less in-person medical or dental appointments,0,0
+CHNGSVC3ML,CHNGSVC3ML,147,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSVC3ML,CHNGSVC3ML,147,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSVC3ML,CHNGSVC3ML,147,1,More,1.0,More housekeeping or caregiving services,0,0
+CHNGSVC3ML,CHNGSVC3ML,147,2,Less,2.0,Less housekeeping or caregiving services,0,0
+CHNGSVCS1,CHNGSVCS1,148,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSVCS1,CHNGSVCS1,148,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSVCS1,CHNGSVCS1,148,1,Yes,1.0,Eating indoors at restaurants,0,0
+CHNGSVCS1,CHNGSVCS1,148,2,No,2.0,No easting indoors,1,0
+CHNGSVCS2,CHNGSVCS2,149,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSVCS2,CHNGSVCS2,149,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSVCS2,CHNGSVCS2,149,1,Yes,1.0,In-person medical or dental appointments,0,0
+CHNGSVCS2,CHNGSVCS2,149,2,No,2.0,No in-person appointments,1,0
+CHNGSVCS3,CHNGSVCS3,150,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGSVCS3,CHNGSVCS3,150,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGSVCS3,CHNGSVCS3,150,1,Yes,1.0,Housekeeping or caregiving services,0,0
+CHNGSVCS3,CHNGSVCS3,150,2,No,2.0,No housekeeping services,1,0
+CHNGHOW1,CHNGHOW1,151,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW1,CHNGHOW1,151,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW1,CHNGHOW1,151,1,Made more purchases online (as opposed to in store,1.0,Made more purchases online,0,0
+CHNGHOW2,CHNGHOW2,152,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW2,CHNGHOW2,152,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW2,CHNGHOW2,152,1,Made more purchases by curbside pick-up (as opposed to in store,2.0,Made more purchases by curbside pick-up,0,0
+CHNGHOW3,CHNGHOW3,153,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW3,CHNGHOW3,153,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW3,CHNGHOW3,153,1,More purchases in-store (as opposed to purchases online or curbside pickup,3.0,More purchases in-store,0,0
+CHNGHOW4,CHNGHOW4,154,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW4,CHNGHOW4,154,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW4,CHNGHOW4,154,1,"Increased use of credit cards or smartphone apps for purchases, instead of using cash",4.0,Increased use of credit cards or smartphone apps,0,0
+CHNGHOW5,CHNGHOW5,155,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW5,CHNGHOW5,155,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW5,CHNGHOW5,155,1,Increased use of cash instead of using credit cards or smartphone apps for purchases,5.0,Increased use of cash,0,0
+CHNGHOW6,CHNGHOW6,156,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW6,CHNGHOW6,156,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW6,CHNGHOW6,156,1,Avoided eating at restaurants,6.0,Avoided eating at restaurants,0,0
+CHNGHOW7,CHNGHOW7,157,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW7,CHNGHOW7,157,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW7,CHNGHOW7,157,1,Resumed eating at restaurants,7.0,Resumed eating at restaurants,0,0
+CHNGHOW8,CHNGHOW8,158,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW8,CHNGHOW8,158,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW8,CHNGHOW8,158,1,Canceled or postponed in-person medical or dental appointments,8.0,Canceled or postponed in-person appointments,0,0
+CHNGHOW9,CHNGHOW9,159,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW9,CHNGHOW9,159,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW9,CHNGHOW9,159,1,Attended in-person medical or dental appointments,9.0,Attended in-person medical or dental appointments,0,0
+CHNGHOW10,CHNGHOW10,160,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW10,CHNGHOW10,160,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW10,CHNGHOW10,160,1,Canceled or postponed housekeeping or caregiving services,10.0,Canceled housekeeping or caregiving services,0,0
+CHNGHOW11,CHNGHOW11,161,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW11,CHNGHOW11,161,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW11,CHNGHOW11,161,1,Resumed or started new housekeeping or caregiving services,11.0,Received housekeeping or caregiving services,0,0
+CHNGHOW12,CHNGHOW12,162,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHNGHOW12,CHNGHOW12,162,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHNGHOW12,CHNGHOW12,162,1,Did not make any changes to spending or shopping behavior,12.0,Did not make any changes to spending,0,0
+CASHUSE,CASHUSE,163,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CASHUSE,CASHUSE,163,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CASHUSE,CASHUSE,163,1,Increased use of cash,1.0,Increased use of cash,0,0
+CASHUSE,CASHUSE,163,2,Decreased use of cash,2.0,Decreased use of cash,0,0
+CASHUSE,CASHUSE,163,3,No change in the use of cash,3.0,No change in the use of cash,0,0
+WHYCHNGD1,WHYCHNGD1,164,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD1,WHYCHNGD1,164,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD1,WHYCHNGD1,164,1,"Usual shopping places were closed or had limited hours (e.g., restaurant, doctor/dentist office, health club, hair salon, child care center, etc.",1.0,Usual shopping places were closed,0,0
+WHYCHNGD2,WHYCHNGD2,165,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD2,WHYCHNGD2,165,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD2,WHYCHNGD2,165,1,Usual shopping places re-opened or increased hours,2.0,Usual shopping places reopened or increased hours,0,0
+WHYCHNGD3,WHYCHNGD3,166,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD3,WHYCHNGD3,166,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD3,WHYCHNGD3,166,1,Concerned about going to public or crowded places or having contact with high-risk people,3.0,Concerned about going to public or crowded places,0,0
+WHYCHNGD4,WHYCHNGD4,167,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD4,WHYCHNGD4,167,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD4,WHYCHNGD4,167,1,No longer concerned about going to public or crowded places or having contact with high-risk people,4.0,Not concerned about going to crowded places,0,0
+WHYCHNGD5,WHYCHNGD5,168,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD5,WHYCHNGD5,168,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD5,WHYCHNGD5,168,1,Loss of income,5.0,Loss of income,0,0
+WHYCHNGD6,WHYCHNGD6,169,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD6,WHYCHNGD6,169,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD6,WHYCHNGD6,169,1,Increased income,6.0,Increased income,0,0
+WHYCHNGD7,WHYCHNGD7,170,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD7,WHYCHNGD7,170,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD7,WHYCHNGD7,170,1,Concerns about bening laid off or having hours reduced,7.0,Concerned about being laid off,0,0
+WHYCHNGD8,WHYCHNGD8,171,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD8,WHYCHNGD8,171,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD8,WHYCHNGD8,171,1,No longer concerned about being laid off or having hours reduced,8.0,No longer concerned about being laid off,0,0
+WHYCHNGD9,WHYCHNGD9,172,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD9,WHYCHNGD9,172,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD9,WHYCHNGD9,172,1,Working from home/teleworking,9.0,Working from home/teleworking,0,0
+WHYCHNGD10,WHYCHNGD10,173,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD10,WHYCHNGD10,173,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD10,WHYCHNGD10,173,1,Resumed working onsite at workplace,10.0,Resumed working onsite at workplace,0,0
+WHYCHNGD11,WHYCHNGD11,174,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD11,WHYCHNGD11,174,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD11,WHYCHNGD11,174,1,Concerns about the economy,11.0,Concerns about the economy,0,0
+WHYCHNGD12,WHYCHNGD12,175,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD12,WHYCHNGD12,175,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD12,WHYCHNGD12,175,1,No longer concerned about the economy,12.0,No longer concerned about the economy,0,0
+WHYCHNGD13,WHYCHNGD13,176,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYCHNGD13,WHYCHNGD13,176,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYCHNGD13,WHYCHNGD13,176,1,Other,13.0,Other,0,0
+FEWRTRIPS,FEWRTRIPS,177,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FEWRTRIPS,FEWRTRIPS,177,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FEWRTRIPS,FEWRTRIPS,177,1,Yes,1.0,Fewer trips to stores,0,0
+FEWRTRIPS,FEWRTRIPS,177,2,No,2.0,Usual number of trips to stores,1,0
+FEWRTRIP1,FEWRTRIP1,178,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FEWRTRIP1,FEWRTRIP1,178,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FEWRTRIP1,FEWRTRIP1,178,1,Combined shopping trips so that you've taken fewer trips overall,1.0,Combined shopping to avoid more trips,0,0
+FEWRTRIP2,FEWRTRIP2,179,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FEWRTRIP2,FEWRTRIP2,179,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FEWRTRIP2,FEWRTRIP2,179,1,Done more of your usual shopping online resulting in fewer trips to stores,2.0,More shopping online and fewer trips to stores,0,0
+FEWRTRIP3,FEWRTRIP3,180,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FEWRTRIP3,FEWRTRIP3,180,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FEWRTRIP3,FEWRTRIP3,180,1,Not made any changes in shopping trips in the last 7 days (exclusive of response to FEWRTRIP1 and FEWRTRIP2,3.0,Not made any changes in shopping trips,0,0
+CNCLDTRPS,CNCLDTRPS,181,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CNCLDTRPS,CNCLDTRPS,181,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CNCLDTRPS,CNCLDTRPS,181,1,Yes,1.0,Canceled planned trips,0,0
+CNCLDTRPS,CNCLDTRPS,181,2,No,2.0,Did not cancel planned trips,1,0
+PLNDTRIPS,PLNDTRIPS,182,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PLNDTRIPS,PLNDTRIPS,182,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PLNDTRIPS,PLNDTRIPS,182,1,Yes,1.0,Planned to take trips before COVID,0,0
+PLNDTRIPS,PLNDTRIPS,182,2,No,2.0,Had no trips planned,1,0
+TSPNDFOOD,TSPNDFOOD,183,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TSPNDFOOD,TSPNDFOOD,183,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+TSPNDPRPD,TSPNDPRPD,184,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TSPNDPRPD,TSPNDPRPD,184,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+PRIFOODSUF,PRIFOODSUF,185,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRIFOODSUF,PRIFOODSUF,185,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRIFOODSUF,PRIFOODSUF,185,1,Enough of the kinds of food (I/we) wanted to eat,1.0,Enough food,0,0
+PRIFOODSUF,PRIFOODSUF,185,2,"Enough, but not always the kinds of food (I/we) wanted to eat",2.0,"Enough, but not always preferred foods",0,0
+PRIFOODSUF,PRIFOODSUF,185,3,Sometimes not enough to eat,3.0,Sometimes not enough to eat,0,0
+PRIFOODSUF,PRIFOODSUF,185,4,Often not enough to eat,4.0,Often not enough to eat,0,0
+CURFOODSUF,CURFOODSUF,186,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CURFOODSUF,CURFOODSUF,186,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CURFOODSUF,CURFOODSUF,186,1,Enough of the kinds of food (I/we) wanted to eat,1.0,Enough food,0,0
+CURFOODSUF,CURFOODSUF,186,2,"Enough, but not always the kinds of food (I/we) wanted to eat",2.0,"Enough, but not always preferred foods",0,0
+CURFOODSUF,CURFOODSUF,186,3,Sometimes not enough to eat,3.0,Sometimes not enough to eat,0,0
+CURFOODSUF,CURFOODSUF,186,4,Often not enough to eat,4.0,Often not enough to eat,0,0
+FOODCONF,FOODCONF,187,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODCONF,FOODCONF,187,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODCONF,FOODCONF,187,1,Not at all confident,1.0,Not at all confident,0,0
+FOODCONF,FOODCONF,187,2,Somewhat confident,2.0,Somewhat confident,0,0
+FOODCONF,FOODCONF,187,3,Moderately confident,3.0,Moderately confident,0,0
+FOODCONF,FOODCONF,187,4,Very confident,4.0,Very confident,0,0
+FOODRSNRV1,FOODRSNRV1,188,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODRSNRV1,FOODRSNRV1,188,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODRSNRV1,FOODRSNRV1,188,1,Couldn't afford to buy more food,1.0,Couldn't afford to buy more food,0,0
+FOODRSNRV2,FOODRSNRV2,189,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODRSNRV2,FOODRSNRV2,189,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODRSNRV2,FOODRSNRV2,189,1,"Couldn't get to store to buy food because didn't have transportation, have mobility or health limitations that prevent you from getting out",2.0,Didn't go to store due to transport or health,0,0
+FOODRSNRV3,FOODRSNRV3,190,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODRSNRV3,FOODRSNRV3,190,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODRSNRV3,FOODRSNRV3,190,1,Couldn't go to store due to safety concerns and delivery not available,3.0,Couldn't go to store due to safety concerns,0,0
+FOODRSNRV4,FOODRSNRV4,191,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODRSNRV4,FOODRSNRV4,191,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODRSNRV4,FOODRSNRV4,191,1,None,4.0,No particular reason,0,0
+FOODSUFRSN1,FOODSUFRSN1,192,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODSUFRSN1,FOODSUFRSN1,192,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODSUFRSN1,FOODSUFRSN1,192,1,Couldn't afford to buy more food,1.0,Couldn't afford to buy more food,0,0
+FOODSUFRSN2,FOODSUFRSN2,193,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODSUFRSN2,FOODSUFRSN2,193,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODSUFRSN2,FOODSUFRSN2,193,1,"Couldn't get out to buy food (for example, didn't have transportation, or had mobility or health problems that prevented you from getting out",2.0,Couldn't get out to buy food,0,0
+FOODSUFRSN3,FOODSUFRSN3,194,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODSUFRSN3,FOODSUFRSN3,194,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODSUFRSN3,FOODSUFRSN3,194,1,Afraid to go or didn't want to go out to buy food,3.0,Afraid to go or didn't want to go out to buy food,0,0
+FOODSUFRSN4,FOODSUFRSN4,195,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODSUFRSN4,FOODSUFRSN4,195,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODSUFRSN4,FOODSUFRSN4,195,1,Couldn't get groceries or meals delivered to me,4.0,Couldn't get groceries or meals delivered to me,0,0
+FOODSUFRSN5,FOODSUFRSN5,196,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FOODSUFRSN5,FOODSUFRSN5,196,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FOODSUFRSN5,FOODSUFRSN5,196,1,The stores didn't have the food I wanted,5.0,The stores didn't have the food I wanted,0,0
+CHILDFOOD,CHILDFOOD,197,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHILDFOOD,CHILDFOOD,197,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHILDFOOD,CHILDFOOD,197,1,Often true,1.0,Often true,0,0
+CHILDFOOD,CHILDFOOD,197,2,Sometimes true,2.0,Sometimes true,0,0
+CHILDFOOD,CHILDFOOD,197,3,Never true,3.0,Never true,0,0
+NOSCHLFDHLP,NOSCHLFDHLP,198,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+NOSCHLFDHLP,NOSCHLFDHLP,198,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+NOSCHLFDHLP,NOSCHLFDHLP,198,1,Children did not receive free meals or food assistance,5.0,Children did not receive food assistance,0,0
+SCHLFDHLP1,SCHLFDHLP1,199,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SCHLFDHLP1,SCHLFDHLP1,199,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SCHLFDHLP1,SCHLFDHLP1,199,1,Pick up meals at a school or other location,1.0,Pick up meals at a school or other location,0,0
+SCHLFDHLP2,SCHLFDHLP2,200,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SCHLFDHLP2,SCHLFDHLP2,200,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SCHLFDHLP2,SCHLFDHLP2,200,1,Receive an EBT card to help buy groceries,2.0,Receive an EBT card to help buy groceries,0,0
+SCHLFDHLP3,SCHLFDHLP3,201,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SCHLFDHLP3,SCHLFDHLP3,201,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SCHLFDHLP3,SCHLFDHLP3,201,1,"Eat meals on-site, at school or other location;",3.0,"Eat meals on-site, at school or other location",0,0
+SCHLFDHLP4,SCHLFDHLP4,202,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SCHLFDHLP4,SCHLFDHLP4,202,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SCHLFDHLP4,SCHLFDHLP4,202,1,Have meals delivered,4.0,Have meals delivered,0,0
+FREEFOOD,FREEFOOD,203,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FREEFOOD,FREEFOOD,203,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FREEFOOD,FREEFOOD,203,1,Yes,1.0,Received free groceries or meal,0,0
+FREEFOOD,FREEFOOD,203,2,No,2.0,Did not receive free groceries or meal,1,0
+SCHLFOOD,SCHLFOOD,204,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SCHLFOOD,SCHLFOOD,204,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SCHLFOOD,SCHLFOOD,204,1,Yes,1.0,Received food assistance from school,0,0
+SCHLFOOD,SCHLFOOD,204,2,No,2.0,Did not receive food assistance from school,1,0
+SNAP_YN,SNAP_YN,205,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAP_YN,SNAP_YN,205,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAP_YN,SNAP_YN,205,1,Yes,1.0,Received SNAP benefits,0,0
+SNAP_YN,SNAP_YN,205,2,No,2.0,Did not receive SNAP benefis,1,0
+SNAPMNTH1,SNAPMNTH1,206,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH1,SNAPMNTH1,206,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH1,SNAPMNTH1,206,1,January,1.0,January,0,0
+SNAPMNTH2,SNAPMNTH2,207,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH2,SNAPMNTH2,207,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH2,SNAPMNTH2,207,1,February,2.0,February,0,0
+SNAPMNTH3,SNAPMNTH3,208,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH3,SNAPMNTH3,208,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH3,SNAPMNTH3,208,1,March,3.0,March,0,0
+SNAPMNTH4,SNAPMNTH4,209,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH4,SNAPMNTH4,209,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH4,SNAPMNTH4,209,1,April,4.0,April,0,0
+SNAPMNTH5,SNAPMNTH5,210,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH5,SNAPMNTH5,210,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH5,SNAPMNTH5,210,1,May,5.0,May,0,0
+SNAPMNTH6,SNAPMNTH6,211,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH6,SNAPMNTH6,211,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH6,SNAPMNTH6,211,1,June,6.0,June,0,0
+SNAPMNTH7,SNAPMNTH7,212,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH7,SNAPMNTH7,212,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH7,SNAPMNTH7,212,1,July,7.0,July,0,0
+SNAPMNTH8,SNAPMNTH8,213,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH8,SNAPMNTH8,213,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH8,SNAPMNTH8,213,1,August,8.0,August,0,0
+SNAPMNTH9,SNAPMNTH9,214,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH9,SNAPMNTH9,214,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH9,SNAPMNTH9,214,1,September,9.0,September,0,0
+SNAPMNTH10,SNAPMNTH10,215,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH10,SNAPMNTH10,215,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH10,SNAPMNTH10,215,1,October,10.0,October,0,0
+SNAPMNTH11,SNAPMNTH11,216,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH11,SNAPMNTH11,216,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH11,SNAPMNTH11,216,1,November,11.0,November,0,0
+SNAPMNTH12,SNAPMNTH12,217,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SNAPMNTH12,SNAPMNTH12,217,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SNAPMNTH12,SNAPMNTH12,217,1,December,12.0,December,0,0
+WHEREFREE1,WHEREFREE1,218,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHEREFREE1,WHEREFREE1,218,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHEREFREE1,WHEREFREE1,218,1,Free meals through the school or other programs aimed at children,1.0,Free meals through the school,0,0
+WHEREFREE2,WHEREFREE2,219,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHEREFREE2,WHEREFREE2,219,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHEREFREE2,WHEREFREE2,219,1,Food pantry or food bank,2.0,Food pantry or food bank,0,0
+WHEREFREE3,WHEREFREE3,220,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHEREFREE3,WHEREFREE3,220,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHEREFREE3,WHEREFREE3,220,1,Home-delivered meal service like Meals on Wheels,3.0,Home-delivered meal service like Meals on Wheels,0,0
+WHEREFREE4,WHEREFREE4,221,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHEREFREE4,WHEREFREE4,221,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHEREFREE4,WHEREFREE4,221,1,"Church, synagogue, temple, mosque or other religious organization",4.0,"Church, synagogue, temple, mosque, etc.",0,0
+WHEREFREE5,WHEREFREE5,222,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHEREFREE5,WHEREFREE5,222,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHEREFREE5,WHEREFREE5,222,1,Shelter or soup kitchen,5.0,Shelter or soup kitchen,0,0
+WHEREFREE6,WHEREFREE6,223,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHEREFREE6,WHEREFREE6,223,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHEREFREE6,WHEREFREE6,223,1,Other community program,6.0,Other community program,0,0
+WHEREFREE7,WHEREFREE7,224,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHEREFREE7,WHEREFREE7,224,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHEREFREE7,WHEREFREE7,224,1,"Family, friends, or neighbors",7.0,"Family, friends, or neighbors",0,0
+HLTHSTATUS,HLTHSTATUS,225,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+HLTHSTATUS,HLTHSTATUS,225,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+HLTHSTATUS,HLTHSTATUS,225,1,Excellent,1.0,Excellent,0,0
+HLTHSTATUS,HLTHSTATUS,225,2,Very good,2.0,Very good,0,0
+HLTHSTATUS,HLTHSTATUS,225,3,Good,3.0,Good,0,0
+HLTHSTATUS,HLTHSTATUS,225,4,Fair,4.0,Fair,0,0
+HLTHSTATUS,HLTHSTATUS,225,5,Poor,5.0,Poor,0,0
+HADCOVID,HADCOVID,226,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+HADCOVID,HADCOVID,226,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+HADCOVID,HADCOVID,226,1,Yes,1.0,Tested positive,0,0
+HADCOVID,HADCOVID,226,2,No,2.0,Did not test positive,0,0
+HADCOVID,HADCOVID,226,3,Not Sure,3.0,Not Sure,0,0
+HEARING,HEARING,227,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+HEARING,HEARING,227,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+HEARING,HEARING,227,1,No - no difficulty,1.0,No difficulty,0,0
+HEARING,HEARING,227,2,Yes - some difficulty,2.0,Some difficulty,0,0
+HEARING,HEARING,227,3,Yes - a lot of difficulty,3.0,A lot of difficulty,0,0
+HEARING,HEARING,227,4,Cannot do at all,4.0,Cannot do at all,0,0
+SEEING,SEEING,228,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SEEING,SEEING,228,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SEEING,SEEING,228,1,No - no difficulty,1.0,No difficulty,0,0
+SEEING,SEEING,228,2,Yes - some difficulty,2.0,Some difficulty,0,0
+SEEING,SEEING,228,3,Yes - a lot of difficulty,3.0,A lot of difficulty,0,0
+SEEING,SEEING,228,4,Cannot do at all,4.0,Cannot do at all,0,0
+REMEMBERING,REMEMBERING,229,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+REMEMBERING,REMEMBERING,229,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+REMEMBERING,REMEMBERING,229,1,No - no difficulty,1.0,No difficulty,0,0
+REMEMBERING,REMEMBERING,229,2,Yes - some difficulty,2.0,Some difficulty,0,0
+REMEMBERING,REMEMBERING,229,3,Yes - a lot of difficulty,3.0,A lot of difficulty,0,0
+REMEMBERING,REMEMBERING,229,4,Cannot do at all,4.0,Cannot do at all,0,0
+MOBILITY,MOBILITY,230,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+MOBILITY,MOBILITY,230,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+MOBILITY,MOBILITY,230,1,No - no difficulty,1.0,No difficulty,0,0
+MOBILITY,MOBILITY,230,2,Yes - some difficulty,2.0,Some difficulty,0,0
+MOBILITY,MOBILITY,230,3,Yes - a lot of difficulty,3.0,A lot of difficulty,0,0
+MOBILITY,MOBILITY,230,4,Cannot do at all,4.0,Cannot do at all,0,0
+HSE_TEMP,HSE_TEMP,231,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+HSE_TEMP,HSE_TEMP,231,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+HSE_TEMP,HSE_TEMP,231,1,Almost every month,1.0,Almost every month,0,0
+HSE_TEMP,HSE_TEMP,231,2,Some months,2.0,Some months,0,0
+HSE_TEMP,HSE_TEMP,231,3,1 or 2 months,3.0,1 or 2 months,0,0
+HSE_TEMP,HSE_TEMP,231,4,Never,4.0,Never,0,0
+ANXIOUS,ANXIOUS,232,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ANXIOUS,ANXIOUS,232,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ANXIOUS,ANXIOUS,232,1,Not at all,1.0,Not at all,0,0
+ANXIOUS,ANXIOUS,232,2,Several days,2.0,Several days,0,0
+ANXIOUS,ANXIOUS,232,3,More than half the days,3.0,More than half the days,0,0
+ANXIOUS,ANXIOUS,232,4,Nearly every day,4.0,Nearly every day,0,0
+DOWN,DOWN,233,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+DOWN,DOWN,233,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+DOWN,DOWN,233,1,Not at all,1.0,Not at all,0,0
+DOWN,DOWN,233,2,Several days,2.0,Several days,0,0
+DOWN,DOWN,233,3,More than half the days,3.0,More than half the days,0,0
+DOWN,DOWN,233,4,Nearly every day,4.0,Nearly every day,0,0
+INTEREST,INTEREST,234,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTEREST,INTEREST,234,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTEREST,INTEREST,234,1,Not at all,1.0,Not at all,0,0
+INTEREST,INTEREST,234,2,Several days,2.0,Several days,0,0
+INTEREST,INTEREST,234,3,More than half the days,3.0,More than half the days,0,0
+INTEREST,INTEREST,234,4,Nearly every day,4.0,Nearly every day,0,0
+WORRY,WORRY,235,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WORRY,WORRY,235,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WORRY,WORRY,235,1,Not at all,1.0,Not at all,0,0
+WORRY,WORRY,235,2,Several days,2.0,Several days,0,0
+WORRY,WORRY,235,3,More than half the days,3.0,More than half the days,0,0
+WORRY,WORRY,235,4,Nearly every day,4.0,Nearly every day,0,0
+MH_SVCS,MH_SVCS,236,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+MH_SVCS,MH_SVCS,236,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+MH_SVCS,MH_SVCS,236,1,Yes,1.0,Received therapy,0,0
+MH_SVCS,MH_SVCS,236,2,No,2.0,Did not receive therapy for mental health,1,0
+MH_NOTGET,MH_NOTGET,237,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+MH_NOTGET,MH_NOTGET,237,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+MH_NOTGET,MH_NOTGET,237,1,Yes,1.0,"Needed therapy, but didn't get it",0,0
+MH_NOTGET,MH_NOTGET,237,2,No,2.0,Did not require or miss mental health care,1,0
+PRESCRIPT,PRESCRIPT,238,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRESCRIPT,PRESCRIPT,238,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRESCRIPT,PRESCRIPT,238,1,Yes,1.0,Took prescription medication for mental health,0,0
+PRESCRIPT,PRESCRIPT,238,2,No,2.0,Did not take medication for mental health,1,0
+NOTGET,NOTGET,239,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+NOTGET,NOTGET,239,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+NOTGET,NOTGET,239,1,Yes,1.0,Delayed care for an issue not related to pandemic,0,0
+NOTGET,NOTGET,239,2,No,2.0,No delay in medicare care,1,0
+DELAY,DELAY,240,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+DELAY,DELAY,240,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+DELAY,DELAY,240,1,Yes,1.0,Delayed medical care due to the pandemic,0,0
+DELAY,DELAY,240,2,No,2.0,No delay in medicare care,1,0
+PRVNTIVE,PRVNTIVE,241,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVNTIVE,PRVNTIVE,241,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVNTIVE,PRVNTIVE,241,1,"Yes, all children had a preventive check-up",1.0,All children had a preventive check-up,0,0
+PRVNTIVE,PRVNTIVE,241,2,"Some, but not all, children had a preventive check-up",2.0,Missed or delayed check-ups due to pandemic,1,0
+PRVNTIVE,PRVNTIVE,241,3,None of the children had a preventive check-up,3.0,Missed or delayed check-ups due to pandemic,1,0
+PRVNTWHY1,PRVNTWHY1,242,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVNTWHY1,PRVNTWHY1,242,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVNTWHY1,PRVNTWHY1,242,1,Health care provider's location was closed due to the coronavirus pandemic,1.0,Health care site was closed due to pandemic,0,0
+PRVNTWHY2,PRVNTWHY2,243,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVNTWHY2,PRVNTWHY2,243,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVNTWHY2,PRVNTWHY2,243,1,Health care provider's location was open but had limited appointments due to the coronavirus pandemic,2.0,Health care site had limited appointments,0,0
+PRVNTWHY3,PRVNTWHY3,244,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVNTWHY3,PRVNTWHY3,244,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVNTWHY3,PRVNTWHY3,244,1,"Parent, adult caregiver, or child was concerned about going to the health care provider's location due to the coronavirus pandemic",3.0,Concerned about COVID risk at health site,0,0
+PRVNTWHY4,PRVNTWHY4,245,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVNTWHY4,PRVNTWHY4,245,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVNTWHY4,PRVNTWHY4,245,1,This child no longer had health insurance or had a change in health insurance due to the coronavirus pandemic,4.0,Child no longer had insurance due to pandemic,0,0
+PRVNTWHY5,PRVNTWHY5,246,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVNTWHY5,PRVNTWHY5,246,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVNTWHY5,PRVNTWHY5,246,1,Someone in the household was ill with the coronavirus,5.0,Someone in the home was ill with COVID,0,0
+PRVNTWHY6,PRVNTWHY6,247,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVNTWHY6,PRVNTWHY6,247,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVNTWHY6,PRVNTWHY6,247,1,Someone in the household had been in contact with someone who was ill with the coronavirus,6.0,Someone was in contact with a person with COVID,0,0
+PRVNTWHY7,PRVNTWHY7,248,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PRVNTWHY7,PRVNTWHY7,248,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PRVNTWHY7,PRVNTWHY7,248,1,None of the above,7.0,None of the above,0,0
+TELEHLTH,TELEHLTH,249,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TELEHLTH,TELEHLTH,249,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TELEHLTH,TELEHLTH,249,1,Yes,1.0,Appointment by video or by phone,0,0
+TELEHLTH,TELEHLTH,249,2,No,2.0,No appointment,1,0
+TELECHLD,TELECHLD,250,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TELECHLD,TELECHLD,250,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TELECHLD,TELECHLD,250,1,Yes,1.0,Children had appointment by video or by phone,0,0
+TELECHLD,TELECHLD,250,2,No,2.0,No appointment,1,0
+TH_ADLT_PHON,TH_ADLT_PHON,251,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TH_ADLT_PHON,TH_ADLT_PHON,251,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TH_ADLT_PHON,TH_ADLT_PHON,251,1,Phone appointments without video,1.0,Phone appointments without video,0,0
+TH_ADLT_VID,TH_ADLT_VID,252,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TH_ADLT_VID,TH_ADLT_VID,252,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TH_ADLT_VID,TH_ADLT_VID,252,1,Video appointments,2.0,Video appointments,0,0
+TH_CHLD_PHON,TH_CHLD_PHON,253,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TH_CHLD_PHON,TH_CHLD_PHON,253,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TH_CHLD_PHON,TH_CHLD_PHON,253,1,Phone appointments without video,1.0,Phone appointments without video,0,0
+TH_CHLD_VID,TH_CHLD_VID,254,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TH_CHLD_VID,TH_CHLD_VID,254,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TH_CHLD_VID,TH_CHLD_VID,254,1,Video appointments,2.0,Video appointments,0,0
+GETVACC,GETVACC,255,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+GETVACC,GETVACC,255,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+GETVACC,GETVACC,255,1,Definitely get a vaccine,1.0,Definitely get a vaccine,0,0
+GETVACC,GETVACC,255,2,Probably get a vaccine,2.0,Probably get a vaccine,0,0
+GETVACC,GETVACC,255,3,Probably NOT get a vaccine,3.0,Probably not get a vaccine,0,0
+GETVACC,GETVACC,255,4,Definitely NOT get a vaccine,4.0,Definitely not get a vaccine,0,0
+GETVACRV,GETVACRV,256,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+GETVACRV,GETVACRV,256,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+GETVACRV,GETVACRV,256,1,Definitely get a vaccine,1.0,Definitely get a vaccine,0,0
+GETVACRV,GETVACRV,256,2,Probably get a vaccine,2.0,Probably get a vaccine,0,0
+GETVACRV,GETVACRV,256,3,Be unsure about getting a vaccine,3.0,Be unsure about getting a vaccine,0,0
+GETVACRV,GETVACRV,256,4,Probably NOT get a vaccine,4.0,Probably not get a vaccine,0,0
+GETVACRV,GETVACRV,256,5,Definitely NOT get a vaccine,5.0,Definitely not get a vaccine,0,0
+RECVDVACC,RECVDVACC,257,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RECVDVACC,RECVDVACC,257,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RECVDVACC,RECVDVACC,257,1,Yes,1.0,Received vaccine,0,0
+RECVDVACC,RECVDVACC,257,2,No,2.0,Did not received vaccine,1,0
+DOSES,DOSES_DOSESRV,258,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+DOSES,DOSES_DOSESRV,258,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+DOSES,DOSES_DOSESRV,258,1,Yes,1.0,Received all required doses,0,0
+DOSES,DOSES_DOSESRV,258,2,No,2.0,Did not receive all required doses,1,0
+DOSESRV,DOSES_DOSESRV,259,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+DOSESRV,DOSES_DOSESRV,259,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+DOSESRV,DOSES_DOSESRV,259,1,"Yes, received all required doses",1.0,Received all required doses,0,0
+DOSESRV,DOSES_DOSESRV,259,2,"Yes, plan to receive all required doses",2.0,Did not receive all required doses,0,0
+DOSESRV,DOSES_DOSESRV,259,3,"No, don't plan to receive all required doses",2.0,Did not receive all required doses,0,0
+COVPRVNT,COVPRVNT,260,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+COVPRVNT,COVPRVNT,260,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+COVPRVNT,COVPRVNT,260,1,I have decreased prevention behaviors since getting a vaccine,1.0,Decreased precautions since getting a vaccine,0,0
+COVPRVNT,COVPRVNT,260,2,I have not changed my behavior since getting a vaccine,2.0,Not change in behavior since getting a vaccine,0,0
+COVPRVNT,COVPRVNT,260,3,I have increased prevention behaviors since getting a vaccine,3.0,Increased precautions since getting a vaccine,0,0
+WHYNORV1,WHYNORV1_WHYNOT1,261,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV1,WHYNORV1_WHYNOT1,261,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV1,WHYNORV1_WHYNOT1,261,1,I am concerned about possible side effects of a COVID-19 vaccine,1.0,Concerned about side effects of a vaccine,0,0
+WHYNORV2,WHYNORV2_WHYNOT2,262,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV2,WHYNORV2_WHYNOT2,262,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV2,WHYNORV2_WHYNOT2,262,1,I don't know if a COVID-19 vaccine will protect me,2.0,Don't know if a COVID vaccine will protect me,0,0
+WHYNORV3,WHYNORV3_WHYNOT3,263,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV3,WHYNORV3_WHYNOT3,263,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV3,WHYNORV3_WHYNOT3,263,1,I don't believe I need a COVID-19 vaccine,3.0,Don't believe I need a COVID vaccine,0,0
+WHYNORV4,WHYNORV4_WHYNOT5,264,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV4,WHYNORV4_WHYNOT5,264,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV4,WHYNORV4_WHYNOT5,264,1,My doctor has not recommended it,4.0,Doctor has not recommended it,0,0
+WHYNORV5,WHYNORV5_WHYNOT6,265,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV5,WHYNORV5_WHYNOT6,265,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV5,WHYNORV5_WHYNOT6,265,1,I plan to wait and see if it is safe and may get it later,5.0,Plan to wait if it is safe and may get it later,0,0
+WHYNORV6,WHYNORV6_WHYNOT8,266,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV6,WHYNORV6_WHYNOT8,266,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV6,WHYNORV6_WHYNOT8,266,1,I am concerned about the cost of a COVID-19 vaccine,6.0,Concerned about the cost of a COVID vaccine,0,0
+WHYNORV7,WHYNORV7_WHYNOT9,267,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV7,WHYNORV7_WHYNOT9,267,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV7,WHYNORV7_WHYNOT9,267,1,I don't trust COVID-19 vaccines,7.0,Don't trust COVID vaccines,0,0
+WHYNORV8,WHYNORV8_WHYNOT10,268,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV8,WHYNORV8_WHYNOT10,268,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV8,WHYNORV8_WHYNOT10,268,1,I don't trust the government,8.0,Don't trust the government,0,0
+WHYNORV9,WHYNORV9,269,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV9,WHYNORV9,269,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV9,WHYNORV9,269,1,I don't think COVID-19 is that big of a threat,9.0,Don't think COVID is that big of a threat,0,0
+WHYNORV10,WHYNORV10,270,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV10,WHYNORV10,270,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV10,WHYNORV10,270,1,It's hard for me to get a COVID-19 vaccine,10.0,It's hard for me to get a COVID vaccine,0,0
+WHYNORV11,WHYNORV11,271,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV11,WHYNORV11,271,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV11,WHYNORV11,271,1,I believe one dose is enough to protect me,11.0,Believe one dose is enough to protect me,0,0
+WHYNORV12,WHYNORV12,272,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV12,WHYNORV12,272,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV12,WHYNORV12,272,1,I experienced side effects from the dose of COVID-19 vaccine I received,12.0,Experienced side effects from the first dose,0,0
+WHYNORV13,WHYNORV13,273,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNORV13,WHYNORV13,273,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNORV13,WHYNORV13,273,1,Other,13.0,Other,0,0
+WHYNOT1,WHYNORV1_WHYNOT1,274,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT1,WHYNORV1_WHYNOT1,274,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT1,WHYNORV1_WHYNOT1,274,1,I am concerned about possible side effects of a COVID-19 vaccine,1.0,Concerned about side effects of a vaccine,0,0
+WHYNOT2,WHYNORV2_WHYNOT2,275,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT2,WHYNORV2_WHYNOT2,275,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT2,WHYNORV2_WHYNOT2,275,1,I don't know if a COVID-19 vaccine will work,2.0,Don't know if a COVID vaccine will protect me,0,0
+WHYNOT3,WHYNORV3_WHYNOT3,276,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT3,WHYNORV3_WHYNOT3,276,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT3,WHYNORV3_WHYNOT3,276,1,I don't believe I need a COVID-19 vaccine,3.0,Don't believe I need a COVID vaccine,0,0
+WHYNOT4,WHYNOT4,277,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT4,WHYNOT4,277,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT4,WHYNOT4,277,1,I don't like vaccines,11.0,Other,0,0
+WHYNOT5,WHYNORV4_WHYNOT5,278,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT5,WHYNORV4_WHYNOT5,278,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT5,WHYNORV4_WHYNOT5,278,1,My doctor has not recommended it,4.0,Doctor has not recommended it,0,0
+WHYNOT6,WHYNORV5_WHYNOT6,279,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT6,WHYNORV5_WHYNOT6,279,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT6,WHYNORV5_WHYNOT6,279,1,I plan to wait and see if it is safe and may get it later,5.0,Plan to wait if it is safe and may get it later,0,0
+WHYNOT7,WHYNOT7,280,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT7,WHYNOT7,280,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT7,WHYNOT7,280,1,I think other people need it more than I do right now,11.0,Other,0,0
+WHYNOT8,WHYNORV6_WHYNOT8,281,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT8,WHYNORV6_WHYNOT8,281,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT8,WHYNORV6_WHYNOT8,281,1,I am concerned about the cost of a COVID-19 vaccine,6.0,Concerned about the cost of a COVID vaccine,0,0
+WHYNOT9,WHYNORV7_WHYNOT9,282,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT9,WHYNORV7_WHYNOT9,282,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT9,WHYNORV7_WHYNOT9,282,1,I don't trust COVID-19 vaccines,7.0,Don't trust COVID vaccines,0,0
+WHYNOT10,WHYNORV8_WHYNOT10,283,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT10,WHYNORV8_WHYNOT10,283,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT10,WHYNORV8_WHYNOT10,283,1,I don't trust the government,8.0,Don't trust the government,0,0
+WHYNOT11,WHYNORV13_WHYNOT11,284,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOT11,WHYNORV13_WHYNOT11,284,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOT11,WHYNORV13_WHYNOT11,284,1,Other,11.0,Other,0,0
+WHYNOTB1,WHYNOTB1,285,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOTB1,WHYNOTB1,285,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOTB1,WHYNOTB1,285,1,I already had COVID-19,1.0,Already had COVID,0,0
+WHYNOTB2,WHYNOTB2,286,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOTB2,WHYNOTB2,286,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOTB2,WHYNOTB2,286,1,I am not a member of a high-risk group,2.0,Not a member of a high-risk group,0,0
+WHYNOTB3,WHYNOTB3,287,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOTB3,WHYNOTB3,287,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOTB3,WHYNOTB3,287,1,I plan to use masks or other precautions instead,3.0,Plan to use masks or other precautions instead,0,0
+WHYNOTB4,WHYNOTB4,288,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOTB4,WHYNOTB4,288,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOTB4,WHYNOTB4,288,1,I don't believe COVID-19 is a serious illness,4.0,Don't believe COVID is a serious illness,0,0
+WHYNOTB5,WHYNOTB5,289,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOTB5,WHYNOTB5,289,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOTB5,WHYNOTB5,289,1,I don't think vaccines are beneficial,5.0,Don't think vaccines are beneficial,0,0
+WHYNOTB6,WHYNOTB6,290,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+WHYNOTB6,WHYNOTB6,290,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+WHYNOTB6,WHYNOTB6,290,1,Other,6.0,Other,0,0
+KIDGETVAC,KIDGETVAC,291,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDGETVAC,KIDGETVAC,291,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDGETVAC,KIDGETVAC,291,1,Definitely get the children a vaccine,1.0,Definitely get the children a vaccine,0,0
+KIDGETVAC,KIDGETVAC,291,2,Probably get the children a vaccine,2.0,Probably get the children a vaccine,0,0
+KIDGETVAC,KIDGETVAC,291,3,Be unsure about getting the children a vaccine,3.0,Be unsure about getting the children a vaccine,0,0
+KIDGETVAC,KIDGETVAC,291,4,Probably NOT get the children a vaccine,4.0,Probably not get the children a vaccine,0,0
+KIDGETVAC,KIDGETVAC,291,5,Definitely NOT get the children a vaccine,5.0,Definitely not get the children a vaccine,0,0
+KIDGETVAC,KIDGETVAC,291,6,I do not know the plans for vaccination of the children aged 12-17 in my household,6.0,Do not know plans for vaccination of children,0,0
+KIDDOSES,KIDDOSES,292,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDDOSES,KIDDOSES,292,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDDOSES,KIDDOSES,292,1,Yes,1.0,Children in home received at least one dose,0,0
+KIDDOSES,KIDDOSES,292,2,No,2.0,Children in home did not receive COVID vaccine,0,0
+KIDDOSES,KIDDOSES,292,3,Don't know,3.0,Don't know,0,0
+KIDWHNO1,KIDWHNO1_KIDWHYNO1,293,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO1,KIDWHNO1_KIDWHYNO1,293,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO1,KIDWHNO1_KIDWHYNO1,293,1,Concern about possible side effects of a COVID-19 vaccine for children,1.0,Concern about side effects of vaccine,0,0
+KIDWHNO2,KIDWHNO2_KIDWHYNO2,294,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO2,KIDWHNO2_KIDWHYNO2,294,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO2,KIDWHNO2_KIDWHYNO2,294,1,Plan to wait and see if it is safe and may get it later,2.0,Plan to wait and see if it is safe,0,0
+KIDWHNO3,KIDWHNO3_KIDWHYNO3,295,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO3,KIDWHNO3_KIDWHYNO3,295,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO3,KIDWHNO3_KIDWHYNO3,295,1,Not sure if a COVID-19 vaccine will work for children,3.0,Not sure if a vaccine will work for children,0,0
+KIDWHNO4,KIDWHNO4_KIDWHYNO4,296,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO4,KIDWHNO4_KIDWHYNO4,296,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO4,KIDWHNO4_KIDWHYNO4,296,1,Don't believe children need a COVID-19 vaccine,4.0,Don’t believe children need a vaccine,0,0
+KIDWHNO5,KIDWHNO5_KIDWHYNO5,297,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO5,KIDWHNO5_KIDWHYNO5,297,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO5,KIDWHNO5_KIDWHYNO5,297,1,The children in this household are not members of a high-risk group,5.0,The children are not a high-risk group,0,0
+KIDWHNO6,KIDWHNO6_KIDWHYNO6,298,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO6,KIDWHNO6_KIDWHYNO6,298,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO6,KIDWHNO6_KIDWHYNO6,298,1,The children's doctor has not recommended it,6.0,Children’s doctor has not recommended it,0,0
+KIDWHNO7,KIDWHNO7_KIDWHYNO7,299,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO7,KIDWHNO7_KIDWHYNO7,299,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO7,KIDWHNO7_KIDWHYNO7,299,1,Other people need it more than the children in this household do right now,7.0,Other people need it more than the child,0,0
+KIDWHNO8,KIDWHNO8_KIDWHYNO8,300,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO8,KIDWHNO8_KIDWHYNO8,300,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO8,KIDWHNO8_KIDWHYNO8,300,1,Concern about missing work to have the children vaccinated,8.0,Concern about missing work,0,0
+KIDWHNO9,KIDWHNO9_KIDWHYNO9,301,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO9,KIDWHNO9_KIDWHYNO9,301,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO9,KIDWHNO9_KIDWHYNO9,301,1,Unable to get a COVID-19 vaccine for children in this household,9.0,Unable to get a vaccine,0,0
+KIDWHNO10,KIDWHNO10_KIDWHYNO10,302,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO10,KIDWHNO10_KIDWHYNO10,302,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO10,KIDWHNO10_KIDWHYNO10,302,1,Parents or guardians in this household do not vaccinate their children,10.0,Parents do not vaccinate their children,0,0
+KIDWHNO11,KIDWHNO11_KIDWHYNO11,303,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO11,KIDWHNO11_KIDWHYNO11,303,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO11,KIDWHNO11_KIDWHYNO11,303,1,Don't trust COVID-19 vaccines,11.0,Don’t trust COVID vaccines,0,0
+KIDWHNO12,KIDWHNO12_KIDWHYNO12,304,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO12,KIDWHNO12_KIDWHYNO12,304,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO12,KIDWHNO12_KIDWHYNO12,304,1,Don't trust the government,12.0,Don’t trust the government,0,0
+KIDWHNO13,KIDWHNO13_KIDWHYNO13,305,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO13,KIDWHNO13_KIDWHYNO13,305,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO13,KIDWHNO13_KIDWHYNO13,305,1,Concern about the cost of a COVID-19 vaccine,13.0,Concern about the cost of vaccine,0,0
+KIDWHNO14,KIDWHNO14_KIDWHYNO14,306,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHNO14,KIDWHNO14_KIDWHYNO14,306,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHNO14,KIDWHNO14_KIDWHYNO14,306,1,Other,14.0,Other,0,0
+MORTCONF,MORTCONF,307,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+MORTCONF,MORTCONF,307,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+MORTCONF,MORTCONF,307,1,No confidence,1.0,No confidence,0,0
+MORTCONF,MORTCONF,307,2,Slight confidence,2.0,Slight confidence,0,0
+MORTCONF,MORTCONF,307,3,Moderate confidence,3.0,Moderate confidence,0,0
+MORTCONF,MORTCONF,307,4,High confidence,4.0,High confidence,0,0
+MORTCONF,MORTCONF,307,5,Payment is/will be deferred,5.0,Payment is/will be deferred,0,0
+MORTLMTH,MORTLMTH,308,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+MORTLMTH,MORTLMTH,308,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+MORTLMTH,MORTLMTH,308,1,Yes,1.0,Paid rent or mortgage on time,0,0
+MORTLMTH,MORTLMTH,308,2,No,2.0,Did not pay rent or mortgage on time,0,0
+MORTLMTH,MORTLMTH,308,3,Payment was deferred,3.0,Payment was deferred,0,0
+TMNTHSBHND,TMNTHSBHND,309,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TMNTHSBHND,TMNTHSBHND,309,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+EVICT,EVICT,310,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+EVICT,EVICT,310,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+EVICT,EVICT,310,1,Very likely,1.0,Very likely,0,0
+EVICT,EVICT,310,2,Somewhat likely,2.0,Somewhat likely,0,0
+EVICT,EVICT,310,3,Not very likely,3.0,Not very likely,0,0
+EVICT,EVICT,310,4,Not at all likely,4.0,Not at all likely,0,0
+RENTCUR,RENTCUR,311,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RENTCUR,RENTCUR,311,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RENTCUR,RENTCUR,311,1,Yes,1.0,home currently caught up on rent,0,0
+RENTCUR,RENTCUR,311,2,No,2.0,Not currently caught up on rent,1,0
+FORCLOSE,FORCLOSE,312,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+FORCLOSE,FORCLOSE,312,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+FORCLOSE,FORCLOSE,312,1,Very likely,1.0,Very likely,0,0
+FORCLOSE,FORCLOSE,312,2,Somewhat likely,2.0,Somewhat likely,0,0
+FORCLOSE,FORCLOSE,312,3,Not very likely,3.0,Not very likely,0,0
+FORCLOSE,FORCLOSE,312,4,Not at all likely,4.0,Not at all likely,0,0
+MORTCUR,MORTCUR,313,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+MORTCUR,MORTCUR,313,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+MORTCUR,MORTCUR,313,1,Yes,1.0,Home currently caught up on mortgage,0,0
+MORTCUR,MORTCUR,313,2,No,2.0,Not currently caught up on mortgage,1,0
+RENTASSIST,RENTASSIST,314,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RENTASSIST,RENTASSIST,314,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RENTASSIST,RENTASSIST,314,1,Almost every month,1.0,Almost every month,0,0
+RENTASSIST,RENTASSIST,314,2,Some months,2.0,Some months,0,0
+RENTASSIST,RENTASSIST,314,3,1 or 2 months,3.0,1 or 2 months,0,0
+RENTASSIST,RENTASSIST,314,4,Never,4.0,Never,0,0
+ENROLLNONE,ENROLLNONE,315,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+ENROLLNONE,ENROLLNONE,315,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+ENROLLNONE,ENROLLNONE,315,1,None,1.0,No childrend enrolled,0,1
+ENROLL1,ENROLL1,316,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ENROLL1,ENROLL1,316,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ENROLL1,ENROLL1,316,1,"Yes, enrolled in a public or private school",1.0,Enrolled in a public or private school,0,0
+ENROLL2,ENROLL2,317,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ENROLL2,ENROLL2,317,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ENROLL2,ENROLL2,317,1,"Yes, homeschooled",2.0,Homeschooled,0,0
+ENROLL3,ENROLL3,318,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ENROLL3,ENROLL3,318,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ENROLL3,ENROLL3,318,1,No,3.0,Not enrolled in school,0,0
+TENROLLPUB,TENROLLPUB,319,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TENROLLPUB,TENROLLPUB,319,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+TENROLLPRV,TENROLLPRV,320,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TENROLLPRV,TENROLLPRV,320,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+TENROLLHMSCH,TENROLLHMSCH,321,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TENROLLHMSCH,TENROLLHMSCH,321,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+SUMMER_ED1,SUMMER_ED1,322,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SUMMER_ED1,SUMMER_ED1,322,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SUMMER_ED1,SUMMER_ED1,322,1,Attend a traditional summer school program because of poor grades?,1.0,Attended summer school because of poor grades,0,0
+SUMMER_ED2,SUMMER_ED2,323,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SUMMER_ED2,SUMMER_ED2,323,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SUMMER_ED2,SUMMER_ED2,323,1,Attend a summer school program to help students catch up with lost learning time during the pandemic?,2.0,Attended summer school to catch up,0,0
+SUMMER_ED3,SUMMER_ED3,324,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SUMMER_ED3,SUMMER_ED3,324,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SUMMER_ED3,SUMMER_ED3,324,1,"Attend school-led summer camps for subjects like math, science or reading?",3.0,Attended educational summer camps,0,0
+SUMMER_ED4,SUMMER_ED4,325,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SUMMER_ED4,SUMMER_ED4,325,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SUMMER_ED4,SUMMER_ED4,325,1,Work with private tutors to help students catch up with lost learning time during the pandemic?,4.0,Work with private tutors to catch up,0,0
+COMP1,COMP1,326,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+COMP1,COMP1,326,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+COMP1,COMP1,326,1,Provided by the children's school or school district to use outside of school,1.0,Provided by the children's school,0,0
+COMP2,COMP2,327,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+COMP2,COMP2,327,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+COMP2,COMP2,327,1,"Provided by someone in the household or family, or it is the child's",2.0,Provided by someone in the home,0,0
+COMP3,COMP3,328,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+COMP3,COMP3,328,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+COMP3,COMP3,328,1,Provided by another source,3.0,Provided by another source,0,0
+COMPAVAIL,COMPAVAIL,329,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+COMPAVAIL,COMPAVAIL,329,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+COMPAVAIL,COMPAVAIL,329,1,Always available,1.0,Always available,0,0
+COMPAVAIL,COMPAVAIL,329,2,Usually available,2.0,Usually available,0,0
+COMPAVAIL,COMPAVAIL,329,3,Sometimes available,3.0,Sometimes available,0,0
+COMPAVAIL,COMPAVAIL,329,4,Rarely available,4.0,Rarely available,0,0
+COMPAVAIL,COMPAVAIL,329,5,Never available,5.0,Never available,0,0
+INTRNTAVAIL,INTRNTAVAIL,330,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTRNTAVAIL,INTRNTAVAIL,330,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTRNTAVAIL,INTRNTAVAIL,330,1,Always available,1.0,Always available,0,0
+INTRNTAVAIL,INTRNTAVAIL,330,2,Usually available,2.0,Usually available,0,0
+INTRNTAVAIL,INTRNTAVAIL,330,3,Sometimes available,3.0,Sometimes available,0,0
+INTRNTAVAIL,INTRNTAVAIL,330,4,Rarely available,4.0,Rarely available,0,0
+INTRNTAVAIL,INTRNTAVAIL,330,5,Never available,5.0,Never available,0,0
+INTRNT1,INTRNT1,331,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTRNT1,INTRNT1,331,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTRNT1,INTRNT1,331,1,Paid for by the children's school or school district,1.0,Paid for by school district,0,0
+INTRNT2,INTRNT2,332,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTRNT2,INTRNT2,332,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTRNT2,INTRNT2,332,1,Paid for by someone in the household or family,2.0,Paid for by someone in the home or family,0,0
+INTRNT3,INTRNT3,333,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTRNT3,INTRNT3,333,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTRNT3,INTRNT3,333,1,Paid for by another source,3.0,Paid for by another source,0,0
+INTRNTRV1,INTRNTRV1,334,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTRNTRV1,INTRNTRV1,334,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTRNTRV1,INTRNTRV1,334,1,Paid for by the children's school or school district,1.0,Paid for by school district,0,0
+INTRNTRV2,INTRNTRV2,335,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTRNTRV2,INTRNTRV2,335,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTRNTRV2,INTRNTRV2,335,1,Paid for by someone in the household or family,2.0,Paid for by someone in the home or family,0,0
+INTRNTRV3,INTRNTRV3,336,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTRNTRV3,INTRNTRV3,336,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTRNTRV3,INTRNTRV3,336,1,Paid for by another source,3.0,Paid for by another source,0,0
+INTRNTRV4,INTRNTRV4,337,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+INTRNTRV4,INTRNTRV4,337,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+INTRNTRV4,INTRNTRV4,337,1,Not available in my home (exclusive,4.0,Not available in my home,0,0
+HYBRID,HYBRID,338,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+HYBRID,HYBRID,338,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+HYBRID,HYBRID,338,1,Yes,1.0,In-person and virtual learning,0,0
+HYBRID,HYBRID,338,2,No,2.0,No in-person and virtual learning,1,0
+TEACH1,TEACH1,339,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TEACH1,TEACH1,339,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TEACH1,TEACH1,339,1,Classes normally taught in person at the school were canceled,1.0,Classes were canceled,0,0
+TEACH2,TEACH2,340,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TEACH2,TEACH2,340,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TEACH2,TEACH2,340,1,"Classes normally taught in person moved to a distance-learning format using online resources, either self-paced or in real time",2.0,Classes moved to a distance-learning online,0,0
+TEACH3,TEACH3,341,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TEACH3,TEACH3,341,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TEACH3,TEACH3,341,1,Classes normally taught in person moved to a distance-learning format using paper materials sent home to children,3.0,Distance-learning using paper materials,0,0
+TEACH4,TEACH4,342,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TEACH4,TEACH4,342,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TEACH4,TEACH4,342,1,Classes normally taught in person changed in some other way,4.0,Classes taught in person changed somehow,0,0
+TEACH5,TEACH5,343,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TEACH5,TEACH5,343,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TEACH5,TEACH5,343,1,The coronavirus pandemic did not affect how children in this household receive education,5.0,Classes taught same as usual,0,0
+TEACH6,TEACH6,344,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TEACH6,TEACH6,344,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TEACH6,TEACH6,344,1,Children did not participate in any learning activities because their school was closed,6.0,No learning activities because school was closed,0,0
+TEACH7,TEACH7,345,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TEACH7,TEACH7,345,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TEACH7,TEACH7,345,1,Children were sick and could not participate in education,7.0,Children were sick and could not got to school,0,0
+TEACH8,TEACH8,346,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TEACH8,TEACH8,346,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TEACH8,TEACH8,346,1,Other,8.0,Other,0,0
+SCHLHRS,SCHLHRS,347,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+SCHLHRS,SCHLHRS,347,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+SCHLHRS,SCHLHRS,347,1,None,1.0,None,0,0
+SCHLHRS,SCHLHRS,347,2,1 day,2.0,1 day,0,0
+SCHLHRS,SCHLHRS,347,3,2-3 days,3.0,2 to 3 days,0,0
+SCHLHRS,SCHLHRS,347,4,4 or more days,4.0,4 or more days,0,0
+TSCHLHRS,TSCHLHRS,348,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TSCHLHRS,TSCHLHRS,348,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+TSTDY_HRS,TSTDY_HRS,349,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TSTDY_HRS,TSTDY_HRS,349,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+TTCH_HRS,TTCH_HRS,350,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TTCH_HRS,TTCH_HRS,350,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+TCH_HRS,TCH_HRS,351,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TCH_HRS,TCH_HRS,351,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TCH_HRS,TCH_HRS,351,1,Much less than a school day before the coronavirus pandemic,1.0,Much less than a school day before pandemic,0,0
+TCH_HRS,TCH_HRS,351,2,A little bit less than a school day before the coronavirus pandemic,2.0,A little less than a school day before pandemic,0,0
+TCH_HRS,TCH_HRS,351,3,As much as a school day before the coronavirus pandemic,3.0,As much as a school day before pandemic,0,0
+TCH_HRS,TCH_HRS,351,4,A little bit more than a school day before the coronavirus pandemic,4.0,A little more than a school day before pandemic,0,0
+TCH_HRS,TCH_HRS,351,5,Much more than a school day before the coronavirus pandemic,5.0,Much more than a school day before pandemic,0,0
+TNUM_PS,TNUM_PS,352,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,1
+TNUM_PS,TNUM_PS,352,-88,Missing / Did not report,-88.0,Missing / Did not report,0,1
+PSPLANS1,PSPLANS1,353,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSPLANS1,PSPLANS1,353,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSPLANS1,PSPLANS1,353,1,"Certificate or diploma program from a school that provides occupational training (usually a 2-year program, often leading to a license, such as cosmetology",1.0,Certificate or diploma from occupational program,0,0
+PSPLANS2,PSPLANS2,354,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSPLANS2,PSPLANS2,354,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSPLANS2,PSPLANS2,354,1,Associate's degree program (usually a 2-year degree,2.0,Associate's degree program,0,0
+PSPLANS3,PSPLANS3,355,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSPLANS3,PSPLANS3,355,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSPLANS3,PSPLANS3,355,1,Bachelor's degree program (usually a 4-year degree,3.0,Bachelor's degree program,0,0
+PSPLANS4,PSPLANS4,356,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSPLANS4,PSPLANS4,356,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSPLANS4,PSPLANS4,356,1,"Graduate degree program (for example, Master's, PhD, MD",4.0,Graduate degree program,0,0
+PSPLANS5,PSPLANS5,357,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSPLANS5,PSPLANS5,357,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSPLANS5,PSPLANS5,357,1,Another credential program not listed above,5.0,Another credential program not listed above,0,0
+PSPLANS6,PSPLANS6,358,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSPLANS6,PSPLANS6,358,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSPLANS6,PSPLANS6,358,1,Classes that are not part of a credential program,6.0,Classes that are not part of a credential program,0,0
+PSCHNG1,PSCHNG1,359,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSCHNG1,PSCHNG1,359,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSCHNG1,PSCHNG1,359,1,Plans to take classes this fall have not changed.,1.0,Plans to take classes this fall have not changed,0,0
+PSCHNG2,PSCHNG2,360,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSCHNG2,PSCHNG2,360,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSCHNG2,PSCHNG2,360,1,All plans to take classes this fall have been canceled.,2.0,All plans to take classes have been canceled,0,0
+PSCHNG3,PSCHNG3,361,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSCHNG3,PSCHNG3,361,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSCHNG3,PSCHNG3,361,1,"Classes will be in different formats in the fall (for example, change from in-person to online)",3.0,Classes will be in different formats in the fall,0,0
+PSCHNG4,PSCHNG4,362,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSCHNG4,PSCHNG4,362,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSCHNG4,PSCHNG4,362,1,Fewer classes will be taken this fall.,4.0,Fewer classes will be taken this fall,0,0
+PSCHNG5,PSCHNG5,363,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSCHNG5,PSCHNG5,363,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSCHNG5,PSCHNG5,363,1,More classes will be taken this fall.,5.0,More classes will be taken this fall,0,0
+PSCHNG6,PSCHNG6,364,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSCHNG6,PSCHNG6,364,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSCHNG6,PSCHNG6,364,1,Classes will be taken from a different institution.,6.0,Classes will be taken at a different institution,0,0
+PSCHNG7,PSCHNG7,365,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSCHNG7,PSCHNG7,365,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSCHNG7,PSCHNG7,365,1,Classes will be taken for a different kind of certificate or degree.,7.0,Classes will be taken for a different degree,0,0
+PSWHYCHG1,PSWHYCHG1,366,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG1,PSWHYCHG1,366,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG1,PSWHYCHG1,366,1,Had coronavirus or concerns about getting coronavirus,1.0,Had COVID or concerns about getting it,0,0
+PSWHYCHG2,PSWHYCHG2,367,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG2,PSWHYCHG2,367,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG2,PSWHYCHG2,367,1,Caring for someone with coronavirus,2.0,Caring for someone with COVID,0,0
+PSWHYCHG3,PSWHYCHG3,368,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG3,PSWHYCHG3,368,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG3,PSWHYCHG3,368,1,"Caring for others whose care arrangements are disrupted (e.g., loss of day care or adult care programs)",3.0,Caring for others whose require care,0,0
+PSWHYCHG4,PSWHYCHG4,369,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG4,PSWHYCHG4,369,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG4,PSWHYCHG4,369,1,"Institution changed content or format of classes (e.g., from in-person to online",4.0,Institution changed content or format of classes,0,0
+PSWHYCHG5,PSWHYCHG5,370,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG5,PSWHYCHG5,370,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG5,PSWHYCHG5,370,1,Changes to financial aid,5.0,Changes to financial aid,0,0
+PSWHYCHG6,PSWHYCHG6,371,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG6,PSWHYCHG6,371,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG6,PSWHYCHG6,371,1,Changes to campus life,6.0,Changes to campus life,0,0
+PSWHYCHG7,PSWHYCHG7,372,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG7,PSWHYCHG7,372,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG7,PSWHYCHG7,372,1,Uncertainty about how classes/program might change,7.0,Uncertainty about how classes might change,0,0
+PSWHYCHG8,PSWHYCHG8,373,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG8,PSWHYCHG8,373,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG8,PSWHYCHG8,373,1,Not able to pay for classes/educational expenses because of changes to income from the pandemic,8.0,Can't afford education due to loss of income,0,0
+PSWHYCHG9,PSWHYCHG9,374,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+PSWHYCHG9,PSWHYCHG9,374,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+PSWHYCHG9,PSWHYCHG9,374,1,"Some other reason related to the pandemic, please specify",9.0,Some other reason related to the pandemic,0,0
+CHLDCARE,CHLDCARE,375,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDCARE,CHLDCARE,375,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDCARE,CHLDCARE,375,1,Yes,1.0,Unable to use childcare,0,0
+CHLDCARE,CHLDCARE,375,2,No,2.0,Able to use childcare,0,0
+CHLDCARE,CHLDCARE,375,3,Not applicable,-88.0,Missing / Did not report,0,0
+CHLDIMPCT1,CHLDIMPCT1,376,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT1,CHLDIMPCT1,376,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT1,CHLDIMPCT1,376,1,You (or another adult) took unpaid leave to care for the children,1.0,Took unpaid leave to care for the children,0,0
+CHLDIMPCT2,CHLDIMPCT2,377,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT2,CHLDIMPCT2,377,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT2,CHLDIMPCT2,377,1,"You (or another adult) used vacation or sick days, or other paid leave in order to care for the children",2.0,Used paid leave in order to care for children,0,0
+CHLDIMPCT3,CHLDIMPCT3,378,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT3,CHLDIMPCT3,378,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT3,CHLDIMPCT3,378,1,You (or another adult) cut your hours in order to care for the children,3.0,Cut your hours in order to care for the children,0,0
+CHLDIMPCT4,CHLDIMPCT4,379,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT4,CHLDIMPCT4,379,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT4,CHLDIMPCT4,379,1,You (or another adult) left a job in order to care for the children,4.0,Left a job in order to care for the children,0,0
+CHLDIMPCT5,CHLDIMPCT5,380,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT5,CHLDIMPCT5,380,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT5,CHLDIMPCT5,380,1,You (or another adult) lost a job because of time away to care for your the children,5.0,Lost a job because of time away to care for child,0,0
+CHLDIMPCT6,CHLDIMPCT6,381,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT6,CHLDIMPCT6,381,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT6,CHLDIMPCT6,381,1,You (or another adult) did not look for a job in order to care for your the children,6.0,Did not look for a job in order to care for child,0,0
+CHLDIMPCT7,CHLDIMPCT7,382,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT7,CHLDIMPCT7,382,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT7,CHLDIMPCT7,382,1,You (or another adult) supervised one or more children while working,7.0,Supervised one or more children while working,0,0
+CHLDIMPCT8,CHLDIMPCT8,383,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT8,CHLDIMPCT8,383,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT8,CHLDIMPCT8,383,1,Other,8.0,Other,0,0
+CHLDIMPCT9,CHLDIMPCT9,384,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CHLDIMPCT9,CHLDIMPCT9,384,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CHLDIMPCT9,CHLDIMPCT9,384,1,None of the above,9.0,None of the above,0,0
+CTC_YN,CTC_YN,385,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTC_YN,CTC_YN,385,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTC_YN,CTC_YN,385,1,Yes,1.0,Received a Child Tax Credit payment,0,0
+CTC_YN,CTC_YN,385,2,No,2.0,Did not receive a Child Tax Credit payment,1,0
+CTC_USE,CTC_USE,386,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTC_USE,CTC_USE,386,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTC_USE,CTC_USE,386,1,Mostly spend it,1.0,Mostly spend it,0,0
+CTC_USE,CTC_USE,386,2,Mostly save it,2.0,Mostly save it,0,0
+CTC_USE,CTC_USE,386,3,Mostly use it to pay off debt,3.0,Mostly use it to pay off debt,0,0
+CTCSPND2,CTCSPND2,387,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND2,CTCSPND2,387,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND2,CTCSPND2,387,1,"Clothing (clothing, accessories, shoes",2.0,Clothing,0,0
+CTCSPND1,CTCSPND1,388,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND1,CTCSPND1,388,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND1,CTCSPND1,388,1,"Food (groceries, eating out, take out",1.0,Food,0,0
+CTCSPND4,CTCSPND4,389,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND4,CTCSPND4,389,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND4,CTCSPND4,389,1,School books and supplies,4.0,School books and supplies,0,0
+CTCSPND3,CTCSPND3,390,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND3,CTCSPND3,390,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND3,CTCSPND3,390,1,"Childcare (formal facility, paying family or caregiver directly",3.0,Childcare,0,0
+CTCSPND6,CTCSPND6,391,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND6,CTCSPND6,391,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND6,CTCSPND6,391,1,Tutoring services,6.0,Tutoring services,0,0
+CTCSPND5,CTCSPND5,392,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND5,CTCSPND5,392,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND5,CTCSPND5,392,1,School tuition,5.0,School tuition,0,0
+CTCSPND8,CTCSPND8,393,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND8,CTCSPND8,393,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND8,CTCSPND8,393,1,After school programs (other than tutoring and childcare,8.0,After school programs,0,0
+CTCSPND7,CTCSPND7,394,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND7,CTCSPND7,394,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND7,CTCSPND7,394,1,After school programs (other than tutoring and childcare,7.0,After school programs,0,0
+CTCSPND10,CTCSPND10,395,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND10,CTCSPND10,395,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND10,CTCSPND10,395,1,Rent,10.0,Rent,0,0
+CTCSPND9,CTCSPND9,396,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND9,CTCSPND9,396,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND9,CTCSPND9,396,1,"Recreational goods (sports and fitness equipment, bicycles, toys, games",9.0,Recreational goods,0,0
+CTCSPND12,CTCSPND12,397,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND12,CTCSPND12,397,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND12,CTCSPND12,397,1,"Utilities and telecommunications (natural gas, electricity, cable, internet, cellphone",12.0,Utilities and telecommunications ,0,0
+CTCSPND11,CTCSPND11,398,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND11,CTCSPND11,398,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND11,CTCSPND11,398,1,Mortgage (scheduled or monthly,11.0,Mortgage,0,0
+CTCSPND14,CTCSPND14,399,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND14,CTCSPND14,399,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND14,CTCSPND14,399,1,"Paying down credit card, student loans, or other debts",14.0,"Paying down credit card, loans, or other debts",0,0
+CTCSPND13,CTCSPND13,400,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND13,CTCSPND13,400,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND13,CTCSPND13,400,1,Vehicle payments (scheduled or monthly,13.0,Vehicle payments,0,0
+CTCSPND16,CTCSPND16,401,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND16,CTCSPND16,401,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND16,CTCSPND16,401,1,Savings or investments,16.0,Savings or investments,0,0
+CTCSPND15,CTCSPND15,402,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND15,CTCSPND15,402,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND15,CTCSPND15,402,1,Charitable donations or giving to family members,15.0,Charitable donations or giving to family members,0,0
+CTCSPND17,CTCSPND17,403,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTCSPND17,CTCSPND17,403,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTCSPND17,CTCSPND17,403,1,Other,17.0,Other,0,0
+ENRPUBCHK,ENRPUBCHK,404,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ENRPUBCHK,ENRPUBCHK,404,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ENRPUBCHK,ENRPUBCHK,404,1,Enrolled in public school checkbox selected,1.0,Enrolled in public school,0,0
+ENRPRVCHK,ENRPRVCHK,405,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ENRPRVCHK,ENRPRVCHK,405,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ENRPRVCHK,ENRPRVCHK,405,1,Enrolled in private school checkbox selected,1.0,Enrolled in private school,0,0
+ENRHMSCHK,ENRHMSCHK,406,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+ENRHMSCHK,ENRHMSCHK,406,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+ENRHMSCHK,ENRHMSCHK,406,1,Homeschooled checkbox selected,1.0,Homeschooled,0,0
+NUMDOSES,NUMDOSES,407,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+NUMDOSES,NUMDOSES,407,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+NUMDOSES,NUMDOSES,407,1,1 vaccination,1.0,1 vaccination,0,0
+NUMDOSES,NUMDOSES,407,2,2 vaccinations,2.0,2 vaccinations,0,0
+NUMDOSES,NUMDOSES,407,3,3 vaccinations,3.0,3 vaccinations,0,0
+NUMDOSES,NUMDOSES,407,4,4 or more vaccinations,4.0,4 or more vaccinations,0,0
+NUMDOSES,NUMDOSES,407,5,Don’t know,5.0,Don’t know,0,0
+BRAND,BRAND,408,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+BRAND,BRAND,408,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+BRAND,BRAND,408,1,Pfizer-Biontech,1.0,Pfizer-Biontech,0,0
+BRAND,BRAND,408,2,Moderna,2.0,Moderna,0,0
+BRAND,BRAND,408,3,Johnson and Johnson (Janssen,3.0,Johnson and Johnson,0,0
+BRAND,BRAND,408,4,"One of the brands that requires two initial shots, but not sure which brand",4.0,Can't recall if it was Pfizer or Moderna,0,0
+BRAND,BRAND,408,5,None of these brands,5.0,None of these brands,0,0
+BRAND,BRAND,408,6,Don’t know,6.0,Don’t know,0,0
+KIDWHYNO1,KIDWHNO1_KIDWHYNO1,409,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO1,KIDWHNO1_KIDWHYNO1,409,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO1,KIDWHNO1_KIDWHYNO1,409,1,Concern about possible side effects of a COVID-19 vaccine for children,1.0,Concern about side effects of vaccine,0,0
+KIDWHYNO2,KIDWHNO2_KIDWHYNO2,410,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO2,KIDWHNO2_KIDWHYNO2,410,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO2,KIDWHNO2_KIDWHYNO2,410,1,Plan to wait and see if it is safe and may get it later,2.0,Plan to wait and see if it is safe,0,0
+KIDWHYNO3,KIDWHNO3_KIDWHYNO3,411,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO3,KIDWHNO3_KIDWHYNO3,411,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO3,KIDWHNO3_KIDWHYNO3,411,1,Not sure if a COVID-19 vaccine will work for children,3.0,Not sure if a vaccine will work for children,0,0
+KIDWHYNO4,KIDWHNO4_KIDWHYNO4,412,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO4,KIDWHNO4_KIDWHYNO4,412,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO4,KIDWHNO4_KIDWHYNO4,412,1,Don’t believe children need a COVID-19 vaccine,4.0,Don’t believe children need a vaccine,0,0
+KIDWHYNO5,KIDWHNO5_KIDWHYNO5,413,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO5,KIDWHNO5_KIDWHYNO5,413,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO5,KIDWHNO5_KIDWHYNO5,413,1,The children in this household are not members of a high-risk group,5.0,The children are not a high-risk group,0,0
+KIDWHYNO6,KIDWHNO6_KIDWHYNO6,414,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO6,KIDWHNO6_KIDWHYNO6,414,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO6,KIDWHNO6_KIDWHYNO6,414,1,The children’s doctor has not recommended it,6.0,Children’s doctor has not recommended it,0,0
+KIDWHYNO7,KIDWHNO7_KIDWHYNO7,415,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO7,KIDWHNO7_KIDWHYNO7,415,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO7,KIDWHNO7_KIDWHYNO7,415,1,Other people need it more than the children in this household do right now,7.0,Other people need it more than the child,0,0
+KIDWHYNO8,KIDWHNO8_KIDWHYNO8,416,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO8,KIDWHNO8_KIDWHYNO8,416,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO8,KIDWHNO8_KIDWHYNO8,416,1,Concern about missing work to have the children vaccinated,8.0,Concern about missing work,0,0
+KIDWHYNO9,KIDWHNO9_KIDWHYNO9,417,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO9,KIDWHNO9_KIDWHYNO9,417,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO9,KIDWHNO9_KIDWHYNO9,417,1,Unable to get a COVID-19 vaccine for children in this household,9.0,Unable to get a vaccine,0,0
+KIDWHYNO10,KIDWHNO10_KIDWHYNO10,418,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO10,KIDWHNO10_KIDWHYNO10,418,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO10,KIDWHNO10_KIDWHYNO10,418,1,Parents or guardians in this household do not vaccinate their children,10.0,Parents do not vaccinate their children,0,0
+KIDWHYNO11,KIDWHNO11_KIDWHYNO11,419,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO11,KIDWHNO11_KIDWHYNO11,419,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO11,KIDWHNO11_KIDWHYNO11,419,1,Don’t trust COVID-19 vaccines,11.0,Don’t trust COVID vaccines,0,0
+KIDWHYNO12,KIDWHNO12_KIDWHYNO12,420,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO12,KIDWHNO12_KIDWHYNO12,420,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO12,KIDWHNO12_KIDWHYNO12,420,1,Don’t trust the government,12.0,Don’t trust the government,0,0
+KIDWHYNO13,KIDWHNO13_KIDWHYNO13,421,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO13,KIDWHNO13_KIDWHYNO13,421,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO13,KIDWHNO13_KIDWHYNO13,421,1,Concern about the cost of a COVID-19 vaccine,13.0,Concern about the cost of vaccine,0,0
+KIDWHYNO14,KIDWHNO14_KIDWHYNO14,422,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDWHYNO14,KIDWHNO14_KIDWHYNO14,422,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDWHYNO14,KIDWHNO14_KIDWHYNO14,422,1,Other,14.0,Other,0,0
+RBOOSTER,,423,1,"Yes, I received a booster",1.0,Received a booster,0,0
+RBOOSTER,,423,2,"Yes, I plan to receive a booster",2.0,Plan to receive a booster,0,0
+RBOOSTER,,423,3,"No, I do not plan to receive a booster",3.0,Do not plan to receive a booster,0,0
+RBOOSTER,,423,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RBOOSTER,,423,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDDOSES_5_11Y,,424,1,Yes,1.0,Children received at least one dose,0,0
+KIDDOSES_5_11Y,,424,2,No,2.0,Children did not receive at least one dose,0,0
+KIDDOSES_5_11Y,,424,3,Don't know,3.0,Don't know,0,0
+KIDDOSES_5_11Y,,424,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDDOSES_5_11Y,,424,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDDOSES_12_17Y,,426,1,Yes,1.0,Children received at least one dose,0,0
+KIDDOSES_12_17Y,,426,2,No,2.0,Children did not receive at least one dose,0,0
+KIDDOSES_12_17Y,,426,3,Don't know,3.0,Don't know,0,0
+KIDDOSES_12_17Y,,426,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDDOSES_12_17Y,,426,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDGETVAC_5_11Y,,425,1,Definitely get the children a vaccine,1.0,Definitely get the children a vaccine,0,0
+KIDGETVAC_5_11Y,,425,2,Probably get the children a vaccine,2.0,Probably get the children a vaccine,0,0
+KIDGETVAC_5_11Y,,425,3,Be unsure about getting the children a vaccine,3.0,Unsure about getting the children a vaccine,0,0
+KIDGETVAC_5_11Y,,425,4,Probably NOT get the children a vaccine,4.0,Probably not get the children a vaccine,0,0
+KIDGETVAC_5_11Y,,425,5,Definitely NOT get the children a vaccine,5.0,Definitely not get the children a vaccine,0,0
+KIDGETVAC_5_11Y,,425,6,I do not know the plans for vaccination of the children aged 5-17 in my household,6.0,No plans for vaccination,0,0
+KIDGETVAC_5_11Y,,425,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDGETVAC_5_11Y,,425,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+KIDGETVAC_12_17Y,,427,1,Definitely get the children a vaccine,1.0,Definitely get the children a vaccine,0,0
+KIDGETVAC_12_17Y,,427,2,Probably get the children a vaccine,2.0,Probably get the children a vaccine,0,0
+KIDGETVAC_12_17Y,,427,3,Be unsure about getting the children a vaccine,3.0,Unsure about getting the children a vaccine,0,0
+KIDGETVAC_12_17Y,,427,4,Probably NOT get the children a vaccine,4.0,Probably not get the children a vaccine,0,0
+KIDGETVAC_12_17Y,,427,5,Definitely NOT get the children a vaccine,5.0,Definitely not get the children a vaccine,0,0
+KIDGETVAC_12_17Y,,427,6,I do not know the plans for vaccination of the children aged 5-17 in my household,6.0,No plans for vaccination,0,0
+KIDGETVAC_12_17Y,,427,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+KIDGETVAC_12_17Y,,427,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTC_CLAIM,,428,1,Yes,1.0,"Claimed the ""Child Tax Credit""",0,0
+CTC_CLAIM,,428,2,No,2.0,"Did not claim the ""Child Tax Credit""",0,0
+CTC_CLAIM,,428,3,Have not filed 2021 Federal taxes yet,3.0,Have not filed 2021 Federal taxes yet,0,0
+CTC_CLAIM,,428,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTC_CLAIM,,428,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+CTC_REFUND,,429,1,Yes,1.0,Received tax refund,0,0
+CTC_REFUND,,429,2,No,2.0,Did not receive tax refund,0,0
+CTC_REFUND,,429,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+CTC_REFUND,,429,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+TWDAYS,,430,1,Just 1-2 days,1.0,Just 1-2 days,0,0
+TWDAYS,,430,2,3-4 days,2.0,3-4 days,0,0
+TWDAYS,,430,3,5 or more days,3.0,5 or more days,0,0
+TWDAYS,,430,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+TWDAYS,,430,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RCVEDUC1,,431,1,Children received in-person instruction from a teacher at their school,1.0,Children received in-person instruction,0,0
+RCVEDUC1,,431,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RCVEDUC1,,431,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RCVEDUC2,,432,1,Children received virtual/online instruction from a teacher in real time,1.0,Children received virtual/online instruction from a teacher in real time,0,0
+RCVEDUC2,,432,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RCVEDUC2,,432,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RCVEDUC3,,433,1,Children learned on their own using on-line materials provided by their school,1.0,Children learned on their own using on-line materials provided by their school,0,0
+RCVEDUC3,,433,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RCVEDUC3,,433,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RCVEDUC4,,434,1,Children learned on their own using paper materials provided by their school,1.0,Children learned on their own using paper materials provided by their school,0,0
+RCVEDUC4,,434,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RCVEDUC4,,434,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RCVEDUC5,,435,1,Children learned on their own using materials that were NOT provided by their school,1.0,Children learned on their own using materials not provided by their school,0,0
+RCVEDUC5,,435,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RCVEDUC5,,435,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RCVEDUC6,,436,1,Children did not participate in any learning activities because their school was closed,1.0,Children did not participate in any learning activities because school was closed,0,0
+RCVEDUC6,,436,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RCVEDUC6,,436,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RCVEDUC7,,437,1,Children were sick and could not participate in education,1.0,Children were sick and could not participate in education,0,0
+RCVEDUC7,,437,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RCVEDUC7,,437,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+RCVEDUC8,,438,1,Other__Specify,1.0,Other,0,0
+RCVEDUC8,,438,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+RCVEDUC8,,438,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0
+LEARNFMT,,439,1,Yes – education was provided both in-person and by other forms of learning,1.0,Education was provided both in-person and by other forms of learning,0,0
+LEARNFMT,,439,2,No – all education was provided in person at school,2.0,All education was provided in person at school,0,0
+LEARNFMT,,439,3,No – all education was provided using some other form of learning,3.0,All education was provided using some other form of learning,0,0
+LEARNFMT,,439,-99,Question seen but category not selected,-99.0,Question seen but category not selected,0,0
+LEARNFMT,,439,-88,Missing / Did not report,-88.0,Missing / Did not report,0,0

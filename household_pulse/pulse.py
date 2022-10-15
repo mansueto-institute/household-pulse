@@ -19,6 +19,10 @@ from household_pulse.mysql_wrapper import PulseSQL
 
 
 class Pulse:
+    """
+    The pulse class represents a single week's (wave) worth of data.
+    """
+
     meltvars = ("SCRAM", "WEEK")
     xtabs = (
         "TOPLINE",
@@ -166,8 +170,8 @@ class Pulse:
             bucketized: pd.Series = pd.cut(df[col], bins=bins)
             if bucketized.isnull().sum() > 0:
                 allowed = {-88, -99}
-                unmapped = set(df[col][bucketized.isnull()])
-                if len(allowed - unmapped) != 0:
+                unmapped = set(df[col][bucketized.isnull()].astype(int))
+                if len(unmapped - allowed) != 0:
                     raise ValueError(
                         f"Unmapped values bining col {col}, {unmapped}"
                     )
@@ -238,10 +242,6 @@ class Pulse:
         ]
 
         longdf = longdf[~longdf["INCOME"].isin({-88, -99})]
-
-        for col in self.xtabs:
-            if len({-88, -99} & set(longdf[col].unique())) > 0:
-                raise ValueError(f"xtab_var {col} has some -99 or -88 values")
 
         longdf.drop(columns="question_type", inplace=True)
         self.longdf = longdf
