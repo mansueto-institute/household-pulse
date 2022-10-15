@@ -243,7 +243,7 @@ class TestMethods:
         pulse.df = mock_df
         pulse._coalesce_variables()
         pulse._parse_question_cols()
-        pulse._calculate_ages()
+        pulse.df['TBIRTH_YEAR'] = 18
         pulse._bucketize_numeric_cols()
         pulse._coalesce_races()
         pulse._reshape_long()
