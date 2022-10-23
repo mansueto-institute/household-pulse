@@ -19,9 +19,6 @@ optional-dependencies = {dev = {file = "dev-requirements.txt"}}
 [project.urls]
 repository = "https://github.com/mansueto-institute/household-pulse"
 
-[tool.setuptools]
-packages = ["household_pulse"]
-
 [build-system]
 requires = ['setuptools']
 build-backend = "setuptools.build_meta"
