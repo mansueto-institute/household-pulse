@@ -27,7 +27,7 @@ class PulseCLI:
     This class represents a CLI instance.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, args: Optional[list[str]] = None) -> None:
         parser = ArgumentParser(
             description="Basic CLI for managing the Household Pulse ETL"
         )
@@ -50,7 +50,7 @@ class PulseCLI:
         )
         self._dataparser(dataparser)
 
-        self.args = parser.parse_args()
+        self.args = parser.parse_args(args)
 
     def main(self) -> None:
         """
@@ -59,7 +59,7 @@ class PulseCLI:
         if self.args.subcommand == "etl":
             self.etl_subcommand()
 
-        elif self.args.subcommand == "fetch":
+        elif self.args.subcommand == "fetch":  # pragma: no branch
             self.fetch_subcommand()
 
     def download_pulse(self) -> None:
@@ -158,7 +158,7 @@ class PulseCLI:
         elif self.args.build_front_cache:
             build_front_cache()
 
-        elif self.args.send_build_request:
+        elif self.args.send_build_request:  # pragma: no branch
             self._build_request()
 
     def fetch_subcommand(self) -> None:
@@ -167,7 +167,7 @@ class PulseCLI:
         """
         if self.args.subsubcommand == "download-pulse":
             self.download_pulse()
-        elif self.args.subsubcommand == "download-raw":
+        elif self.args.subsubcommand == "download-raw":  # pragma: no branch
             self.download_raw()
 
     def _etlparser(self, parser: ArgumentParser) -> None:
@@ -304,7 +304,7 @@ class PulseCLI:
             sql = PulseSQL()
             week = sql.get_latest_week()
             sql.close_connection()
-        elif target == "census":
+        elif target == "census":  # pragma: no branch
             dl = DataLoader()
             week = max(dl.get_week_year_map().keys())
 
@@ -328,7 +328,7 @@ class PulseCLI:
             sql = PulseSQL()
             weeks = sql.get_available_weeks()
             sql.close_connection()
-        elif target == "census":
+        elif target == "census":  # pragma: no branch
             dl = DataLoader()
             weeks = tuple(sorted(dl.get_week_year_map().keys()))
 
@@ -379,8 +379,8 @@ def main() -> None:
     """
     Main driver method for the CLI.
     """
-    PulseCLI().main()
+    PulseCLI().main()  # pragma: no cover
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pragma: no cover

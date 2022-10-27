@@ -34,13 +34,13 @@ jobs:
 
       - name: Lint with mypy
         run: |
-          mypy household_pulse/
+          mypy ./src/household_pulse/
 
       - name: Lint with black
         uses: psf/black@stable
         with:
           options: "--check --verbose"
-          src: "./household_pulse"
+          src: "./src/household_pulse"
 
       - name: Test with pytest
         run: |
