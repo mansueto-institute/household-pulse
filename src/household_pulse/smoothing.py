@@ -10,18 +10,34 @@ Created on Friday, 22nd April 2022 5:09:03 pm
             values across time.
 ===============================================================================
 """
+import logging
 import warnings
 
 import pandas as pd
 import statsmodels.api as sm
 from tqdm import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 from household_pulse.mysql_wrapper import PulseSQL
 
 tqdm.pandas()
 
+logger = logging.getLogger(__name__)
+
 
 def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
+    """
+    Runs LOWESS smoothing for a given group across all weeks in order to
+    smooth the time series. Each question is smoothed independently.
+
+    Args:
+        group (pd.DataFrame): The pandas group to apply the function to
+        frac (float, optional): A parameter to the lowess function. Defaults
+            to 0.2.
+
+    Returns:
+        pd.DataFrame: The smoothed group.
+    """
     wcols = [
         "pweight_share",
         "pweight_lower_share",
@@ -54,6 +70,7 @@ def normalize_smoothed(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: dataframe with normalized smoothed shares
     """
+    logger.info("Normalizing smoothed time series")
     wcols = [
         "pweight_share_smoothed",
         "pweight_lower_share_smoothed",
@@ -102,9 +119,10 @@ def smooth_pulse() -> None:
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        df = df.groupby(
-            by=["xtab_var", "xtab_val", "q_var", "q_val"], sort=False
-        ).progress_apply(smooth_group)
+        with logging_redirect_tqdm():
+            df = df.groupby(
+                by=["xtab_var", "xtab_val", "q_var", "q_val"], sort=False
+            ).progress_apply(smooth_group)
     df.drop(columns="end_date", inplace=True)
     df = normalize_smoothed(df)
     sql.update_values(table="smoothed", df=df)
