@@ -362,10 +362,6 @@ class Pulse:
         Returns:
             pd.DataFrame: aggregated weights with confidence intervals
         """
-        allowed = {"PWEIGHT", "HWEIGHT"}
-        if weight_type not in allowed:
-            raise ValueError(f"{weight_type} must be in {allowed}")
-
         # we fetch the passed weight type
         wgtdf = self.df.set_index("SCRAM").filter(like=weight_type)
         wgtcols = wgtdf.columns
