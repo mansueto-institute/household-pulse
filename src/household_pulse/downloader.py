@@ -346,7 +346,7 @@ class DataLoader:
             pubtexts = phase.find_all("div", "uscb-default-x-column-date")
             coltexts = phase.find_all("div", "uscb-default-x-column-content")
             for wektext, pubtext, coltext in zip(wektexts, pubtexts, coltexts):
-                pubdate = datetime.strptime(pubtext.text, "%B %d, %Y")
+                pubdate = datetime.strptime(pubtext.text.strip(), "%B %d, %Y")
 
                 colstrs = re.findall(monthpat, coltext.text)
                 enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
