@@ -199,7 +199,7 @@ class PulseSQL:
                 warnings.simplefilter("ignore")
                 df = pd.read_sql(sql=query, con=self.conn)
 
-                if len(df) == 0:
+                if len(df) == 0:  # pragma: no cover
                     logger.warning("No records found for query %s", query)
         except Error as e:
             self.conn.rollback()
