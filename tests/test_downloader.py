@@ -25,11 +25,8 @@ from household_pulse.downloader import DataLoader
 @pytest.fixture
 def dataloader() -> Generator[DataLoader, None, None]:
     with patch("household_pulse.downloader.boto3.client"):
-        with patch.object(
-            DataLoader, "_load_s3_creds", MagicMock(return_value={})
-        ):
-            dl = DataLoader()
-            yield dl
+        dl = DataLoader()
+        yield dl
 
 
 @pytest.fixture

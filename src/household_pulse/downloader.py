@@ -23,7 +23,6 @@ import pandas as pd
 import requests
 from botocore.exceptions import ClientError
 from bs4 import BeautifulSoup
-from pkg_resources import resource_filename
 
 
 class DataLoader:
@@ -33,7 +32,7 @@ class DataLoader:
     """
 
     def __init__(self) -> None:
-        self.s3 = boto3.client("s3", **self._load_s3_creds())
+        self.s3 = boto3.client("s3")
         self.base_census_url = (
             "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
         )
@@ -254,19 +253,6 @@ class DataLoader:
         if fname == "d":
             return f"pulse{year}_puf_{weekstr}.csv"
         return f"pulse{year}_repwgt_puf_{weekstr}.csv"
-
-    @staticmethod
-    def _load_s3_creds() -> dict[str, str]:
-        """
-        Loads the S3 credentials that have read/write permissions for the
-        project bucket only.
-
-        Returns:
-            dict[str, str]: IAM credentials.
-        """
-        fname = resource_filename("household_pulse", "s3.json")
-        with open(fname, "r", encoding="utf-8") as file:
-            return json.loads(file.read())
 
     @staticmethod
     @lru_cache(maxsize=10)

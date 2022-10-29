@@ -11,12 +11,14 @@ Created on Saturday, 8th October 2022 11:45:46 am
 # pylint: disable=missing-function-docstring,redefined-outer-name
 # pylint: disable=protected-access,no-member
 
+import json
 from datetime import date
 from typing import Generator, Optional
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
+from botocore.exceptions import ClientError
 from household_pulse.mysql_wrapper import Error, PulseSQL
 
 
@@ -250,3 +252,26 @@ class TestClassMethods:
         pulsesql.conn.is_connected.return_value = False
         pulsesql._refresh_connection()
         pulsesql._establish_connection.assert_called_once()
+
+    @staticmethod
+    @patch("household_pulse.mysql_wrapper.boto3")
+    def test_load_rds_creds(mockboto):
+        client = MagicMock(name="client")
+        mockboto.Session.return_value.client.return_value = client
+        test_creds = {"test": "123", "user": "fake", "password": "12345"}
+        test_response = {"SecretString": json.dumps(test_creds)}
+        client.get_secret_value.return_value = test_response
+        assert test_creds == PulseSQL._load_rds_creds()
+
+    @staticmethod
+    @patch("household_pulse.mysql_wrapper.boto3")
+    def test_load_rds_creds_error(mockboto):
+        client = MagicMock(name="client")
+        mockboto.Session.return_value.client.return_value = client
+        mockerror = ClientError(
+            error_response={"Error": {"Test": "123"}}, operation_name="test"
+        )
+        test_response = MagicMock(side_effect=mockerror)
+        client.get_secret_value = test_response
+        with pytest.raises(ClientError):
+            PulseSQL._load_rds_creds()
