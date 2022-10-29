@@ -14,11 +14,12 @@ import warnings
 from datetime import datetime
 from typing import Optional
 
+import boto3
 import mysql.connector
 import pandas as pd
+from botocore.exceptions import ClientError
 from mysql.connector import Error, MySQLConnection
 from mysql.connector.cursor import MySQLCursor
-from pkg_resources import resource_filename
 
 from household_pulse.downloader import DataLoader
 
@@ -295,6 +296,16 @@ class PulseSQL:
         Returns:
             dict[str, str]: connection config dict
         """
-        fname = resource_filename("household_pulse", "rds-mysql.json")
-        with open(fname, "r", encoding="utf-8") as file:
-            return json.loads(file.read())
+        secret_name = "prod/pulse/rds"
+
+        session = boto3.Session()
+        client = session.client(
+            service_name="secretsmanager", region_name="us-east-2"
+        )
+
+        try:
+            response = client.get_secret_value(SecretId=secret_name)
+            creds: dict = json.loads(response["SecretString"])
+            return creds
+        except ClientError as e:
+            raise e from e
