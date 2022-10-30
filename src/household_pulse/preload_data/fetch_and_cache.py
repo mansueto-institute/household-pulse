@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Saturday, 29th October 2022 10:21:12 am
+===============================================================================
+@filename:  fetch_and_cache.py
+@author:    Manuel Martinez (manmart@uchicago.edu)
+@project:   enter project name
+@purpose:   enter purpose
+===============================================================================
+"""
+
+import logging
+
 import pandas as pd
 from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
@@ -11,8 +24,10 @@ from household_pulse.preload_data.fetch_and_cache_utils import (
     run_query,
 )
 from tqdm import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
-# PARAMS
+logger = logging.getLogger(__name__)
+
 MIN_WEEK_FILTER = 6
 
 
@@ -41,41 +56,42 @@ def cache_queries(
     question_groupings,
     label_groupings,
 ):
-
+    logger.info("Build query cache for the front-end")
     week_range = [dates.week.min(), dates.week.max()]
     xtabs = combined_xtabs["xtab_var"].unique()
     cached = {}
 
     for xtab in xtabs:
         xtab_labels = combined_xtabs[combined_xtabs.xtab_var == xtab]
-        for row in tqdm(
-            question_groupings.itertuples(),
-            total=len(question_groupings),
-            desc=f"Working on xtab: {xtab}",
-        ):
+        with logging_redirect_tqdm():
+            for row in tqdm(
+                question_groupings.itertuples(),
+                total=len(question_groupings),
+                desc=f"Working on xtab: {xtab}",
+            ):
 
-            var_group = row.variable_group
-            response_labels = label_groupings[var_group]
+                var_group = row.variable_group
+                response_labels = label_groupings[var_group]
 
-            fnamepre = f"{row.variable_group}-{xtab}"
+                fnamepre = f"{row.variable_group}-{xtab}"
 
-            for smoothed in (True, False):
-                if smoothed:
-                    fname = "-".join((fnamepre, "SMOOTHED"))
-                else:
-                    fname = fnamepre
-                data = run_query(
-                    df=df,
-                    question_group=row,
-                    response_labels=response_labels,
-                    xtab_labels=xtab_labels,
-                    xtab=xtab,
-                    week_range=week_range,
-                    dates=dates,
-                    smoothed=smoothed,
-                )
+                for smoothed in (True, False):
+                    if smoothed:
+                        fname = "-".join((fnamepre, "SMOOTHED"))
+                    else:
+                        fname = fnamepre
+                    data = run_query(
+                        df=df,
+                        question_group=row,
+                        response_labels=response_labels,
+                        xtab_labels=xtab_labels,
+                        xtab=xtab,
+                        week_range=week_range,
+                        dates=dates,
+                        smoothed=smoothed,
+                    )
 
-                cached[".".join((fname, "json"))] = data
+                    cached[".".join((fname, "json"))] = data
 
     return cached
 

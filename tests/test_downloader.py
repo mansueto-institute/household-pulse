@@ -153,6 +153,15 @@ class TestMethods:
         assert expected.equals(actual)
 
     @staticmethod
+    def test_download_from_s3_error(dataloader: DataLoader):
+        mockerror = ClientError(
+            error_response={"Error": {"Test": "123"}}, operation_name="test"
+        )
+        dataloader.s3.get_object = MagicMock(side_effect=mockerror)
+        with pytest.raises(ClientError):
+            dataloader._download_from_s3(week=40)
+
+    @staticmethod
     @patch.object(
         DataLoader,
         "get_week_year_map",

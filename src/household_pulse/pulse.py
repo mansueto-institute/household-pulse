@@ -11,11 +11,15 @@ Created on Saturday, 23rd October 2021 4:54:40 pm
             end.
 ===============================================================================
 """
+import logging
+
 import numpy as np
 import pandas as pd
 
 from household_pulse.downloader import DataLoader
 from household_pulse.mysql_wrapper import PulseSQL
+
+logger = logging.getLogger(__name__)
 
 
 class Pulse:
@@ -98,6 +102,7 @@ class Pulse:
         calculates the ages of the respondents based on the birth year and
         the date at which the survey was implemented
         """
+        logger.info("Calculating ages based on collection dates")
         sql = PulseSQL()
         try:
             dates = sql.get_pulse_dates(self.week)
@@ -116,6 +121,7 @@ class Pulse:
         and stores the list of questions of each type for further use
         downstream
         """
+        logger.info("Parsing question categories")
         df = self.df
         qumdf = self.qumdf
 
@@ -161,6 +167,7 @@ class Pulse:
         for col in numcols:
             if col not in df.columns:
                 continue
+            logger.info("Bucketizing numerical column %s", col)
             auxdf = mapdf[mapdf["variable"] == col]
             bins = pd.IntervalIndex.from_arrays(
                 left=auxdf["min_value"],
@@ -185,6 +192,7 @@ class Pulse:
         reshapes the raw microdata into a long format where each row is a
         question/response combination
         """
+        logger.info("Reshaping all responses from wide to long")
         self.longdf = self.df.melt(
             id_vars=self.meltvars + self.xtabs,
             value_vars=self.allqs,
@@ -199,6 +207,7 @@ class Pulse:
         drops missing responses depending on the type of question (select all
         vs select one) since they are encoded differently.
         """
+        logger.info("Dropping missing or empty responses")
         longdf = self.longdf
         qumdf = self.qumdf
         longdf = longdf.merge(
@@ -251,6 +260,7 @@ class Pulse:
         recodes the numeric values from the original data into new categories
         (fewer) for each question in the data
         """
+        logger.info("Recoding values based on mapping from Google Sheets")
         resdf = self.resdf
         longdf = self.longdf
 
@@ -294,6 +304,7 @@ class Pulse:
         been edited across the survey waves so that they represent the same
         question in the final time series processed data.
         """
+        logger.info("Coalescing variables that change over time.")
         qumdf = self.qumdf
         auxdf = qumdf[qumdf["variable_recode"].notnull()]
         recodemap = dict(zip(auxdf["variable"], auxdf["variable_recode"]))
@@ -313,6 +324,7 @@ class Pulse:
         Merges core-based statistical area information to the crosstab that
         uses this information.
         """
+        logger.info("Merging CBSA info to the responses.")
         ctabdf = self.ctabdf
         cmsdf = self.cmsdf
 
@@ -332,6 +344,7 @@ class Pulse:
         """
         reorganize columns before upload for easier inspection
         """
+        logger.info("Reordering columns for final output.")
         ctabdf = self.ctabdf
         wgtcols = ctabdf.columns[ctabdf.columns.str.contains("weight")]
         ctabdf["week"] = self.week
@@ -370,6 +383,11 @@ class Pulse:
 
         auxs = []
         for xtab_var in self.xtabs:
+            logger.info(
+                "Aggregating weights types %s for the %s xtab_var",
+                weight_type,
+                xtab_var,
+            )
             auxdf = df.groupby([xtab_var, "q_var", "q_val"])[wgtcols].sum()
             self._get_conf_intervals(auxdf, weight_type)
 
@@ -430,6 +448,7 @@ class Pulse:
             cval (float): the critical value for the confidence interval.
                 Defaults to 1.645,
         """
+        logger.info("Calculating confidence intervals for each question")
         # here we subtract the replicate weights from the main weight col
         # broadcasting across the columns
         diffdf = df.filter(regex=rf"{weight_type}.*\d{{1,2}}").sub(

@@ -13,6 +13,7 @@ import json
 import warnings
 from datetime import datetime
 from typing import Optional
+import logging
 
 import boto3
 import mysql.connector
@@ -22,6 +23,8 @@ from mysql.connector import Error, MySQLConnection
 from mysql.connector.cursor import MySQLCursor
 
 from household_pulse.downloader import DataLoader
+
+logger = logging.getLogger(__name__)
 
 
 class PulseSQL:
@@ -54,14 +57,16 @@ class PulseSQL:
         df = self._convert_nans(df=df)
         try:
             c: MySQLCursor = self.conn.cursor()
+            logger.info("Inserting %s records into table %s", len(df), table)
             c.executemany(query, df.values.tolist())
             if commit:
+                logger.info("Committing transaction to RDS")
                 self.conn.commit()
             c.close()
         except Error as error:
             self.conn.rollback()
             c.close()
-            self.conn.close()
+            self.close_connection()
             raise error
 
     def update_values(self, table: str, df: pd.DataFrame) -> None:
@@ -95,6 +100,7 @@ class PulseSQL:
         Returns:
             int: latest week loaded into RDS
         """
+        logger.info("Fetching latest week from RDS")
         c: MySQLCursor = self.conn.cursor()
         c.execute("SELECT MAX(week) FROM pulse;")
         result = int(c.fetchone()[0])
@@ -109,6 +115,7 @@ class PulseSQL:
         Returns:
             tuple[int, ...]: All the weeks that are available on the RDS DB.
         """
+        logger.info("Fetching set of available weeks in RDS")
         c: MySQLCursor = self.conn.cursor()
         c.execute("SELECT DISTINCT(week) FROM pulse ORDER BY week;")
         result = tuple(int(x[0]) for x in c.fetchall())
@@ -123,6 +130,7 @@ class PulseSQL:
         Returns:
             set[int]: All available collection weeks from RDS.
         """
+        logger.info("Fetching collection dates from RDS")
         c: MySQLCursor = self.conn.cursor()
         c.execute("SELECT DISTINCT week FROM collection_dates;")
         result = set(int(x[0]) for x in c.fetchall())
@@ -140,6 +148,7 @@ class PulseSQL:
             dict[str, datetime]: a dictionary with the publication, start and
                 end dates for a specific survey wave
         """
+        logger.info("Fetching collection dates for week %s", week)
         c: MySQLCursor = self.conn.cursor()
         c.execute(
             """
@@ -153,13 +162,17 @@ class PulseSQL:
         results = c.fetchall()
         c.close()
         if len(results) == 0:
-            raise KeyError(f"week {week} not found in collection_dates table")
+            error = KeyError(
+                f"week {week} not found in collection_dates table"
+            )
+            raise error
         return dict(zip(colnames, *results))
 
     def close_connection(self) -> None:
         """
         Closes the connection to the DB
         """
+        logger.info("Closing active RDS connection")
         self.conn.close()
 
     def get_pulse_table(self, query: Optional[str] = None) -> pd.DataFrame:
@@ -175,6 +188,7 @@ class PulseSQL:
         Returns:
             pd.DataFrame: the entire table as a dataframe object
         """
+        logger.info("Fetching entire pulse table from RDS")
         try:
             if query is None:
                 query = """SELECT * FROM pulse.pulse;"""
@@ -184,6 +198,9 @@ class PulseSQL:
                 # sql alchemy
                 warnings.simplefilter("ignore")
                 df = pd.read_sql(sql=query, con=self.conn)
+
+                if len(df) == 0:  # pragma: no cover
+                    logger.warning("No records found for query %s", query)
         except Error as e:
             self.conn.rollback()
             self.close_connection()
@@ -199,6 +216,7 @@ class PulseSQL:
         Returns:
             pd.DataFrame: pulse columns with the added smoothed pweight share
         """
+        logger.info("Fetching pulse table from RDS with smoothed values")
         query = """
             SELECT week,
                 xtab_var,
@@ -223,9 +241,11 @@ class PulseSQL:
         truncates the current `collection_dates` table and uploads the latest
         collection dates into the RDS database.
         """
+        logger.info("Updating collection dates in RDS")
         dl = DataLoader()
         collection_dates = dl.load_collection_dates()
         c: MySQLCursor = self.conn.cursor()
+        logger.info("Truncating collection_dates table")
         c.execute("TRUNCATE pulse.collection_dates")
         c.close()
 
@@ -239,6 +259,7 @@ class PulseSQL:
         starts connection to the DB. gets called automatically when the class
         is instantiated, ability to re run it to reconnect if needed.
         """
+        logger.info("Establishing connection to the RDS database")
         self.conn: MySQLConnection = mysql.connector.connect(
             **self._load_rds_creds()
         )
@@ -264,6 +285,9 @@ class PulseSQL:
             week (int): the week to remove from the pulse table
             commit (bool): whether to commit the deletion or delay it
         """
+        logger.info(
+            "Deleting records from RDS table %s for week %s", table, week
+        )
         self._refresh_connection()
         query = f"""
             DELETE FROM {table}
@@ -297,6 +321,7 @@ class PulseSQL:
             dict[str, str]: connection config dict
         """
         secret_name = "prod/pulse/rds"
+        logger.info("Fetching secret %s from AWS SecretsManager", secret_name)
 
         session = boto3.Session()
         client = session.client(

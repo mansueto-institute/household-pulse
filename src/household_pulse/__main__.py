@@ -11,6 +11,7 @@ Created on Saturday, 23rd October 2021 1:57:08 pm
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional
+import logging
 
 import requests
 from tqdm import tqdm
@@ -20,6 +21,8 @@ from household_pulse.mysql_wrapper import PulseSQL
 from household_pulse.preload_data.fetch_and_cache import build_front_cache
 from household_pulse.pulse import Pulse
 from household_pulse.smoothing import smooth_pulse
+
+logging.basicConfig(level=logging.INFO)
 
 
 class PulseCLI:
@@ -367,6 +370,7 @@ class PulseCLI:
         """
         Sends a build request to the vercel app
         """
+        logging.info("Sending build request to Vercel app")
         url = (
             "https://api.vercel.com/v1/integrations/deploy/"
             "prj_k6aFic5qukpPKfa7lZAAMMUmdpZO/mOJDLGgcJw"

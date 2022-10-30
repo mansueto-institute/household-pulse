@@ -11,6 +11,7 @@ Created on Monday, 21st March 2022 7:00:00 pm
 ===============================================================================
 """
 import json
+import logging
 import re
 import tarfile
 from datetime import date, datetime
@@ -23,6 +24,8 @@ import pandas as pd
 import requests
 from botocore.exceptions import ClientError
 from bs4 import BeautifulSoup
+
+logger = logging.getLogger(__name__)
 
 
 class DataLoader:
@@ -58,6 +61,7 @@ class DataLoader:
                 df = self._download_from_census(week=week)
                 self._upload_to_s3(df=df, week=week)
             else:
+                logger.error(e)
                 raise e
 
         return df
@@ -80,6 +84,7 @@ class DataLoader:
         fileobj = BytesIO()
         with tarfile.open(mode="w:gz", fileobj=fileobj) as tar_file:
             for fname, data in files.items():
+                logger.info("Compressing cache files for %s", fname)
                 with BytesIO() as out_stream:
                     if isinstance(data, dict):
                         out_stream.write(json.dumps(data).encode())
@@ -89,6 +94,9 @@ class DataLoader:
                     finfo = tarfile.TarInfo(fname)
                     finfo.size = len(out_stream.getbuffer())
                     tar_file.addfile(finfo, out_stream)
+        logger.info(
+            "Uploading compressed file: %s into S3 bucket: %s", tarname, bucket
+        )
         self.s3.put_object(Body=fileobj.getvalue(), Bucket=bucket, Key=tarname)
         fileobj.close()
 
@@ -97,6 +105,9 @@ class DataLoader:
         """
         creates a dictionary that maps each week to a year
         """
+        logger.info(
+            "Scraping the census website to construct the year mapping"
+        )
         r = requests.get(self.base_census_url)
         soup = BeautifulSoup(r.text, "html.parser")
 
@@ -126,10 +137,15 @@ class DataLoader:
         Returns:
             pd.DataFrame: Raw response data with availaible weights merged
         """
-        s3obj = self.s3.get_object(
-            Bucket="household-pulse",
-            Key=f"raw-files/pulse-{week}.parquet.gzip",
-        )
+        try:
+            logger.info("Downloading parquet file from S3 for week %s", week)
+            s3obj = self.s3.get_object(
+                Bucket="household-pulse",
+                Key=f"raw-files/pulse-{week}.parquet.gzip",
+            )
+        except ClientError as e:
+            logger.error(e)
+            raise e
 
         df = pd.read_parquet(BytesIO(s3obj["Body"].read()))
 
@@ -147,7 +163,9 @@ class DataLoader:
             pd.DataFrame: the weeks census household pulse data merged with the
                 weights csv
         """
-
+        logger.info(
+            "Downloading files from the census website for week %s", week
+        )
         url = "".join((self.base_census_url, self._make_data_url(week)))
         r = requests.get(url)
 
@@ -180,6 +198,7 @@ class DataLoader:
         Returns:
             pd.DataFrame: household weights file
         """
+        logger.info("Download household weights for week %s", week)
         if week >= 13:
             raise ValueError(
                 f"This should only be used for weeks < 13. Week is {week}"
@@ -203,6 +222,7 @@ class DataLoader:
             df (pd.DataFrame): Dataframe to upload
             week (int): The pulse survey week. Used for the file key.
         """
+        logger.info("Uploading parquet file to S3 for week %s", week)
         buffer = BytesIO()
         df.to_parquet(buffer, index=False, compression="gzip")
         self.s3.put_object(
@@ -228,10 +248,10 @@ class DataLoader:
 
         year = self.get_week_year_map()[week]
         weekstr: str = str(week).zfill(2)
+
         if hweights:
             return f"{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv"
-        else:
-            return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
+        return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
 
     def _make_data_fname(self, week: int, fname: str) -> str:
         """
@@ -281,6 +301,7 @@ class DataLoader:
         if sheetname not in sheetids:
             raise ValueError(f"{sheetname} not in {sheetids.keys()}")
 
+        logger.info("Loading Google Sheet %s as a csv", sheetname)
         df = pd.read_csv(
             f"{baseurl}/{ssid}/export?format=csv&gid={sheetids[sheetname]}"
         )
@@ -298,6 +319,8 @@ class DataLoader:
             dict[int, dict[str, date]]]: dictionary with weeks as keys and the
                 publication and collection dates.
         """
+        logger.info("Scraping the census website for collection dates")
+
         weekpat = re.compile(r"Week (\d{1,2})")
         monthpat = re.compile(r"[A-z]+ \d{1,2}(?:, \d{4})?")
 
@@ -323,7 +346,7 @@ class DataLoader:
             pubtexts = phase.find_all("div", "uscb-default-x-column-date")
             coltexts = phase.find_all("div", "uscb-default-x-column-content")
             for wektext, pubtext, coltext in zip(wektexts, pubtexts, coltexts):
-                pubdate = datetime.strptime(pubtext.text, "%B %d, %Y")
+                pubdate = datetime.strptime(pubtext.text.strip(), "%B %d, %Y")
 
                 colstrs = re.findall(monthpat, coltext.text)
                 enddate = datetime.strptime(colstrs[1], "%B %d, %Y")
