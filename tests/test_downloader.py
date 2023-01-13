@@ -249,10 +249,10 @@ class TestMethods:
     @patch.object(
         DataLoader,
         "get_week_year_map",
-        MagicMock(return_value={10: 2020, 13: 2020}),
+        MagicMock(return_value={10: 2020, 13: 2020, 52: 2023}),
     )
     @pytest.mark.parametrize(
-        "week,fname", ((13, "j"), (13, "d"), (10, "w"), (10, "d"))
+        "week,fname", ((13, "j"), (13, "d"), (10, "w"), (10, "d"), (52, "d"))
     )
     def test_make_data_fname(
         week: int, fname: str, dataloader: DataLoader
@@ -260,6 +260,12 @@ class TestMethods:
         if fname not in {"d", "w"}:
             with pytest.raises(ValueError):
                 dataloader._make_data_fname(week=week, fname=fname)
+        # this tests for an ad-hoc issue on the census website
+        elif week == 52:
+            expected = f"pulse2022_puf_{week}.csv"
+            assert expected == dataloader._make_data_fname(
+                week=week, fname=fname
+            )
         else:
             if fname == "d":
                 expected = f"pulse2020_puf_{week}.csv"
