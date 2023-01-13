@@ -163,11 +163,17 @@ class TestMethods:
 
     @staticmethod
     @patch("household_pulse.__main__.requests")
-    def test_build_request(mock_requests: MagicMock, capsys):
+    @patch("boto3.session.Session.client")
+    def test_build_request(mock_client: MagicMock, mock_requests: MagicMock):
+        mock_client.return_value.get_secret_value.return_value = {
+            "SecretString": '{"token": "123"}'
+        }
         mock_requests.get.return_value.json.return_value = {"123": "123"}
         PulseCLI._build_request()
-        captured = capsys.readouterr()
-        assert captured.out == "{'123': '123'}\n"
+        mock_client.assert_called_once()
+        mock_client.return_value.get_secret_value.assert_called_once_with(
+            SecretId="prod/pulse/github"
+        )
 
 
 class TestETLSubcommand:
