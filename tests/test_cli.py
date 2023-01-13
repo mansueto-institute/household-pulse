@@ -16,6 +16,8 @@ from typing import Optional
 from unittest.mock import MagicMock, call, patch
 
 import pytest
+from botocore.exceptions import ClientError
+
 from household_pulse.__main__ import PulseCLI
 
 
@@ -170,6 +172,20 @@ class TestMethods:
         }
         mock_requests.get.return_value.json.return_value = {"123": "123"}
         PulseCLI._build_request()
+        mock_client.assert_called_once()
+        mock_client.return_value.get_secret_value.assert_called_once_with(
+            SecretId="prod/pulse/github"
+        )
+
+    @staticmethod
+    @patch("boto3.session.Session.client")
+    def test_build_request_no_secret(mock_client: MagicMock):
+        mock_client.return_value.get_secret_value.side_effect = ClientError(
+            error_response={"Error": {"Code": "ResourceNotFoundException"}},
+            operation_name="get_secret_value",
+        )
+        with pytest.raises(ClientError):
+            PulseCLI._build_request()
         mock_client.assert_called_once()
         mock_client.return_value.get_secret_value.assert_called_once_with(
             SecretId="prod/pulse/github"
