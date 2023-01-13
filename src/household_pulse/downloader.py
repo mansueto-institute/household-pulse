@@ -269,6 +269,9 @@ class DataLoader:
             raise ValueError("fname muts be in {'d', 'w'}")
 
         year = self.get_week_year_map()[week]
+        # 2023 week 52 is actually 2022 week 52 due to a census bug
+        if year == 2023 and week == 52:
+            year = 2022
         weekstr: str = str(week).zfill(2)
         if fname == "d":
             return f"pulse{year}_puf_{weekstr}.csv"
