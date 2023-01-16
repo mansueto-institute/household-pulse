@@ -379,8 +379,7 @@ class PulseCLI:
 
         session = boto3.session.Session()
         client = session.client(
-            service_name="secretsmanager",
-            region_name=region_name
+            service_name="secretsmanager", region_name=region_name
         )
         try:
             response = client.get_secret_value(SecretId=secret_name)
@@ -397,7 +396,7 @@ class PulseCLI:
         headers = {
             "Accept": "application/vnd.github+json",
             "Authorization": secret,
-            "X-GitHub-Api-Version": "2022-11-28"
+            "X-GitHub-Api-Version": "2022-11-28",
         }
         data = {"event_type": "webhook"}
         r = requests.post(url, json=data, headers=headers, timeout=5)

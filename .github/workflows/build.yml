@@ -30,7 +30,7 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          flake8 household_pulse --count --exit-zero --max-complexity=15 --max-line-length=80 --statistics
+          flake8 ./src/household_pulse --count --exit-zero --max-complexity=15 --max-line-length=80 --statistics
 
       - name: Lint with mypy
         run: |
