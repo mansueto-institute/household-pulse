@@ -13,7 +13,7 @@ Created on Saturday, 15th October 2022 4:14:15 pm
 
 import warnings
 from typing import Generator
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -33,6 +33,16 @@ def test_smooth_pulse(mocksql, pulsedf: pd.DataFrame) -> None:
     sql = mocksql.return_value
     sql.get_pulse_table.return_value = pulsedf
     smoothing.smooth_pulse()
+
+
+@patch("household_pulse.smoothing.PulseSQL")
+@patch("household_pulse.smoothing.os")
+def test_smooth_pulse_no_cores(mockos, mocksql, pulsedf: pd.DataFrame) -> None:
+    sql = mocksql.return_value
+    sql.get_pulse_table.return_value = pulsedf
+    mockos.cpu_count.return_value = None
+    smoothing.smooth_pulse()
+    mockos.cpu_count.assert_called_once()
 
 
 def test_smooth_group(pulsedf: pd.DataFrame) -> None:

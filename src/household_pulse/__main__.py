@@ -8,12 +8,15 @@ Created on Saturday, 23rd October 2021 1:57:08 pm
 @purpose:   main cli for household pulse ETLs
 ===============================================================================
 """
+import json
+import logging
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional
-import logging
 
+import boto3
 import requests
+from botocore.exceptions import ClientError
 from tqdm import tqdm
 
 from household_pulse.downloader import DataLoader
@@ -370,13 +373,34 @@ class PulseCLI:
         """
         Sends a build request to the vercel app
         """
-        logging.info("Sending build request to Vercel app")
-        url = (
-            "https://api.vercel.com/v1/integrations/deploy/"
-            "prj_k6aFic5qukpPKfa7lZAAMMUmdpZO/mOJDLGgcJw"
+
+        secret_name = "prod/pulse/github"
+        region_name = "us-east-2"
+
+        session = boto3.session.Session()
+        client = session.client(
+            service_name="secretsmanager", region_name=region_name
         )
-        r = requests.get(url)
-        print(r.json())
+        try:
+            response = client.get_secret_value(SecretId=secret_name)
+        except ClientError as e:
+            raise e
+
+        secret = json.loads(response["SecretString"])["token"]
+
+        logging.info("Sending build request to GitHub actions")
+        url = (
+            "https://api.github.com/repos/nofurtherinformation/pulse-frontend/"
+            "dispatches"
+        )
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "Authorization": secret,
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        data = {"event_type": "webhook"}
+        r = requests.post(url, json=data, headers=headers, timeout=5)
+        print(r)
 
 
 def main() -> None:
