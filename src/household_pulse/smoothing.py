@@ -11,7 +11,9 @@ Created on Friday, 22nd April 2022 5:09:03 pm
 ===============================================================================
 """
 import logging
+import os
 import warnings
+from multiprocessing import Pool
 
 import pandas as pd
 import statsmodels.api as sm
@@ -19,8 +21,6 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from household_pulse.mysql_wrapper import PulseSQL
-
-tqdm.pandas()
 
 logger = logging.getLogger(__name__)
 
@@ -46,15 +46,17 @@ def smooth_group(group: pd.DataFrame, frac: float = 0.2) -> pd.DataFrame:
         "hweight_lower_share",
         "hweight_upper_share",
     ]
-    for wcol in wcols:
-        smoothed = sm.nonparametric.lowess(
-            exog=group["end_date"],
-            endog=group[wcol],
-            frac=frac,
-            is_sorted=True,
-        )
-        group[f"{wcol}_smoothed"] = smoothed[:, 1]
-        group.drop(columns=wcol, inplace=True)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for wcol in wcols:
+            smoothed = sm.nonparametric.lowess(
+                exog=group["end_date"],
+                endog=group[wcol],
+                frac=frac,
+                is_sorted=True,
+            )
+            group[f"{wcol}_smoothed"] = smoothed[:, 1]
+            group.drop(columns=wcol, inplace=True)
 
     return group
 
@@ -117,12 +119,21 @@ def smooth_pulse() -> None:
     )
     df["end_date"] = pd.to_datetime(df["end_date"])
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        with logging_redirect_tqdm():
-            df = df.groupby(
-                by=["xtab_var", "xtab_val", "q_var", "q_val"], sort=False
-            ).progress_apply(smooth_group)
+    groups = df.groupby(["xtab_var", "xtab_val", "q_var", "q_val"])
+    group_dfs = (group for _, group in groups)
+    ncpu = os.cpu_count()
+    if ncpu is None:
+        cpus = 1
+    else:
+        cpus = ncpu - 1
+    with logging_redirect_tqdm():
+        with Pool(cpus) as p:
+            results = tqdm(
+                p.imap(smooth_group, group_dfs),
+                total=len(groups),
+                desc="Smoothing",
+            )
+            df = pd.concat(results)
     df.drop(columns="end_date", inplace=True)
     df = normalize_smoothed(df)
     sql.update_values(table="smoothed", df=df)
