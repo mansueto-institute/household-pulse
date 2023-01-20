@@ -43,9 +43,10 @@ class DataLoader:
         default="https://www2.census.gov/programs-surveys/demo/datasets/hhp/",
         repr=False,
     )
-    s3: boto3.client = field(
-        init=False, default=boto3.client("s3"), repr=False
-    )
+    s3: boto3.client = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self.s3 = boto3.client("s3")
 
     @property  # type: ignore
     def week(self) -> int:
