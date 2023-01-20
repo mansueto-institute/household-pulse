@@ -242,8 +242,7 @@ class PulseSQL:
         collection dates into the RDS database.
         """
         logger.info("Updating collection dates in RDS")
-        dl = DataLoader()
-        collection_dates = dl.load_collection_dates()
+        collection_dates = DataLoader.load_collection_dates()
         c: MySQLCursor = self.conn.cursor()
         logger.info("Truncating collection_dates table")
         c.execute("TRUNCATE pulse.collection_dates")
