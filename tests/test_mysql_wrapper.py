@@ -218,7 +218,7 @@ class TestClassMethods:
         mockdl: MagicMock, pulsesql: PulseSQL
     ) -> None:
         pulsesql.update_collection_dates()
-        mockdl.return_value.load_collection_dates.assert_called_once()
+        mockdl.load_collection_dates.assert_called_once()
         pulsesql.append_values.assert_called_once()
 
     @staticmethod
