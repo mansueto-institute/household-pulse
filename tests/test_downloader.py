@@ -73,6 +73,14 @@ class TestInstantiation:
     def test_instantiation(dataloader: DataLoader) -> None:
         assert dataloader
 
+    @staticmethod
+    def test_bad_instance() -> None:
+        with pytest.raises(TypeError):
+            DataLoader()
+
+        with pytest.raises(TypeError):
+            DataLoader(week="1")
+
 
 class TestMethods:
     """
