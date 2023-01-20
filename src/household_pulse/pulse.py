@@ -15,8 +15,9 @@ import logging
 
 import numpy as np
 import pandas as pd
+from botocore.exceptions import ClientError
 
-from household_pulse.downloader import DataLoader
+from household_pulse.io import Census, S3Storage, load_gsheet
 from household_pulse.mysql_wrapper import PulseSQL
 
 logger = logging.getLogger(__name__)
@@ -45,13 +46,13 @@ class Pulse:
         Args:
             week (int): specifies which week to run the data for.
         """
-        self.dl = DataLoader(week=week)
         self.week = week
-        self.cmsdf = self.dl.load_gsheet("county_metro_state")
-        self.qumdf = self.dl.load_gsheet("question_mapping")
-        self.resdf = self.dl.load_gsheet("response_mapping")
-        self.mapdf = self.dl.load_gsheet("numeric_mapping")
+        self.cmsdf = load_gsheet("county_metro_state")
+        self.qumdf = load_gsheet("question_mapping")
+        self.resdf = load_gsheet("response_mapping")
+        self.mapdf = load_gsheet("numeric_mapping")
         self.ctabdf: pd.DataFrame
+        self.df: pd.DataFrame
 
     def process_data(self) -> None:
         """
@@ -94,8 +95,20 @@ class Pulse:
         """
         downloads puf data and stores it into the class' state
         """
-        self.df = self.dl.load_week()
-        self.df["TOPLINE"] = 1
+        s3 = S3Storage(week=self.week)
+        try:
+            df = s3.download()
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                logger.info("Data not found in S3. Downloading from census")
+                df = Census(week=self.week).download()
+                s3.upload(df)
+            else:
+                logger.error(e)
+                raise e
+
+        df["TOPLINE"] = 1
+        self.df = df
 
     def _calculate_ages(self) -> None:
         """
