@@ -108,7 +108,7 @@ class DataLoader:
         logger.info(
             "Scraping the census website to construct the year mapping"
         )
-        r = requests.get(self.base_census_url)
+        r = requests.get(self.base_census_url, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
 
         yearlinks = soup.find_all("a", {"href": re.compile(r"\d{4}/")})
@@ -117,7 +117,7 @@ class DataLoader:
         weekyrmap = {}
         for year in years:
             yearint = int(re.sub(r"\D", "", year))
-            r = requests.get("".join((self.base_census_url, year)))
+            r = requests.get("".join((self.base_census_url, year)), timeout=10)
             soup = BeautifulSoup(r.text, "html.parser")
             weeklinks = soup.find_all("a", {"href": re.compile(r"wk\d{1,2}/")})
             weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
@@ -167,7 +167,7 @@ class DataLoader:
             "Downloading files from the census website for week %s", week
         )
         url = "".join((self.base_census_url, self._make_data_url(week)))
-        r = requests.get(url)
+        r = requests.get(url, timeout=10)
 
         with ZipFile(BytesIO(r.content), mode="r") as zipfile:
             with zipfile.open(self._make_data_fname(week, "d")) as datacsv:
@@ -335,7 +335,7 @@ class DataLoader:
                 "data.html",
             )
         )
-        page = requests.get(url)
+        page = requests.get(url, timeout=10)
         soup = BeautifulSoup(page.content, "html.parser")
         phases = soup.find_all(
             "div", {"class": "data-uscb-list-articles-container"}
