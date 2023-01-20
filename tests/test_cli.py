@@ -115,7 +115,7 @@ class TestMethods:
             mock_sql.return_value.get_latest_week.return_value = 40
             assert PulseCLI.get_latest_week(target=target) == 40
         else:
-            mock_dl.return_value.get_week_year_map.return_value = {
+            mock_dl.get_week_year_map.return_value = {
                 39: 2022,
                 40: 2022,
             }
@@ -135,7 +135,7 @@ class TestMethods:
             mock_sql.return_value.get_available_weeks.return_value = (39, 40)
             assert PulseCLI.get_all_weeks(target=target) == (39, 40)
         else:
-            mock_dl.return_value.get_week_year_map.return_value = {
+            mock_dl.get_week_year_map.return_value = {
                 39: 2022,
                 40: 2022,
             }
@@ -278,7 +278,7 @@ class TestETLSubcommand:
     def test_etl_backfill(
         mock_sql: MagicMock, mock_dl: MagicMock, mock_pulse: MagicMock
     ):
-        mock_dl.return_value.get_week_year_map.return_value = {
+        mock_dl.get_week_year_map.return_value = {
             40: 2022,
             41: 2022,
         }
