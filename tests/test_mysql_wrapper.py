@@ -19,15 +19,22 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 from botocore.exceptions import ClientError
+from mysql.connector import CMySQLConnection
+
 from household_pulse.mysql_wrapper import Error, PulseSQL
 
 
 @pytest.fixture
 def pulsesql() -> Generator[PulseSQL, None, None]:
-    with patch("household_pulse.mysql_wrapper.mysql.connector"):
+    with patch(
+        "household_pulse.mysql_wrapper.mysql.connector"
+    ) as mock_connector:
         with patch.object(
             PulseSQL, "_load_rds_creds", MagicMock(return_value={})
         ):
+            mock_connector.connect.return_value = MagicMock(
+                name="conn", spec=CMySQLConnection
+            )
             pulsesql = PulseSQL()
             yield pulsesql
 
@@ -98,7 +105,7 @@ class TestClassMethods:
     def test_get_latest_week(pulsesql: PulseSQL) -> None:
         mock_cursor = MagicMock(name="cursor")
         pulsesql.conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = ("10", None)
+        mock_cursor.fetchone.return_value = (10, None)
         result = pulsesql.get_latest_week()
         mock_cursor.execute.assert_called_once_with(
             "SELECT MAX(week) FROM pulse;"
@@ -109,7 +116,7 @@ class TestClassMethods:
     def test_get_available_weeks(pulsesql: PulseSQL) -> None:
         mock_cursor = MagicMock(name="cursor")
         pulsesql.conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = (("10", None), ("11", None))
+        mock_cursor.fetchall.return_value = [(10, None), (11, None)]
         result = pulsesql.get_available_weeks()
         mock_cursor.execute.assert_called_once_with(
             "SELECT DISTINCT(week) FROM pulse ORDER BY week;"
@@ -120,7 +127,7 @@ class TestClassMethods:
     def test_get_collection_weeks(pulsesql: PulseSQL) -> None:
         mock_cursor = MagicMock(name="cursor")
         pulsesql.conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = (("10", None), ("11", None))
+        mock_cursor.fetchall.return_value = [(10, None), (11, None)]
         result = pulsesql.get_collection_weeks()
         mock_cursor.execute.assert_called_once_with(
             "SELECT DISTINCT week FROM collection_dates;"
