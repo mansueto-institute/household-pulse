@@ -64,6 +64,8 @@ class DataLoader:
             raise TypeError(
                 "__init__() missing 1 required positional argument: 'week'"
             )
+        if not isinstance(value, int):
+            raise TypeError(f"week must be an integer, not {type(value)}")
         self._week = value
 
     @property
