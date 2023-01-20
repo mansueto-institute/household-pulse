@@ -45,7 +45,7 @@ class Pulse:
         Args:
             week (int): specifies which week to run the data for.
         """
-        self.dl = DataLoader()
+        self.dl = DataLoader(week=week)
         self.week = week
         self.cmsdf = self.dl.load_gsheet("county_metro_state")
         self.qumdf = self.dl.load_gsheet("question_mapping")
@@ -94,7 +94,7 @@ class Pulse:
         """
         downloads puf data and stores it into the class' state
         """
-        self.df = self.dl.load_week(week=self.week)
+        self.df = self.dl.load_week()
         self.df["TOPLINE"] = 1
 
     def _calculate_ages(self) -> None:
@@ -171,8 +171,8 @@ class Pulse:
             auxdf = mapdf[mapdf["variable"] == col]
             bins = pd.IntervalIndex.from_arrays(
                 left=auxdf["min_value"],
-                right=auxdf["max_value"],
-                closed="both",
+                right=auxdf["max_value"] + 1,
+                closed="left",
             )
             bucketized: pd.Series = pd.cut(df[col], bins=bins)
             if bucketized.isnull().sum() > 0:

@@ -10,17 +10,17 @@ Created on Saturday, 16th October 2021 1:35:51 pm
 ===============================================================================
 """
 import json
-import warnings
-from datetime import datetime
-from typing import Optional
 import logging
+import warnings
+from datetime import date
+from typing import Optional
 
 import boto3
 import mysql.connector
 import pandas as pd
 from botocore.exceptions import ClientError
-from mysql.connector import Error, MySQLConnection
-from mysql.connector.cursor import MySQLCursor
+from mysql.connector import CMySQLConnection, Error
+from mysql.connector.cursor_cext import CMySQLCursor
 
 from household_pulse.downloader import DataLoader
 
@@ -56,7 +56,7 @@ class PulseSQL:
         """
         df = self._convert_nans(df=df)
         try:
-            c: MySQLCursor = self.conn.cursor()
+            c: CMySQLCursor = self.conn.cursor()
             logger.info("Inserting %s records into table %s", len(df), table)
             c.executemany(query, df.values.tolist())
             if commit:
@@ -101,12 +101,14 @@ class PulseSQL:
             int: latest week loaded into RDS
         """
         logger.info("Fetching latest week from RDS")
-        c: MySQLCursor = self.conn.cursor()
+        c: CMySQLCursor = self.conn.cursor()
         c.execute("SELECT MAX(week) FROM pulse;")
-        result = int(c.fetchone()[0])
+        results = c.fetchone()
         c.close()
 
-        return result
+        if not isinstance(results, tuple) or not isinstance(results[0], int):
+            raise ValueError("No data found in RDS")
+        return results[0]
 
     def get_available_weeks(self) -> tuple[int, ...]:
         """
@@ -116,12 +118,16 @@ class PulseSQL:
             tuple[int, ...]: All the weeks that are available on the RDS DB.
         """
         logger.info("Fetching set of available weeks in RDS")
-        c: MySQLCursor = self.conn.cursor()
+        c: CMySQLCursor = self.conn.cursor()
         c.execute("SELECT DISTINCT(week) FROM pulse ORDER BY week;")
-        result = tuple(int(x[0]) for x in c.fetchall())
+        results = c.fetchall()
         c.close()
 
-        return result
+        if not isinstance(results, list) or not isinstance(results[0], tuple):
+            raise ValueError("No data found in RDS")
+        return tuple(
+            result[0] for result in results if isinstance(result[0], int)
+        )
 
     def get_collection_weeks(self) -> set[int]:
         """
@@ -131,13 +137,16 @@ class PulseSQL:
             set[int]: All available collection weeks from RDS.
         """
         logger.info("Fetching collection dates from RDS")
-        c: MySQLCursor = self.conn.cursor()
+        c: CMySQLCursor = self.conn.cursor()
         c.execute("SELECT DISTINCT week FROM collection_dates;")
-        result = set(int(x[0]) for x in c.fetchall())
+        results = c.fetchall()
         c.close()
-        return result
 
-    def get_pulse_dates(self, week: int) -> dict[str, datetime]:
+        if not isinstance(results, list) or not isinstance(results[0], tuple):
+            raise ValueError("No data found in RDS")
+        return set(int(x[0]) for x in results if isinstance(x[0], int))
+
+    def get_pulse_dates(self, week: int) -> dict[str, date]:
         """
         fetches the collection dates associated with a pulse week
 
@@ -145,11 +154,11 @@ class PulseSQL:
             week (int): week to search for
 
         Returns:
-            dict[str, datetime]: a dictionary with the publication, start and
+            dict[str, date]: a dictionary with the publication, start and
                 end dates for a specific survey wave
         """
         logger.info("Fetching collection dates for week %s", week)
-        c: MySQLCursor = self.conn.cursor()
+        c: CMySQLCursor = self.conn.cursor()
         c.execute(
             """
             SELECT *
@@ -158,15 +167,26 @@ class PulseSQL:
             """,
             (week,),
         )
-        colnames = [desc[0] for desc in c.description]
+        desc = c.description
         results = c.fetchall()
         c.close()
+
         if len(results) == 0:
             error = KeyError(
                 f"week {week} not found in collection_dates table"
             )
             raise error
-        return dict(zip(colnames, *results))
+
+        if (
+            not isinstance(results, list)
+            or not isinstance(results[0], tuple)
+            or not isinstance(desc, list)
+        ):
+            raise ValueError("No data found in RDS")
+
+        colnames = [desc[0] for desc in desc]
+
+        return dict(zip(colnames, *results))  # type: ignore
 
     def close_connection(self) -> None:
         """
@@ -204,7 +224,7 @@ class PulseSQL:
         except Error as e:
             self.conn.rollback()
             self.close_connection()
-            raise Error(e) from e
+            raise e from e
 
         return df
 
@@ -242,9 +262,8 @@ class PulseSQL:
         collection dates into the RDS database.
         """
         logger.info("Updating collection dates in RDS")
-        dl = DataLoader()
-        collection_dates = dl.load_collection_dates()
-        c: MySQLCursor = self.conn.cursor()
+        collection_dates = DataLoader.load_collection_dates()
+        c: CMySQLCursor = self.conn.cursor()
         logger.info("Truncating collection_dates table")
         c.execute("TRUNCATE pulse.collection_dates")
         c.close()
@@ -260,9 +279,12 @@ class PulseSQL:
         is instantiated, ability to re run it to reconnect if needed.
         """
         logger.info("Establishing connection to the RDS database")
-        self.conn: MySQLConnection = mysql.connector.connect(
-            **self._load_rds_creds()
-        )
+        conn = mysql.connector.connect(**self._load_rds_creds())
+        if not isinstance(conn, CMySQLConnection):
+            raise NotImplementedError(
+                f"Connection class {type(conn)} not supported yet."
+            )
+        self.conn: CMySQLConnection = conn
 
     def _convert_nans(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -294,7 +316,7 @@ class PulseSQL:
             WHERE week = %s
         """
         try:
-            c: MySQLCursor = self.conn.cursor()
+            c: CMySQLCursor = self.conn.cursor()
             c.execute(query, (week,))
             if commit:
                 self.conn.commit()

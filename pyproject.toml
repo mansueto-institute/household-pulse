@@ -6,7 +6,7 @@ description = """
     """
 readme = "README.md"
 requires-python = ">=3.9"
-version = "1.7.1"
+version = "1.7.2"
 authors = [
     {name = "Manuel Martinez", email = "manmart@uchicago.edu"}
 ]
@@ -31,6 +31,7 @@ line-length = 79
 
 [tool.mypy]
 ignore_missing_imports = true
+packages = ["src"]
 
 [tool.pytest.ini_options]
 addopts = [

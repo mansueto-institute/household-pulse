@@ -99,8 +99,8 @@ class PulseCLI:
             file_prefix="pulse-raw",
             week=self.args.week,
         )
-        dl = DataLoader()
-        df = dl.load_week(week=self.args.week)
+        dl = DataLoader(week=self.args.week)
+        df = dl.load_week()
         df.to_csv(outfile, index=False)
 
     def etl_subcommand(self) -> None:
@@ -145,8 +145,7 @@ class PulseCLI:
                 pulse.upload_data()
 
         elif self.args.backfill:
-            dl = DataLoader()
-            cenweeks = dl.get_week_year_map().keys()
+            cenweeks = DataLoader.get_week_year_map().keys()
 
             sql = PulseSQL()
             rdsweeks = sql.get_available_weeks()
@@ -311,8 +310,7 @@ class PulseCLI:
             week = sql.get_latest_week()
             sql.close_connection()
         elif target == "census":  # pragma: no branch
-            dl = DataLoader()
-            week = max(dl.get_week_year_map().keys())
+            week = max(DataLoader.get_week_year_map().keys())
 
         return week
 
@@ -335,8 +333,7 @@ class PulseCLI:
             weeks = sql.get_available_weeks()
             sql.close_connection()
         elif target == "census":  # pragma: no branch
-            dl = DataLoader()
-            weeks = tuple(sorted(dl.get_week_year_map().keys()))
+            weeks = tuple(sorted(DataLoader.get_week_year_map().keys()))
 
         return weeks
 
