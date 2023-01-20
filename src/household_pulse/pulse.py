@@ -171,8 +171,8 @@ class Pulse:
             auxdf = mapdf[mapdf["variable"] == col]
             bins = pd.IntervalIndex.from_arrays(
                 left=auxdf["min_value"],
-                right=auxdf["max_value"],
-                closed="both",
+                right=auxdf["max_value"] + 1,
+                closed="left",
             )
             bucketized: pd.Series = pd.cut(df[col], bins=bins)
             if bucketized.isnull().sum() > 0:
