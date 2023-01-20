@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from functools import lru_cache
 from io import BytesIO
+from typing import ClassVar
 from zipfile import ZipFile
 
 import boto3
@@ -38,12 +39,10 @@ class DataLoader:
 
     week: int
     _week: int = field(init=False, repr=False)
-    base_census_url: str = field(
-        init=False,
-        default="https://www2.census.gov/programs-surveys/demo/datasets/hhp/",
-        repr=False,
-    )
     s3: boto3.client = field(init=False, repr=False)
+    base_census_url: ClassVar[
+        str
+    ] = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
 
     def __post_init__(self) -> None:
         self.s3 = boto3.client("s3")
@@ -137,33 +136,6 @@ class DataLoader:
         )
         self.s3.put_object(Body=fileobj.getvalue(), Bucket=bucket, Key=tarname)
         fileobj.close()
-
-    @lru_cache(maxsize=10)
-    def get_week_year_map(self) -> dict[int, int]:
-        """
-        creates a dictionary that maps each week to a year
-        """
-        logger.info(
-            "Scraping the census website to construct the year mapping"
-        )
-        r = requests.get(self.base_census_url, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-
-        yearlinks = soup.find_all("a", {"href": re.compile(r"\d{4}/")})
-        years: list[str] = [yearlink.get_text() for yearlink in yearlinks]
-
-        weekyrmap = {}
-        for year in years:
-            yearint = int(re.sub(r"\D", "", year))
-            r = requests.get("".join((self.base_census_url, year)), timeout=10)
-            soup = BeautifulSoup(r.text, "html.parser")
-            weeklinks = soup.find_all("a", {"href": re.compile(r"wk\d{1,2}/")})
-            weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
-            for week in weeks:
-                weekint = int(re.sub(r"\D", "", week))
-                weekyrmap[weekint] = yearint
-
-        return weekyrmap
 
     def download_from_s3(
         self,
@@ -347,6 +319,36 @@ class DataLoader:
         df = df.dropna(how="all")
 
         return df
+
+    @staticmethod
+    @lru_cache(maxsize=10)
+    def get_week_year_map() -> dict[int, int]:
+        """
+        creates a dictionary that maps each week to a year
+        """
+        logger.info(
+            "Scraping the census website to construct the year mapping"
+        )
+        r = requests.get(DataLoader.base_census_url, timeout=10)
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        yearlinks = soup.find_all("a", {"href": re.compile(r"\d{4}/")})
+        years: list[str] = [yearlink.get_text() for yearlink in yearlinks]
+
+        weekyrmap = {}
+        for year in years:
+            yearint = int(re.sub(r"\D", "", year))
+            r = requests.get(
+                "".join((DataLoader.base_census_url, year)), timeout=10
+            )
+            soup = BeautifulSoup(r.text, "html.parser")
+            weeklinks = soup.find_all("a", {"href": re.compile(r"wk\d{1,2}/")})
+            weeks: list[str] = [weeklink.get_text() for weeklink in weeklinks]
+            for week in weeks:
+                weekint = int(re.sub(r"\D", "", week))
+                weekyrmap[weekint] = yearint
+
+        return weekyrmap
 
     @staticmethod
     def load_collection_dates() -> dict[int, dict[str, date]]:
