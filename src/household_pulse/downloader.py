@@ -14,6 +14,7 @@ import json
 import logging
 import re
 import tarfile
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from functools import lru_cache
 from io import BytesIO
@@ -28,19 +29,53 @@ from bs4 import BeautifulSoup
 logger = logging.getLogger(__name__)
 
 
+@dataclass(unsafe_hash=True)
 class DataLoader:
     """
     This class handles the (down) loading of raw pulse data from either the
     census or our backups from S3
     """
 
-    def __init__(self) -> None:
-        self.s3 = boto3.client("s3")
-        self.base_census_url = (
-            "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
-        )
+    week: int
+    _week: int = field(init=False, repr=False)
+    base_census_url: str = field(
+        init=False,
+        default="https://www2.census.gov/programs-surveys/demo/datasets/hhp/",
+        repr=False,
+    )
+    s3: boto3.client = field(
+        init=False, default=boto3.client("s3"), repr=False
+    )
 
-    def load_week(self, week: int) -> pd.DataFrame:
+    @property  # type: ignore
+    def week(self) -> int:
+        """
+        Gets the census week value.
+
+        Returns:
+            int: The census week value.
+        """
+        return self._week
+
+    @week.setter
+    def week(self, value: int) -> None:
+        if isinstance(value, property):
+            raise TypeError(
+                "__init__() missing 1 required positional argument: 'week'"
+            )
+        self._week = value
+
+    @property
+    def week_str(self) -> str:
+        """
+        Returns the week as a string with leading zeros.
+
+        Returns:
+            str: The week as a string with leading zeros.
+        """
+        return f"{str(self.week).zfill(2)}"
+
+    def load_week(self) -> pd.DataFrame:
         """
         This methods attempts to download the passed week's raw response data.
         It first checks S3, and if the file is not found in S3 it checks the
@@ -55,11 +90,11 @@ class DataLoader:
             pd.DataFrame: The raw responses with merged weights.
         """
         try:
-            df = self._download_from_s3(week=week)
+            df = self.download_from_s3()
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                df = self._download_from_census(week=week)
-                self._upload_to_s3(df=df, week=week)
+                df = self.download_from_census()
+                self.upload_to_s3(df=df)
             else:
                 logger.error(e)
                 raise e
@@ -127,21 +162,22 @@ class DataLoader:
 
         return weekyrmap
 
-    def _download_from_s3(self, week: int) -> pd.DataFrame:
+    def download_from_s3(
+        self,
+    ) -> pd.DataFrame:
         """
         Downloads a pulse raw file from S3.
-
-        Args:
-            week (int): The survey week index
 
         Returns:
             pd.DataFrame: Raw response data with availaible weights merged
         """
         try:
-            logger.info("Downloading parquet file from S3 for week %s", week)
+            logger.info(
+                "Downloading parquet file from S3 for week %s", self.week
+            )
             s3obj = self.s3.get_object(
                 Bucket="household-pulse",
-                Key=f"raw-files/pulse-{week}.parquet.gzip",
+                Key=f"raw-files/pulse-{self.week_str}.parquet",
             )
         except ClientError as e:
             logger.error(e)
@@ -151,33 +187,30 @@ class DataLoader:
 
         return df
 
-    def _download_from_census(self, week: int) -> pd.DataFrame:
+    def download_from_census(self) -> pd.DataFrame:
         """
         Download Census Household Pulse PUF zip file for the given week and
         merge weights and PUF dataframes
-
-        Args:
-            week (int): The week of data to download
 
         Returns:
             pd.DataFrame: the weeks census household pulse data merged with the
                 weights csv
         """
         logger.info(
-            "Downloading files from the census website for week %s", week
+            "Downloading files from the census website for week %s", self.week
         )
-        url = "".join((self.base_census_url, self._make_data_url(week)))
+        url = "".join((self.base_census_url, self._make_data_url()))
         r = requests.get(url, timeout=10)
 
         with ZipFile(BytesIO(r.content), mode="r") as zipfile:
-            with zipfile.open(self._make_data_fname(week, "d")) as datacsv:
+            with zipfile.open(self._make_data_fname(fname="d")) as datacsv:
                 data_df = pd.read_csv(datacsv, dtype={"SCRAM": "string"})
 
-            with zipfile.open(self._make_data_fname(week, "w")) as weightcsv:
+            with zipfile.open(self._make_data_fname(fname="w")) as weightcsv:
                 weight_df = pd.read_csv(weightcsv, dtype={"SCRAM": "string"})
 
-        if week < 13:
-            hwgdf = self._download_hh_weights(week=week)
+        if self.week < 13:
+            hwgdf = self._download_hh_weights()
             weight_df = weight_df.merge(
                 hwgdf, how="inner", on=["SCRAM", "WEEK"]
             )
@@ -187,7 +220,25 @@ class DataLoader:
 
         return df
 
-    def _download_hh_weights(self, week: int) -> pd.DataFrame:
+    def upload_to_s3(self, df: pd.DataFrame) -> None:
+        """
+        Uploads a dataframe that contains the raw responses from a single week
+        with its available weights merged as a compressed parquet file into S3
+
+        Args:
+            df (pd.DataFrame): Dataframe to upload
+            week (int): The pulse survey week. Used for the file key.
+        """
+        logger.info("Uploading parquet file to S3 for week %s", self.week)
+        buffer = BytesIO()
+        df.to_parquet(buffer, index=False, compression="gzip")
+        self.s3.put_object(
+            Bucket="household-pulse",
+            Key=f"raw-files/pulse-{self.week_str}.parquet",
+            Body=buffer.getvalue(),
+        )
+
+    def _download_hh_weights(self) -> pd.DataFrame:
         """
         For weeks below 13, the household weights are in a separate file. This
         method fetches those weights directly from the census' website.
@@ -198,62 +249,45 @@ class DataLoader:
         Returns:
             pd.DataFrame: household weights file
         """
-        logger.info("Download household weights for week %s", week)
-        if week >= 13:
+        logger.info("Download household weights for week %s", self.week)
+        if self.week >= 13:
             raise ValueError(
-                f"This should only be used for weeks < 13. Week is {week}"
+                f"This should only be used for weeks < 13. Week is {self.week}"
             )
 
         hweight_url = "".join(
             (
                 self.base_census_url,
-                self._make_data_url(week=week, hweights=True),
+                self._make_data_url(hweights=True),
             )
         )
         hwgdf = pd.read_csv(hweight_url)
         return hwgdf
 
-    def _upload_to_s3(self, df: pd.DataFrame, week: int) -> None:
-        """
-        Uploads a dataframe that contains the raw responses from a single week
-        with its available weights merged as a compressed parquet file into S3
-
-        Args:
-            df (pd.DataFrame): Dataframe to upload
-            week (int): The pulse survey week. Used for the file key.
-        """
-        logger.info("Uploading parquet file to S3 for week %s", week)
-        buffer = BytesIO()
-        df.to_parquet(buffer, index=False, compression="gzip")
-        self.s3.put_object(
-            Bucket="household-pulse",
-            Key=f"raw-files/pulse-{week}.parquet.gzip",
-            Body=buffer.getvalue(),
-        )
-
-    def _make_data_url(self, week: int, hweights: bool = False) -> str:
+    def _make_data_url(self, hweights: bool = False) -> str:
         """
         Helper function to get string for file to download from census api
 
         Args:
-            week (int): the week of data to download
             hweights (bool): make url for household weights that for weeks < 13
                 are in a separate file in the census' ftp.
 
         Returns:
             str: the year/week/file.zip to be downloaded
         """
-        if hweights and week > 12:
+        if hweights and self.week > 12:
             raise ValueError("hweights can only be passed for weeks 1-12")
 
-        year = self.get_week_year_map()[week]
-        weekstr: str = str(week).zfill(2)
+        year = self.get_week_year_map()[self.week]
 
         if hweights:
-            return f"{year}/wk{week}/pulse{year}_puf_hhwgt_{weekstr}.csv"
-        return f"{year}/wk{week}/HPS_Week{weekstr}_PUF_CSV.zip"
+            return (
+                f"{year}/wk{self.week}/pulse{year}_puf_hhwgt_{self.week_str}"
+                ".csv"
+            )
+        return f"{year}/wk{self.week}/HPS_Week{self.week_str}_PUF_CSV.zip"
 
-    def _make_data_fname(self, week: int, fname: str) -> str:
+    def _make_data_fname(self, fname: str) -> str:
         """
         Helper function to get the string names of the files downloaded
 
@@ -268,14 +302,13 @@ class DataLoader:
         if fname not in {"d", "w"}:
             raise ValueError("fname muts be in {'d', 'w'}")
 
-        year = self.get_week_year_map()[week]
+        year = self.get_week_year_map()[self.week]
         # 2023 week 52 is actually 2022 week 52 due to a census bug
-        if year == 2023 and week == 52:
+        if year == 2023 and self.week == 52:
             year = 2022
-        weekstr: str = str(week).zfill(2)
         if fname == "d":
-            return f"pulse{year}_puf_{weekstr}.csv"
-        return f"pulse{year}_repwgt_puf_{weekstr}.csv"
+            return f"pulse{year}_puf_{self.week_str}.csv"
+        return f"pulse{year}_repwgt_puf_{self.week_str}.csv"
 
     @staticmethod
     @lru_cache(maxsize=10)
