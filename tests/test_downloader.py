@@ -22,10 +22,10 @@ from botocore.response import StreamingBody
 from household_pulse.downloader import DataLoader
 
 
-@pytest.fixture
+@pytest.fixture()
 def dataloader() -> Generator[DataLoader, None, None]:
-    with patch("household_pulse.downloader.boto3.client"):
-        dl = DataLoader()
+    with patch("boto3.client"):
+        dl = DataLoader(week=1)
         yield dl
 
 
@@ -88,16 +88,16 @@ class TestMethods:
         assert all(isinstance(year, int) for year in weekyrmap.values())
 
     @staticmethod
-    @patch.object(DataLoader, "_download_from_s3", MagicMock())
+    @patch.object(DataLoader, "download_from_s3", MagicMock())
     def test_load_week_in_s3(dataloader: DataLoader) -> None:
-        dataloader.load_week(week=40)
-        dataloader._download_from_s3.assert_called_once()
-        dataloader._download_from_s3.assert_called_with(week=40)
+        dataloader.load_week()
+        dataloader.download_from_s3.assert_called_once()
+        dataloader.download_from_s3.assert_called_with()
 
     @staticmethod
     @patch.object(
         DataLoader,
-        "_download_from_s3",
+        "download_from_s3",
         MagicMock(
             side_effect=ClientError(
                 error_response={"Error": {"Code": "NoSuchKey"}},
@@ -105,20 +105,20 @@ class TestMethods:
             )
         ),
     )
-    @patch.object(DataLoader, "_download_from_census", MagicMock())
-    @patch.object(DataLoader, "_upload_to_s3", MagicMock())
+    @patch.object(DataLoader, "download_from_census", MagicMock())
+    @patch.object(DataLoader, "upload_to_s3", MagicMock())
     def test_load_week_not_in_s3(dataloader: DataLoader) -> None:
-        dataloader.load_week(week=40)
-        dataloader._download_from_s3.assert_called_with(week=40)
-        dataloader._download_from_census.assert_called_with(week=40)
-        dataloader._upload_to_s3.assert_called_with(
-            df=dataloader._download_from_census(week=40), week=40
+        dataloader.load_week()
+        dataloader.download_from_s3.assert_called_with()
+        dataloader.download_from_census.assert_called_with()
+        dataloader.upload_to_s3.assert_called_with(
+            df=dataloader.download_from_census(),
         )
 
     @staticmethod
     @patch.object(
         DataLoader,
-        "_download_from_s3",
+        "download_from_s3",
         MagicMock(
             side_effect=ClientError(
                 error_response={"Error": {"Code": "Test"}},
@@ -128,7 +128,7 @@ class TestMethods:
     )
     def test_load_week_client_error(dataloader: DataLoader) -> None:
         with pytest.raises(ClientError):
-            dataloader.load_week(week=40)
+            dataloader.load_week()
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -147,7 +147,7 @@ class TestMethods:
     ) -> None:
         expected = pd.read_parquet("tests/test.parquet.gzip")
         dataloader.s3.get_object.return_value = mock_parquet
-        actual = dataloader._download_from_s3(week=40)
+        actual = dataloader.download_from_s3()
         dataloader.s3.get_object.assert_called_once()
 
         assert expected.equals(actual)
@@ -159,7 +159,7 @@ class TestMethods:
         )
         dataloader.s3.get_object = MagicMock(side_effect=mockerror)
         with pytest.raises(ClientError):
-            dataloader._download_from_s3(week=40)
+            dataloader.download_from_s3()
 
     @staticmethod
     @patch.object(
@@ -174,14 +174,13 @@ class TestMethods:
             return_value=pd.read_csv("tests/pulse2020_puf_hhwgt_10.csv")
         ),
     )
-    def test_download_from_census_early(
-        mock_zip_10: bytes, dataloader: DataLoader
-    ) -> None:
+    def test_download_from_census_early(mock_zip_10: bytes) -> None:
         with patch("household_pulse.downloader.requests") as mock_requests:
+            dataloader = DataLoader(week=10)
             mock_get = MagicMock()
             mock_requests.get.return_value = mock_get
             mock_get.content = mock_zip_10
-            df = dataloader._download_from_census(week=10)
+            df = dataloader.download_from_census()
             assert len(df) == 4
 
     @staticmethod
@@ -190,26 +189,26 @@ class TestMethods:
         "get_week_year_map",
         MagicMock(return_value={40: 2021}),
     )
-    def test_download_from_census_late(
-        mock_zip_40: bytes, dataloader: DataLoader
-    ) -> None:
+    def test_download_from_census_late(mock_zip_40: bytes) -> None:
         with patch("household_pulse.downloader.requests") as mock_requests:
+            dataloader = DataLoader(week=40)
             mock_get = MagicMock()
             mock_requests.get.return_value = mock_get
             mock_get.content = mock_zip_40
-            df = dataloader._download_from_census(week=40)
+            df = dataloader.download_from_census()
             assert len(df) == 4
 
     @staticmethod
     @patch.object(DataLoader, "_make_data_url", MagicMock(return_value=""))
     @pytest.mark.parametrize("week", (10, 13))
-    def test_download_hh_weights(week: int, dataloader: DataLoader) -> None:
+    def test_download_hh_weights(week: int) -> None:
+        dataloader = DataLoader(week=week)
         dataloader.base_census_url = "tests/pulse2020_puf_hhwgt_10.csv"
         if week == 13:
             with pytest.raises(ValueError):
-                hhwdf = dataloader._download_hh_weights(week=week)
+                hhwdf = dataloader._download_hh_weights()
         else:
-            hhwdf = dataloader._download_hh_weights(week=week)
+            hhwdf = dataloader._download_hh_weights()
             assert hhwdf.equals(
                 pd.read_csv("tests/pulse2020_puf_hhwgt_10.csv")
             )
@@ -219,7 +218,9 @@ class TestMethods:
     def test_upload_to_s3(
         dataloader: DataLoader, mock_df: pd.DataFrame
     ) -> None:
-        dataloader._upload_to_s3(df=mock_df, week=10)
+        dataloader.upload_to_s3(
+            df=mock_df,
+        )
         mock_df.to_parquet.assert_called_once()
         dataloader.s3.put_object.assert_called_once()
 
@@ -232,18 +233,17 @@ class TestMethods:
     @pytest.mark.parametrize(
         "week,hweights", ((13, True), (13, False), (10, True), (10, False))
     )
-    def test_make_data_url(
-        week: int, hweights: bool, dataloader: DataLoader
-    ) -> None:
+    def test_make_data_url(week: int, hweights: bool) -> None:
+        dataloader = DataLoader(week=week)
         if week == 13 and hweights:
             with pytest.raises(ValueError):
-                dataloader._make_data_url(week=week, hweights=hweights)
+                dataloader._make_data_url(hweights=hweights)
         else:
             if hweights:
                 expected = f"2020/wk{week}/pulse2020_puf_hhwgt_{week}.csv"
             else:
                 expected = f"2020/wk{week}/HPS_Week{week}_PUF_CSV.zip"
-            assert expected == dataloader._make_data_url(week, hweights)
+            assert expected == dataloader._make_data_url(hweights)
 
     @staticmethod
     @patch.object(
@@ -254,26 +254,21 @@ class TestMethods:
     @pytest.mark.parametrize(
         "week,fname", ((13, "j"), (13, "d"), (10, "w"), (10, "d"), (52, "d"))
     )
-    def test_make_data_fname(
-        week: int, fname: str, dataloader: DataLoader
-    ) -> None:
+    def test_make_data_fname(week: int, fname: str) -> None:
+        dataloader = DataLoader(week=week)
         if fname not in {"d", "w"}:
             with pytest.raises(ValueError):
-                dataloader._make_data_fname(week=week, fname=fname)
+                dataloader._make_data_fname(fname=fname)
         # this tests for an ad-hoc issue on the census website
         elif week == 52:
             expected = f"pulse2022_puf_{week}.csv"
-            assert expected == dataloader._make_data_fname(
-                week=week, fname=fname
-            )
+            assert expected == dataloader._make_data_fname(fname=fname)
         else:
             if fname == "d":
                 expected = f"pulse2020_puf_{week}.csv"
             else:
                 expected = f"pulse2020_repwgt_puf_{week}.csv"
-            assert expected == dataloader._make_data_fname(
-                week=week, fname=fname
-            )
+            assert expected == dataloader._make_data_fname(fname=fname)
 
     @staticmethod
     @patch.object(pd, "read_csv", MagicMock(return_value=MagicMock()))
