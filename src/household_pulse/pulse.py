@@ -45,7 +45,7 @@ class Pulse:
         Args:
             week (int): specifies which week to run the data for.
         """
-        self.dl = DataLoader()
+        self.dl = DataLoader(week=week)
         self.week = week
         self.cmsdf = self.dl.load_gsheet("county_metro_state")
         self.qumdf = self.dl.load_gsheet("question_mapping")
@@ -94,7 +94,7 @@ class Pulse:
         """
         downloads puf data and stores it into the class' state
         """
-        self.df = self.dl.load_week(week=self.week)
+        self.df = self.dl.load_week()
         self.df["TOPLINE"] = 1
 
     def _calculate_ages(self) -> None:
