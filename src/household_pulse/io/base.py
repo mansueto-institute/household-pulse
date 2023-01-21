@@ -9,16 +9,13 @@ Created on 2023-01-20 05:28:42-06:00
 ===============================================================================
 """
 import logging
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class IO(ABC):
+class IO:
     """
     This class is the abstract base class for all the input/output classes.
     """
@@ -55,12 +52,3 @@ class IO(ABC):
             str: The week as a string with leading zeros.
         """
         return f"{str(self.week).zfill(2)}"
-
-    @abstractmethod
-    def download(self) -> pd.DataFrame:
-        """
-        This method reads the data from the source for the corresponding week.
-
-        Returns:
-            pd.DataFrame: The data for the corresponding week.
-        """
