@@ -18,7 +18,6 @@ import pandas as pd
 from botocore.exceptions import ClientError
 
 from household_pulse.io import Census, S3Storage, load_gsheet
-from household_pulse.mysql_wrapper import PulseSQL
 
 logger = logging.getLogger(__name__)
 
@@ -83,13 +82,12 @@ class Pulse:
                 "this should be only run after running the "
                 ".process_pulse_data() method"
             )
-        sql = PulseSQL()
-        sql.update_values(table="pulse", df=self.ctabdf)
 
-        if self.week not in sql.get_collection_weeks():
-            sql.update_collection_dates()
+        s3 = S3Storage(week=self.week)
+        s3.upload_dataframe(file_type="processed", df=self.ctabdf)
 
-        sql.close_connection()
+        if self.week not in s3.get_available_weeks(file_type="processed"):
+            s3.put_collection_dates()
 
     def _download_data(self) -> None:
         """
@@ -97,12 +95,12 @@ class Pulse:
         """
         s3 = S3Storage(week=self.week)
         try:
-            df = s3.download()
+            df = s3.download_dataframe(file_type="raw")
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
                 logger.info("Data not found in S3. Downloading from census")
                 df = Census(week=self.week).download()
-                s3.upload(df)
+                s3.upload_dataframe(file_type="raw", df=df)
             else:
                 logger.error(e)
                 raise e
@@ -116,13 +114,12 @@ class Pulse:
         the date at which the survey was implemented
         """
         logger.info("Calculating ages based on collection dates")
-        sql = PulseSQL()
+
         try:
-            dates = sql.get_pulse_dates(self.week)
+            dates = S3Storage.get_collection_dates()[self.week]
         except KeyError:
-            sql.update_collection_dates()
-            dates = sql.get_pulse_dates(self.week)
-        sql.close_connection()
+            S3Storage.put_collection_dates()
+            dates = S3Storage.get_collection_dates()[self.week]
 
         df = self.df
         df["TBIRTH_YEAR"] = dates["end_date"].year - df["TBIRTH_YEAR"]

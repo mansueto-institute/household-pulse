@@ -12,8 +12,10 @@ Created on Saturday, 29th October 2022 10:21:12 am
 import logging
 
 import pandas as pd
-from household_pulse.downloader import DataLoader
-from household_pulse.mysql_wrapper import PulseSQL
+from tqdm import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
+
+from household_pulse.io import S3Storage
 from household_pulse.preload_data.fetch_and_cache_utils import (
     get_dates,
     get_label_groupings,
@@ -23,17 +25,15 @@ from household_pulse.preload_data.fetch_and_cache_utils import (
     get_xtab_labels,
     run_query,
 )
-from tqdm import tqdm
-from tqdm.contrib.logging import logging_redirect_tqdm
 
 logger = logging.getLogger(__name__)
 
 MIN_WEEK_FILTER = 6
 
 
-def get_meta(pulsesql: PulseSQL):
-    dates = get_dates(pulsesql=pulsesql)
-    order = get_question_order(pulsesql=pulsesql)
+def get_meta():
+    dates = get_dates()
+    order = get_question_order()
 
     questions = get_questions(order, MIN_WEEK_FILTER)
     combined_xtabs = get_xtab_labels()
@@ -57,7 +57,7 @@ def cache_queries(
     label_groupings,
 ):
     logger.info("Build query cache for the front-end")
-    week_range = [dates.week.min(), dates.week.max()]
+    week_range = [int(dates.week.min()), int(dates.week.max())]
     xtabs = combined_xtabs["xtab_var"].unique()
     cached = {}
 
@@ -97,12 +97,10 @@ def cache_queries(
 
 
 def build_front_cache():
-    pulsesql = PulseSQL()
 
-    df = pulsesql.get_pulse_with_smoothed()
+    df = S3Storage.download_smoothed_pulse()
 
-    meta = get_meta(pulsesql=pulsesql)
-    pulsesql.close_connection()
+    meta = get_meta()
 
     cache = cache_queries(
         df,
@@ -112,15 +110,10 @@ def build_front_cache():
         meta["label_groupings"],
     )
 
-    dl = DataLoader()
-    dl.tar_and_upload_to_s3(
-        bucket="household-pulse", tarname="output_cache.tar.gz", files=cache
-    )
+    S3Storage.tar_and_upload(tarname="output_cache.tar.gz", files=cache)
 
     for fname, data in meta.items():
         if isinstance(data, pd.DataFrame):
             meta[fname] = meta[fname].to_json(orient="records")
     metacache = {f"{k}.json": v for k, v in meta.items()}
-    dl.tar_and_upload_to_s3(
-        bucket="household-pulse", tarname="output_meta.tar.gz", files=metacache
-    )
+    S3Storage.tar_and_upload(tarname="output_meta.tar.gz", files=metacache)

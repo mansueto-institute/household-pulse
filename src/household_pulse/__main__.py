@@ -19,8 +19,7 @@ import requests
 from botocore.exceptions import ClientError
 from tqdm import tqdm
 
-from household_pulse.downloader import DataLoader
-from household_pulse.mysql_wrapper import PulseSQL
+from household_pulse.io import Census, S3Storage
 from household_pulse.preload_data.fetch_and_cache import build_front_cache
 from household_pulse.pulse import Pulse
 from household_pulse.smoothing import smooth_pulse
@@ -33,6 +32,8 @@ class PulseCLI:
     This class represents a CLI instance.
     """
 
+    TARGETS = {"census", "s3"}
+
     def __init__(self, args: Optional[list[str]] = None) -> None:
         parser = ArgumentParser(
             description="Basic CLI for managing the Household Pulse ETL"
@@ -42,20 +43,20 @@ class PulseCLI:
             dest="subcommand", help="The different sub-commands available"
         )
 
-        etlparser = subparsers.add_parser(
+        self.etlparser = subparsers.add_parser(
             name="etl",
             help="Subcommands for managing / running the main ETL process",
         )
-        self._etlparser(etlparser)
+        self._etlparser(self.etlparser)
 
-        dataparser = subparsers.add_parser(
+        self.dataparser = subparsers.add_parser(
             name="fetch",
             help=(
                 "Subcommands for fetching different data from the ETL process"
             ),
         )
-        self._dataparser(dataparser)
-
+        self._dataparser(self.dataparser)
+        self.parser = parser
         self.args = parser.parse_args(args)
 
     def main(self) -> None:
@@ -68,6 +69,9 @@ class PulseCLI:
         elif self.args.subcommand == "fetch":  # pragma: no branch
             self.fetch_subcommand()
 
+        else:
+            self.parser.print_help()
+
     def download_pulse(self) -> None:
         """
         downloads the entire processed data form our RDS DB.
@@ -78,16 +82,14 @@ class PulseCLI:
             week=self.args.week,
         )
 
-        sql = PulseSQL()
-
         if self.args.week is None:
-            df = sql.get_pulse_table()
+            df = S3Storage.download_all(file_type="processed")
         else:
-            query = f"SELECT * FROM pulse.pulse WHERE week = {self.args.week}"
-            df = sql.get_pulse_table(query)
+            df = S3Storage(week=self.args.week).download_dataframe(
+                file_type="processed"
+            )
 
         df.to_csv(outfile, index=False)
-        sql.close_connection()
 
     def download_raw(self) -> None:
         """
@@ -99,8 +101,9 @@ class PulseCLI:
             file_prefix="pulse-raw",
             week=self.args.week,
         )
-        dl = DataLoader(week=self.args.week)
-        df = dl.load_week()
+        pulse = Pulse(week=self.args.week)
+        pulse._download_data()  # pylint: disable=protected-access
+        df = pulse.df
         df.to_csv(outfile, index=False)
 
     def etl_subcommand(self) -> None:
@@ -145,13 +148,9 @@ class PulseCLI:
                 pulse.upload_data()
 
         elif self.args.backfill:
-            cenweeks = DataLoader.get_week_year_map().keys()
-
-            sql = PulseSQL()
-            rdsweeks = sql.get_available_weeks()
-            sql.close_connection()
-
-            missingweeks = set(cenweeks) - set(rdsweeks)
+            cenweeks = Census.get_week_year_map().keys()
+            s3weeks = S3Storage.get_available_weeks(file_type="processed")
+            missingweeks = set(cenweeks) - set(s3weeks)
             for week in missingweeks:
                 pulse = Pulse(week=week)
                 pulse.process_data()
@@ -165,6 +164,9 @@ class PulseCLI:
 
         elif self.args.send_build_request:  # pragma: no branch
             self._build_request()
+
+        else:
+            self.etlparser.print_help()
 
     def fetch_subcommand(self) -> None:
         """
@@ -302,15 +304,13 @@ class PulseCLI:
         Returns:
             int: The latest week value as an integer.
         """
-        if target not in {"rds", "census"}:
-            raise ValueError(f'{target} must be one of {{"rds", "census"}}')
+        if target not in PulseCLI.TARGETS:
+            raise ValueError(f"{target} must be one of {PulseCLI.TARGETS}")
 
-        if target == "rds":
-            sql = PulseSQL()
-            week = sql.get_latest_week()
-            sql.close_connection()
+        if target == "s3":
+            week = max(S3Storage.get_available_weeks(file_type="processed"))
         elif target == "census":  # pragma: no branch
-            week = max(DataLoader.get_week_year_map().keys())
+            week = max(Census.get_week_year_map().keys())
 
         return week
 
@@ -325,15 +325,15 @@ class PulseCLI:
         Returns:
             tuple[int]: The set of available weeks as a tuple
         """
-        if target not in {"rds", "census"}:
-            raise ValueError(f'{target} must be one of {{"rds", "census"}}')
+        if target not in PulseCLI.TARGETS:
+            raise ValueError(f"{target} must be one of {PulseCLI.TARGETS}")
 
-        if target == "rds":
-            sql = PulseSQL()
-            weeks = sql.get_available_weeks()
-            sql.close_connection()
+        if target == "s3":
+            weeks = tuple(
+                sorted(S3Storage.get_available_weeks(file_type="processed"))
+            )
         elif target == "census":  # pragma: no branch
-            weeks = tuple(sorted(DataLoader.get_week_year_map().keys()))
+            weeks = tuple(sorted(Census.get_week_year_map().keys()))
 
         return weeks
 

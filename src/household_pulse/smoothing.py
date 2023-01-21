@@ -20,7 +20,7 @@ import statsmodels.api as sm
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from household_pulse.mysql_wrapper import PulseSQL
+from household_pulse.io import S3Storage
 
 logger = logging.getLogger(__name__)
 
@@ -94,26 +94,30 @@ def smooth_pulse() -> None:
     smoothes the entire pulse table, creating a new table with the smoothed
     weight_share variables
     """
-    sql = PulseSQL()
+    df = S3Storage.download_all(file_type="processed")
+    datedf = pd.DataFrame.from_dict(
+        S3Storage.get_collection_dates(), orient="index"
+    )
+    df = df.merge(
+        datedf["end_date"], how="left", left_on="week", right_index=True
+    )
+    keepcols = [
+        "week",
+        "xtab_var",
+        "xtab_val",
+        "q_var",
+        "q_val",
+        "pweight_share",
+        "pweight_lower_share",
+        "pweight_upper_share",
+        "hweight_share",
+        "hweight_lower_share",
+        "hweight_upper_share",
+        "end_date",
+    ]
 
-    query = """
-        SELECT week,
-            xtab_var,
-            xtab_val,
-            q_var,
-            q_val,
-            pweight_share,
-            pweight_lower_share,
-            pweight_upper_share,
-            hweight_share,
-            hweight_lower_share,
-            hweight_upper_share,
-            end_date
-        FROM pulse.pulse
-        INNER JOIN pulse.collection_dates USING(week)
-    """
+    df = df[keepcols]
 
-    df = sql.get_pulse_table(query=query)
     df.sort_values(
         by=["xtab_var", "xtab_val", "q_var", "q_val", "week"], inplace=True
     )
@@ -136,5 +140,4 @@ def smooth_pulse() -> None:
             df = pd.concat(results)
     df.drop(columns="end_date", inplace=True)
     df = normalize_smoothed(df)
-    sql.update_values(table="smoothed", df=df)
-    sql.close_connection()
+    S3Storage.upload_parquet(key="smoothed/pulse-smoothed.parquet", df=df)
