@@ -38,6 +38,12 @@ class Census(IO):
     ] = "https://www2.census.gov/programs-surveys/demo/datasets/hhp/"
 
     def download(self) -> pd.DataFrame:
+        """
+        Downloads the data from the census website and returns a dataframe.
+
+        Returns:
+            pd.DataFrame: Dataframe with the data from the census website
+        """
         logger.info(
             "Downloading files from the census website for week %s", self.week
         )
