@@ -16,16 +16,24 @@ def test_import_top_level():
     import household_pulse  # noqa: F401
 
 
-def test_import_downloader():
-    import household_pulse.downloader  # noqa: F401
-
-
-def test_import_sql_wrapper():
-    import household_pulse.mysql_wrapper  # noqa: F401
-
-
 def test_import_pulse():
     import household_pulse.pulse  # noqa: F401
+
+
+def test_import_io():
+    import household_pulse.io  # noqa: F401
+
+
+def test_import_io_base():
+    import household_pulse.io.base  # noqa: F401
+
+
+def test_import_io_census():
+    import household_pulse.io.census  # noqa: F401
+
+
+def test_import_io_s3():
+    import household_pulse.io.s3  # noqa: F401
 
 
 def test_import_preload_data():
