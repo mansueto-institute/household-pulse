@@ -254,7 +254,7 @@ def run_query(
 # FETCHERS AND DATA PARSING
 def get_dates():
     df = pd.DataFrame.from_dict(
-        S3Storage.get_collection_dates(), orient="index"
+        S3Storage().get_collection_dates(), orient="index"
     )
     df.reset_index(names="week", inplace=True)
     df["dates"] = (
@@ -304,7 +304,7 @@ def get_xtab_labels():
 
 
 def get_question_order():
-    result_data = S3Storage.download_all(file_type="processed")
+    result_data = S3Storage().download_all(file_type="processed")
     df = result_data.groupby(["q_var", "week"]).size().reset_index()
     df.drop(columns=0, inplace=True)
 

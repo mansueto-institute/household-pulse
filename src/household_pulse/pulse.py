@@ -18,11 +18,12 @@ import pandas as pd
 from botocore.exceptions import ClientError
 
 from household_pulse.io import Census, S3Storage, load_gsheet
+from household_pulse.io.base import IO
 
 logger = logging.getLogger(__name__)
 
 
-class Pulse:
+class Pulse(IO):
     """
     The pulse class represents a single week's (wave) worth of data.
     """
@@ -45,20 +46,22 @@ class Pulse:
         Args:
             week (int): specifies which week to run the data for.
         """
-        self.week = week
-        self.cmsdf = load_gsheet("county_metro_state")
-        self.qumdf = load_gsheet("question_mapping")
-        self.resdf = load_gsheet("response_mapping")
-        self.mapdf = load_gsheet("numeric_mapping")
+        super().__init__(week=week)
+        self.cmsdf: pd.DataFrame
+        self.qumdf: pd.DataFrame
+        self.resdf: pd.DataFrame
+        self.mapdf: pd.DataFrame
         self.ctabdf: pd.DataFrame
         self.df: pd.DataFrame
+        self.s3 = S3Storage()
+        self.census = Census(week=self.week)
 
     def process_data(self) -> None:
         """
         Runs the entire pipeline from downloading data, right until before
         upload
         """
-        self._download_data()
+        self.download_data()
         self._coalesce_variables()
         self._parse_question_cols()
         self._calculate_ages()
@@ -71,6 +74,29 @@ class Pulse:
         self._merge_cbsa_info()
         self._reorganize_cols()
 
+    def download_data(self) -> None:
+        """
+        downloads puf data and stores it into the class' state
+        """
+
+        try:
+            df = self.s3.download_parquet(
+                key=f"raw-files/pulse-{self.week_str}.parquet",
+            )
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                logger.info("Data not found in S3. Downloading from census")
+                df = self.census.download()
+                self.s3.upload_parquet(
+                    key=f"raw-files/pulse-{self.week_str}.parquet", df=df
+                )
+            else:
+                logger.error(e)
+                raise e
+
+        df["TOPLINE"] = 1
+        self.df = df
+
     def upload_data(self) -> None:
         """
         updates the data in the RDS table. by update we mean, delete the old
@@ -82,31 +108,13 @@ class Pulse:
                 "this should be only run after running the "
                 ".process_pulse_data() method"
             )
+        self.s3.upload_parquet(
+            key=f"processed-files/pulse-{self.week_str}.parquet",
+            df=self.ctabdf,
+        )
 
-        s3 = S3Storage(week=self.week)
-        s3.upload_dataframe(file_type="processed", df=self.ctabdf)
-
-        if self.week not in s3.get_available_weeks(file_type="processed"):
-            s3.put_collection_dates()
-
-    def _download_data(self) -> None:
-        """
-        downloads puf data and stores it into the class' state
-        """
-        s3 = S3Storage(week=self.week)
-        try:
-            df = s3.download_dataframe(file_type="raw")
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
-                logger.info("Data not found in S3. Downloading from census")
-                df = Census(week=self.week).download()
-                s3.upload_dataframe(file_type="raw", df=df)
-            else:
-                logger.error(e)
-                raise e
-
-        df["TOPLINE"] = 1
-        self.df = df
+        if self.week not in self.s3.get_available_weeks(file_type="processed"):
+            self.s3.put_collection_dates()
 
     def _calculate_ages(self) -> None:
         """
@@ -116,10 +124,10 @@ class Pulse:
         logger.info("Calculating ages based on collection dates")
 
         try:
-            dates = S3Storage.get_collection_dates()[self.week]
+            dates = self.s3.get_collection_dates()[self.week]
         except KeyError:
-            S3Storage.put_collection_dates()
-            dates = S3Storage.get_collection_dates()[self.week]
+            self.s3.put_collection_dates()
+            dates = self.s3.get_collection_dates()[self.week]
 
         df = self.df
         df["TBIRTH_YEAR"] = dates["end_date"].year - df["TBIRTH_YEAR"]
@@ -133,7 +141,7 @@ class Pulse:
         """
         logger.info("Parsing question categories")
         df = self.df
-        qumdf = self.qumdf
+        qumdf = load_gsheet("question_mapping")
 
         # first we get the select one question
         soneqs: pd.Series = qumdf.loc[
@@ -171,7 +179,7 @@ class Pulse:
             pd.DataFrame: with the numeric columns bucketized
         """
         df = self.df
-        mapdf = self.mapdf
+        mapdf = load_gsheet("numeric_mapping")
         numcols = mapdf["variable"].unique()
 
         for col in numcols:
@@ -219,7 +227,7 @@ class Pulse:
         """
         logger.info("Dropping missing or empty responses")
         longdf = self.longdf
-        qumdf = self.qumdf
+        qumdf = load_gsheet("question_mapping")
         longdf = longdf.merge(
             qumdf[["variable", "question_type"]].rename(
                 columns={"variable": "q_var"}
@@ -271,7 +279,7 @@ class Pulse:
         (fewer) for each question in the data
         """
         logger.info("Recoding values based on mapping from Google Sheets")
-        resdf = self.resdf
+        resdf = load_gsheet("response_mapping")
         longdf = self.longdf
 
         auxdf = resdf.drop_duplicates(subset=["variable_recode", "value"])
@@ -315,7 +323,7 @@ class Pulse:
         question in the final time series processed data.
         """
         logger.info("Coalescing variables that change over time.")
-        qumdf = self.qumdf
+        qumdf = load_gsheet("question_mapping")
         auxdf = qumdf[qumdf["variable_recode"].notnull()]
         recodemap = dict(zip(auxdf["variable"], auxdf["variable_recode"]))
         self.df = self.df.rename(columns=recodemap)
@@ -336,7 +344,7 @@ class Pulse:
         """
         logger.info("Merging CBSA info to the responses.")
         ctabdf = self.ctabdf
-        cmsdf = self.cmsdf
+        cmsdf = load_gsheet("country_metro_state")
 
         cmsdf.drop_duplicates(subset="cbsa_fips", inplace=True)
 

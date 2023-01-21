@@ -23,57 +23,57 @@ import pandas as pd
 from botocore.exceptions import ClientError
 
 from household_pulse.io import Census
-from household_pulse.io.base import IO
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass(unsafe_hash=True)
-class S3Storage(IO):
+class S3Storage:
     """
     This class handles all s3 interactions.
     """
 
-    bucket: ClassVar[str] = "household-pulse"
     allowed_ftypes: ClassVar[set[str]] = {"raw", "processed"}
+    bucket: ClassVar[str] = "household-pulse"
     s3: ClassVar[boto3.client] = boto3.client("s3")
 
     @lru_cache(maxsize=5)
-    def download_dataframe(self, file_type: str) -> pd.DataFrame:
+    def download_parquet(self, key: str) -> pd.DataFrame:
         """
-        Downloads a parquet file from S3 and returns it as a dataframe.
+        Download a parquet file from S3 and return it as a pandas dataframe.
 
         Args:
-            file_type (str): {"raw", "processed"}, whether to download the raw
-                pulse data or the processed data.
+            key (str): The object key of the parquet file in S3.
 
         Raises:
-            ClientError: if the file does not exist in S3.
+            ClientError: If the file does not exist in S3.
 
         Returns:
-            pd.DataFrame: The dataframe.
+            pd.DataFrame: The parquet file as a pandas dataframe.
         """
-        self._check_file_type(file_type)
-        df = self.download_parquet(
-            key=f"{file_type}-files/pulse-{self.week_str}.parquet",
-        )
+        try:
+            logger.info("Downloading parquet file from S3: %s", key)
+            s3obj = self.s3.get_object(Bucket=S3Storage.bucket, Key=key)
+        except ClientError as e:
+            logger.error(e)
+            raise e
+        df = pd.read_parquet(BytesIO(s3obj["Body"].read()))
+
         return df
 
-    def upload_dataframe(self, file_type: str, df: pd.DataFrame) -> None:
+    def upload_parquet(self, key: str, df: pd.DataFrame) -> None:
         """
-        Uploads a dataframe to S3 as a compressed parquet file.
+        Upload a parquet file to S3.
 
         Args:
-            file_type (str): {"raw", "processed"}
-            df (pd.DataFrame): Dataframe to upload
+            key (str): The object key of the parquet file in S3.
+            df (pd.DataFrame): The dataframe to be uploaded.
         """
-        self._check_file_type(file_type)
-        self.upload_parquet(
-            key=f"{file_type}-files/pulse-{self.week_str}.parquet", df=df
-        )
+        buffer = BytesIO()
+        df.to_parquet(buffer, index=False, compression="gzip")
+        self._upload(key=key, buffer=buffer)
 
-    @staticmethod
-    def tar_and_upload(tarname: str, files: dict[str, dict]) -> None:
+    def tar_and_upload(self, tarname: str, files: dict[str, dict]) -> None:
         """
         this method takes in a dictionary that contain json serializable data
         as values and corresponding file names as keys. all the key-value
@@ -99,11 +99,10 @@ class S3Storage(IO):
                     finfo = tarfile.TarInfo(fname)
                     finfo.size = len(out_stream.getbuffer())
                     tar_file.addfile(finfo, out_stream)
-        S3Storage._upload(key=tarname, buffer=fileobj)
+        self._upload(key=tarname, buffer=fileobj)
 
-    @staticmethod
     @lru_cache(maxsize=5)
-    def download_all(file_type: str) -> pd.DataFrame:
+    def download_all(self, file_type: str) -> pd.DataFrame:
         """
         Downloads all parquet files from S3 and returns a dataframe.
 
@@ -114,28 +113,27 @@ class S3Storage(IO):
         Returns:
             pd.DataFrame: Concatenated dataframe.
         """
-        S3Storage._check_file_type(file_type)
-        weeks = S3Storage.get_available_weeks(file_type)
+        self._check_file_type(file_type)
+        weeks = self.get_available_weeks(file_type=file_type)
         results = []
         for week in weeks:
             results.append(
-                S3Storage(week=week).download_dataframe(file_type=file_type)
+                self.download_parquet(
+                    key=f"{file_type}-files/pulse-{str(week).zfill(2)}.parquet"
+                )
             )
         df = pd.concat(results, ignore_index=True)
         return df
 
-    @staticmethod
-    def download_smoothed_pulse() -> pd.DataFrame:
+    def download_smoothed_pulse(self) -> pd.DataFrame:
         """
         Downloads the smoothed pulse data from S3 and returns a dataframe.
 
         Returns:
             pd.DataFrame: Smoothed pulse dataframe.
         """
-        pulsedf = S3Storage.download_all(file_type="processed")
-        smoothdf = S3Storage.download_parquet(
-            key="smoothed/pulse-smoothed.parquet"
-        )
+        pulsedf = self.download_all(file_type="processed")
+        smoothdf = self.download_parquet(key="smoothed/pulse-smoothed.parquet")
         keepcols = [
             "week",
             "xtab_var",
@@ -154,8 +152,7 @@ class S3Storage(IO):
         df = df[keepcols]
         return df
 
-    @staticmethod
-    def get_available_weeks(file_type: str) -> set[int]:
+    def get_available_weeks(self, file_type: str) -> set[int]:
         """
         Gets a list of available weeks for the specified file type.
 
@@ -165,7 +162,7 @@ class S3Storage(IO):
         Returns:
             set[int]: List of available weeks.
         """
-        S3Storage._check_file_type(file_type)
+        self._check_file_type(file_type)
 
         try:
             logger.info(
@@ -173,9 +170,9 @@ class S3Storage(IO):
             )
 
             weeks: set[int] = set()
-            paginator = S3Storage.s3.get_paginator("list_objects_v2")
+            paginator = self.s3.get_paginator("list_objects_v2")
             response_iterator = paginator.paginate(
-                Bucket=S3Storage.bucket, Prefix=f"{file_type}-files/"
+                Bucket=self.bucket, Prefix=f"{file_type}-files/"
             )
 
             pat = re.compile(r"pulse-(\d{2}).parquet")
@@ -192,9 +189,8 @@ class S3Storage(IO):
 
         return weeks
 
-    @staticmethod
     @lru_cache(maxsize=5)
-    def get_collection_dates() -> dict[int, dict[str, date]]:
+    def get_collection_dates(self) -> dict[int, dict[str, date]]:
         """
         Gets the collection dates for each week.
 
@@ -204,8 +200,8 @@ class S3Storage(IO):
         try:
             logger.info("Getting collection dates from S3")
             results: dict[int, dict[str, date]] = {}
-            s3obj = S3Storage.s3.get_object(
-                Bucket=S3Storage.bucket, Key="collection-dates.json"
+            s3obj = self.s3.get_object(
+                Bucket=self.bucket, Key="collection-dates.json"
             )
             data = json.loads(s3obj["Body"].read())
 
@@ -222,8 +218,7 @@ class S3Storage(IO):
             logger.error(e)
             raise e
 
-    @staticmethod
-    def put_collection_dates() -> None:
+    def put_collection_dates(self) -> None:
         """
         Retrieves the collection dates from the Census API and uploads them to
         S3.
@@ -231,29 +226,9 @@ class S3Storage(IO):
         data = Census.load_collection_dates()
         buffer = BytesIO()
         buffer.write(json.dumps(data, default=str).encode())
-        S3Storage._upload(key="collection-dates.json", buffer=buffer)
+        self._upload(key="collection-dates.json", buffer=buffer)
 
-    @staticmethod
-    @lru_cache(maxsize=5)
-    def download_parquet(key: str) -> pd.DataFrame:
-        try:
-            logger.info("Downloading parquet file from S3: %s", key)
-            s3obj = S3Storage.s3.get_object(Bucket=S3Storage.bucket, Key=key)
-        except ClientError as e:
-            logger.error(e)
-            raise e
-        df = pd.read_parquet(BytesIO(s3obj["Body"].read()))
-
-        return df
-
-    @staticmethod
-    def upload_parquet(key: str, df: pd.DataFrame) -> None:
-        buffer = BytesIO()
-        df.to_parquet(buffer, index=False, compression="gzip")
-        S3Storage._upload(key=key, buffer=buffer)
-
-    @staticmethod
-    def _upload(key: str, buffer: BytesIO) -> None:
+    def _upload(self, key: str, buffer: BytesIO) -> None:
         """
         Uploads a file to S3 using the provided bucket and key.
 
@@ -262,12 +237,9 @@ class S3Storage(IO):
             buffer (BytesIO): The data to upload as a bytes buffer.
         """
         logger.info("Uploading object %s to S3", key)
-        S3Storage.s3.put_object(
-            Bucket=S3Storage.bucket, Key=key, Body=buffer.getvalue()
-        )
+        self.s3.put_object(Bucket=self.bucket, Key=key, Body=buffer.getvalue())
         buffer.close()
 
-    @staticmethod
-    def _check_file_type(file_type: str) -> None:
-        if file_type not in S3Storage.allowed_ftypes:
+    def _check_file_type(self, file_type: str) -> None:
+        if file_type not in self.allowed_ftypes:
             raise ValueError("file_type must be either 'raw' or 'processed'.")

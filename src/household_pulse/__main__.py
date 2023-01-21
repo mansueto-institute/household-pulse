@@ -82,11 +82,14 @@ class PulseCLI:
             week=self.args.week,
         )
 
+        s3 = S3Storage()
+
         if self.args.week is None:
-            df = S3Storage.download_all(file_type="processed")
+            df = s3.download_all(file_type="processed")
         else:
-            df = S3Storage(week=self.args.week).download_dataframe(
-                file_type="processed"
+            weekstr = str(self.args.week).zfill(2)
+            df = s3.download_parquet(
+                key=f"processed-files/pulse-{weekstr}.parquet",
             )
 
         df.to_csv(outfile, index=False)
@@ -102,7 +105,7 @@ class PulseCLI:
             week=self.args.week,
         )
         pulse = Pulse(week=self.args.week)
-        pulse._download_data()  # pylint: disable=protected-access
+        pulse.download_data()
         df = pulse.df
         df.to_csv(outfile, index=False)
 
@@ -149,7 +152,7 @@ class PulseCLI:
 
         elif self.args.backfill:
             cenweeks = Census.get_week_year_map().keys()
-            s3weeks = S3Storage.get_available_weeks(file_type="processed")
+            s3weeks = S3Storage().get_available_weeks(file_type="processed")
             missingweeks = set(cenweeks) - set(s3weeks)
             for week in missingweeks:
                 pulse = Pulse(week=week)
@@ -293,8 +296,7 @@ class PulseCLI:
             "output", help="The target directory for the .csv file", type=str
         )
 
-    @staticmethod
-    def get_latest_week(target: str) -> int:
+    def get_latest_week(self, target: str) -> int:
         """
         Fetches the latest week available on the passet target.
 
@@ -305,17 +307,16 @@ class PulseCLI:
             int: The latest week value as an integer.
         """
         if target not in PulseCLI.TARGETS:
-            raise ValueError(f"{target} must be one of {PulseCLI.TARGETS}")
+            self.parser.error(f"{target} must be one of {PulseCLI.TARGETS}")
 
         if target == "s3":
-            week = max(S3Storage.get_available_weeks(file_type="processed"))
+            week = max(S3Storage().get_available_weeks(file_type="processed"))
         elif target == "census":  # pragma: no branch
             week = max(Census.get_week_year_map().keys())
 
         return week
 
-    @staticmethod
-    def get_all_weeks(target: str) -> tuple[int, ...]:
+    def get_all_weeks(self, target: str) -> tuple[int, ...]:
         """
         Fetches all available weeks on the passed target.
 
@@ -326,11 +327,11 @@ class PulseCLI:
             tuple[int]: The set of available weeks as a tuple
         """
         if target not in PulseCLI.TARGETS:
-            raise ValueError(f"{target} must be one of {PulseCLI.TARGETS}")
+            self.parser.error(f"{target} must be one of {PulseCLI.TARGETS}")
 
         if target == "s3":
             weeks = tuple(
-                sorted(S3Storage.get_available_weeks(file_type="processed"))
+                sorted(S3Storage().get_available_weeks(file_type="processed"))
             )
         elif target == "census":  # pragma: no branch
             weeks = tuple(sorted(Census.get_week_year_map().keys()))

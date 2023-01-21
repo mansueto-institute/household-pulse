@@ -94,9 +94,10 @@ def smooth_pulse() -> None:
     smoothes the entire pulse table, creating a new table with the smoothed
     weight_share variables
     """
-    df = S3Storage.download_all(file_type="processed")
+    s3 = S3Storage()
+    df = s3.download_all(file_type="processed")
     datedf = pd.DataFrame.from_dict(
-        S3Storage.get_collection_dates(), orient="index"
+        s3.get_collection_dates(), orient="index"
     )
     df = df.merge(
         datedf["end_date"], how="left", left_on="week", right_index=True
@@ -140,4 +141,4 @@ def smooth_pulse() -> None:
             df = pd.concat(results)
     df.drop(columns="end_date", inplace=True)
     df = normalize_smoothed(df)
-    S3Storage.upload_parquet(key="smoothed/pulse-smoothed.parquet", df=df)
+    s3.upload_parquet(key="smoothed/pulse-smoothed.parquet", df=df)

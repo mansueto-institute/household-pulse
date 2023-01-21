@@ -97,8 +97,8 @@ def cache_queries(
 
 
 def build_front_cache():
-
-    df = S3Storage.download_smoothed_pulse()
+    s3 = S3Storage()
+    df = s3.download_smoothed_pulse()
 
     meta = get_meta()
 
@@ -110,10 +110,10 @@ def build_front_cache():
         meta["label_groupings"],
     )
 
-    S3Storage.tar_and_upload(tarname="output_cache.tar.gz", files=cache)
+    s3.tar_and_upload(tarname="output_cache.tar.gz", files=cache)
 
     for fname, data in meta.items():
         if isinstance(data, pd.DataFrame):
             meta[fname] = meta[fname].to_json(orient="records")
     metacache = {f"{k}.json": v for k, v in meta.items()}
-    S3Storage.tar_and_upload(tarname="output_meta.tar.gz", files=metacache)
+    s3.tar_and_upload(tarname="output_meta.tar.gz", files=metacache)
