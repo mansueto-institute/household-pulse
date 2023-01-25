@@ -23,27 +23,27 @@ from household_pulse.pulse import Pulse
 
 @pytest.fixture(scope="session")
 def cmsdf() -> pd.DataFrame:
-    return pd.read_csv("tests/county_metro_state.csv")
+    return pd.read_csv("tests/testfiles/county_metro_state.csv")
 
 
 @pytest.fixture(scope="session")
 def qumdf() -> pd.DataFrame:
-    return pd.read_csv("tests/question_mapping.csv")
+    return pd.read_csv("tests/testfiles/question_mapping.csv")
 
 
 @pytest.fixture(scope="session")
 def resdf() -> pd.DataFrame:
-    return pd.read_csv("tests/response_mapping.csv")
+    return pd.read_csv("tests/testfiles/response_mapping.csv")
 
 
 @pytest.fixture(scope="session")
 def mapdf() -> pd.DataFrame:
-    return pd.read_csv("tests/numeric_mapping.csv")
+    return pd.read_csv("tests/testfiles/numeric_mapping.csv")
 
 
 @pytest.fixture
 def mock_df() -> Generator[pd.DataFrame, None, None]:
-    df = pd.read_csv("tests/pulse.csv")
+    df = pd.read_csv("tests/testfiles/pulse.csv")
     yield df
 
 
