@@ -53,7 +53,7 @@ class S3Storage:
         """
         try:
             logger.info("Downloading parquet file from S3: %s", key)
-            s3obj = self.s3.get_object(Bucket=S3Storage.bucket, Key=key)
+            s3obj = self.s3.get_object(Bucket=self.bucket, Key=key)
         except ClientError as e:
             logger.error(e)
             raise e
