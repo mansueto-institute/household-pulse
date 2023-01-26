@@ -344,7 +344,7 @@ class Pulse(IO):
         """
         logger.info("Merging CBSA info to the responses.")
         ctabdf = self.ctabdf
-        cmsdf = load_gsheet("country_metro_state")
+        cmsdf = load_gsheet("county_metro_state")
 
         cmsdf.drop_duplicates(subset="cbsa_fips", inplace=True)
 
