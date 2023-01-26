@@ -68,9 +68,8 @@ class PulseCLI:
 
         elif self.args.subcommand == "fetch":  # pragma: no branch
             self.fetch_subcommand()
-
         else:
-            self.parser.print_help()
+            self.parser.print_help()  # pragma: no cover
 
     def download_pulse(self) -> None:
         """
@@ -167,9 +166,8 @@ class PulseCLI:
 
         elif self.args.send_build_request:  # pragma: no branch
             self._build_request()
-
         else:
-            self.etlparser.print_help()
+            self.etlparser.print_help()  # pragma: no cover
 
     def fetch_subcommand(self) -> None:
         """
