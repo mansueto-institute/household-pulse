@@ -198,7 +198,7 @@ class TestETLSubcommand:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("target", ("rds", "census"))
+    @pytest.mark.parametrize("target", ("s3", "census"))
     @patch.object(PulseCLI, "get_latest_week")
     def test_etl_get_latest_week(mock_method: MagicMock, target: str, capsys):
         mock_method.return_value = 10
@@ -208,7 +208,7 @@ class TestETLSubcommand:
         assert captured.out == f"Latest week available on {target} is 10\n"
 
     @staticmethod
-    @pytest.mark.parametrize("target", ("rds", "census"))
+    @pytest.mark.parametrize("target", ("s3", "census"))
     @patch.object(PulseCLI, "get_all_weeks")
     def test_etl_get_all_weeks(mock_method: MagicMock, target: str, capsys):
         mock_method.return_value = (10, 12, 13)

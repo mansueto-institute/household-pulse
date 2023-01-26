@@ -73,7 +73,9 @@ class PulseCLI:
 
     def download_pulse(self) -> None:
         """
-        downloads the entire processed data form our RDS DB.
+        Downloads all the processed data from the S3 bucket if no week is
+        passed to CLI. Otherwise, downloads the processed data for the
+        specified week.
         """
         outfile = self._resolve_outpath(
             filepath=self.args.output,
@@ -191,7 +193,7 @@ class PulseCLI:
             "--get-latest-week",
             help=(
                 "Returns the latest available week on the passed target. "
-                'Must be one of {"rds", "census"}'
+                'Must be one of {"s3", "census"}'
             ),
             type=str,
             metavar="TARGET",
@@ -200,7 +202,7 @@ class PulseCLI:
             "--get-all-weeks",
             help=(
                 "Returns all available weeks on the passed target. Must be "
-                'one of {"rds", "census"}'
+                'one of {"s3", "census"}'
             ),
             type=str,
             metavar="TARGET",
@@ -236,7 +238,7 @@ class PulseCLI:
         )
         execgroup.add_argument(
             "--backfill",
-            help="Runs all weeks in the census that are not in the RDS DB",
+            help="Runs all weeks in the census that are not in the S3 bucket",
             action="store_true",
             default=False,
         )
@@ -248,7 +250,10 @@ class PulseCLI:
         )
         execgroup.add_argument(
             "--build-front-cache",
-            help="Builds a cache of all data from RDS for the front end",
+            help=(
+                "Builds a cache of all data from the S3 bucket for the front "
+                "end"
+            ),
             action="store_true",
             default=False,
         )
@@ -299,7 +304,7 @@ class PulseCLI:
         Fetches the latest week available on the passet target.
 
         Args:
-            target (str): The remote target. Must be either `census` or `rds`.
+            target (str): The remote target. Must be either `census` or `s3`.
 
         Returns:
             int: The latest week value as an integer.
@@ -319,7 +324,7 @@ class PulseCLI:
         Fetches all available weeks on the passed target.
 
         Args:
-            target (str): The remote target. Must be either `census` or `rds`
+            target (str): The remote target. Must be either `census` or `s3`
 
         Returns:
             tuple[int]: The set of available weeks as a tuple

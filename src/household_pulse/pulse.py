@@ -99,7 +99,7 @@ class Pulse(IO):
 
     def upload_data(self) -> None:
         """
-        updates the data in the RDS table. by update we mean, delete the old
+        updates the data into our S3 bucket. by update we mean, delete the old
         data for this particular week if any, and then update. if there is no
         old data for this particular week, it does not delete anything.
         """
