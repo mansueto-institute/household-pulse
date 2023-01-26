@@ -96,9 +96,7 @@ def smooth_pulse() -> None:
     """
     s3 = S3Storage()
     df = s3.download_all(file_type="processed")
-    datedf = pd.DataFrame.from_dict(
-        s3.get_collection_dates(), orient="index"
-    )
+    datedf = pd.DataFrame.from_dict(s3.get_collection_dates(), orient="index")
     df = df.merge(
         datedf["end_date"], how="left", left_on="week", right_index=True
     )
