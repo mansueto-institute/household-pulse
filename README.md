@@ -44,7 +44,7 @@ If you would like to install directly:
 pip install git+https://github.com/mansueto-institute/household-pulse
 ```
 
-In order to upload the results to our database you will need the RDS credentials; ask your supervisor for them.
+In order to upload the results to our bucket you will need the AWS credentials; ask your supervisor for them. If you already have access, check the section on [temporary credentials](#getting-temporary-credentials).
 
 ### Run
 
@@ -66,7 +66,7 @@ household-pulse etl --help
 
 ##### Downloading Data
 
-Another of the features that the CLI has is the ability to download the processed data to a local file in case you need to work on it locally. The best idea would be to fetch the data directly from our SQL database, but this is not always possible. You can explore which datasets you can download by running:
+Another of the features that the CLI has is the ability to download the processed data to a local file in case you need to work on it locally. You can explore which datasets you can download by running:
 
 ```bash
 household-pulse fetch --help
