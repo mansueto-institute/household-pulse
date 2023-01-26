@@ -127,6 +127,7 @@ class Pulse(IO):
             dates = self.s3.get_collection_dates()[self.week]
         except KeyError:
             self.s3.put_collection_dates()
+            self.s3.get_collection_dates.cache_clear()
             dates = self.s3.get_collection_dates()[self.week]
 
         df = self.df
