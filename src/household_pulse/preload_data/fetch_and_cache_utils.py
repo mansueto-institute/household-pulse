@@ -4,9 +4,11 @@ from glob import glob
 from typing import Optional
 
 import pandas as pd
-from botocore.exceptions import ClientError
-from household_pulse.downloader import DataLoader
-from household_pulse.mysql_wrapper import PulseSQL
+import numpy as np
+
+from household_pulse.io import S3Storage
+
+logger = logging.getLogger(__name__)
 
 BASE_SHEET_URL = (
     "https://docs.google.com/spreadsheets/d/e/"
@@ -89,17 +91,6 @@ def compress_folder(input_path: str, output_path: str):
     for file in files:
         tar.add(file, arcname=file.split("/")[-1])
     tar.close()
-
-
-def upload_folder(bucket, path_to_file, prefix):
-    dl = DataLoader()
-
-    try:
-        dl.s3.upload_file(path_to_file, bucket, prefix + path_to_file)
-    except ClientError as e:
-        logging.error(e)
-        return False
-    return True
 
 
 # DB UTILS
@@ -214,7 +205,7 @@ def run_query(
 
     for resdftab in resdf.xtab_val.unique():
         temp_resdf = resdf[resdf.xtab_val == resdftab].copy()
-        temp_resdf["week"] = temp_resdf.week.astype(int)
+        temp_resdf["week"] = temp_resdf.week.astype(int).tolist()
         temp_resdf["proportion"] = temp_resdf[value_col].astype(float)
         temp_resdf = temp_resdf.sort_values(by=["week"])
         grouped_dict = temp_resdf.groupby("week").apply(
@@ -223,7 +214,13 @@ def run_query(
         values = []
         for week in range(week_range[0], week_range[1] + 1):
             if week in grouped_dict.index:
-                values.append(grouped_dict.loc[week])
+                grouped_results = grouped_dict.loc[week]
+                grouped_res_fix = {}
+                for k, v in grouped_results.items():
+                    if isinstance(k, np.integer):
+                        k = int(k)
+                    grouped_res_fix[k] = v
+                values.append(grouped_res_fix)
                 values[week - 1]["dateRange"] = dates[
                     dates.week == week
                 ].dates.values[0]
@@ -255,15 +252,11 @@ def run_query(
 
 
 # FETCHERS AND DATA PARSING
-def get_dates(pulsesql: PulseSQL):
-    query = "SELECT * FROM collection_dates ORDER BY week;"
-    c = pulsesql.conn.cursor()
-    c.execute(query)
-    result_data = c.fetchall()
-    # cleanup and output
-    df = pd.DataFrame(result_data)
-    df.columns = [d[0] for d in c.description]
-    c.close()
+def get_dates():
+    df = pd.DataFrame.from_dict(
+        S3Storage().get_collection_dates(), orient="index"
+    )
+    df.reset_index(names="week", inplace=True)
     df["dates"] = (
         df["start_date"].astype(str) + " to " + df["end_date"].astype(str)
     )
@@ -310,18 +303,10 @@ def get_xtab_labels():
     return combined_xtabs
 
 
-def get_question_order(pulsesql: PulseSQL):
-    query = """
-        SELECT DISTINCT q_var, week
-        FROM pulse
-        ORDER BY week DESC
-    """
-    c = pulsesql.conn.cursor()
-    c.execute(query)
-    result_data = c.fetchall()
-    df = pd.DataFrame(result_data)
-    df.columns = [d[0] for d in c.description]
-    c.close()
+def get_question_order():
+    result_data = S3Storage().download_all(file_type="processed")
+    df = result_data.groupby(["q_var", "week"]).size().reset_index()
+    df.drop(columns=0, inplace=True)
 
     count = df.groupby("q_var").count()
     count.columns = ["count_of_weeks"]

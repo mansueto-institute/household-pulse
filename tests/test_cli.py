@@ -19,6 +19,7 @@ import pytest
 from botocore.exceptions import ClientError
 
 from household_pulse.__main__ import PulseCLI
+from household_pulse.io import Census, S3Storage
 
 
 class TestInstantiation:
@@ -71,75 +72,74 @@ class TestMethods:
 
     @staticmethod
     @patch.object(PulseCLI, "_resolve_outpath", MagicMock())
-    @patch("household_pulse.__main__.PulseSQL")
-    def test_download_pulse(mocksql: MagicMock):
+    @patch("household_pulse.__main__.S3Storage")
+    def test_download_pulse(mocks3: MagicMock):
         cli = PulseCLI(args=["fetch", "download-pulse", "test"])
+        s3 = mocks3.return_value
         cli.download_pulse()
         cli._resolve_outpath.assert_called_once()  # type: ignore
-        sql = mocksql.return_value
-        sql.get_pulse_table.assert_called_once()
+        s3.download_all.assert_called_once()
 
     @staticmethod
     @patch.object(PulseCLI, "_resolve_outpath", MagicMock())
-    @patch("household_pulse.__main__.PulseSQL")
-    def test_download_pulse_with_week(mocksql: MagicMock):
+    @patch("household_pulse.__main__.S3Storage")
+    def test_download_pulse_with_week(mocks3: MagicMock):
         cli = PulseCLI(
             args=["fetch", "download-pulse", "test", "--week", "10"]
         )
+        s3 = mocks3.return_value
         cli.download_pulse()
         cli._resolve_outpath.assert_called_once()  # type: ignore
-        sql = mocksql.return_value
-        sql.get_pulse_table.assert_called_once()
+        s3.download_parquet.assert_called_once()
 
     @staticmethod
     @patch.object(PulseCLI, "_resolve_outpath", MagicMock())
-    @patch("household_pulse.__main__.DataLoader")
-    def test_download_raw(mock_dl: MagicMock):
+    @patch("household_pulse.__main__.Pulse")
+    def test_download_raw(mock_pulse: MagicMock):
         cli = PulseCLI(args=["fetch", "download-raw", "test", "--week", "10"])
+        pulse = mock_pulse.return_value
         cli.download_raw()
         cli._resolve_outpath.assert_called_once()  # type: ignore
-        dl = mock_dl.return_value
-        dl.load_week.assert_called_once()
+        pulse.download_data.assert_called_once()
 
     @staticmethod
-    @pytest.mark.parametrize("target", ("rds", "census", "bad"))
-    @patch("household_pulse.__main__.DataLoader")
-    @patch("household_pulse.__main__.PulseSQL")
+    @pytest.mark.parametrize("target", ("s3", "census", "bad"))
+    @patch("household_pulse.__main__.S3Storage")
+    @patch("household_pulse.__main__.Census")
     def test_get_latest_week(
-        mock_sql: MagicMock, mock_dl: MagicMock, target: str
+        mock_census: MagicMock, mock_s3: MagicMock, target: str
     ):
+        cli = PulseCLI(args=["etl", "--get-latest-week", target])
         if target == "bad":
-            with pytest.raises(ValueError):
-                PulseCLI.get_latest_week(target=target)
-        elif target == "rds":
-            mock_sql.return_value.get_latest_week.return_value = 40
-            assert PulseCLI.get_latest_week(target=target) == 40
+            with pytest.raises(SystemExit):
+                cli.get_latest_week(target=target)
+        elif target == "s3":
+            mock_s3.return_value.get_available_weeks.return_value = {39, 40}
+            assert cli.get_latest_week(target=target) == 40
         else:
-            mock_dl.get_week_year_map.return_value = {
+            mock_census.get_week_year_map.return_value = {
                 39: 2022,
                 40: 2022,
             }
-            assert PulseCLI.get_latest_week(target=target) == 40
+            assert cli.get_latest_week(target=target) == 40
 
     @staticmethod
-    @pytest.mark.parametrize("target", ("rds", "census", "bad"))
-    @patch("household_pulse.__main__.DataLoader")
-    @patch("household_pulse.__main__.PulseSQL")
+    @pytest.mark.parametrize("target", ("s3", "census", "bad"))
+    @patch("household_pulse.__main__.S3Storage")
+    @patch("household_pulse.__main__.Census")
     def test_get_all_weeks(
-        mock_sql: MagicMock, mock_dl: MagicMock, target: str
+        mock_census: MagicMock, mock_s3: MagicMock, target: str
     ):
+        cli = PulseCLI(args=["etl", "--get-all-weeks", target])
         if target == "bad":
-            with pytest.raises(ValueError):
-                PulseCLI.get_all_weeks(target=target)
-        elif target == "rds":
-            mock_sql.return_value.get_available_weeks.return_value = (39, 40)
-            assert PulseCLI.get_all_weeks(target=target) == (39, 40)
+            with pytest.raises(SystemExit):
+                cli.get_all_weeks(target=target)
+        elif target == "s3":
+            mock_s3.return_value.get_available_weeks.return_value = (40, 39)
+            assert cli.get_all_weeks(target=target) == (39, 40)
         else:
-            mock_dl.get_week_year_map.return_value = {
-                39: 2022,
-                40: 2022,
-            }
-            assert PulseCLI.get_all_weeks(target=target) == (39, 40)
+            mock_census.get_week_year_map.return_value = {40: 2022, 39: 2022}
+            assert cli.get_all_weeks(target=target) == (39, 40)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -198,7 +198,7 @@ class TestETLSubcommand:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("target", ("rds", "census"))
+    @pytest.mark.parametrize("target", ("s3", "census"))
     @patch.object(PulseCLI, "get_latest_week")
     def test_etl_get_latest_week(mock_method: MagicMock, target: str, capsys):
         mock_method.return_value = 10
@@ -208,7 +208,7 @@ class TestETLSubcommand:
         assert captured.out == f"Latest week available on {target} is 10\n"
 
     @staticmethod
-    @pytest.mark.parametrize("target", ("rds", "census"))
+    @pytest.mark.parametrize("target", ("s3", "census"))
     @patch.object(PulseCLI, "get_all_weeks")
     def test_etl_get_all_weeks(mock_method: MagicMock, target: str, capsys):
         mock_method.return_value = (10, 12, 13)
@@ -273,16 +273,16 @@ class TestETLSubcommand:
 
     @staticmethod
     @patch("household_pulse.__main__.Pulse")
-    @patch("household_pulse.__main__.DataLoader")
-    @patch("household_pulse.__main__.PulseSQL")
+    @patch("household_pulse.__main__.S3Storage")
+    @patch("household_pulse.__main__.Census")
     def test_etl_backfill(
-        mock_sql: MagicMock, mock_dl: MagicMock, mock_pulse: MagicMock
+        mock_census: MagicMock, mock_s3: MagicMock, mock_pulse: MagicMock
     ):
-        mock_dl.get_week_year_map.return_value = {
+        mock_census.get_week_year_map.return_value = {
             40: 2022,
             41: 2022,
         }
-        mock_sql.return_value.get_available_weeks.return_value = (40,)
+        mock_s3.return_value.get_available_weeks.return_value = {40}
         cli = PulseCLI(args=["etl", "--backfill"])
         cli.etl_subcommand()
         calls = [
