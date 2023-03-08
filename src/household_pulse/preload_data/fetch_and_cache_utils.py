@@ -111,7 +111,7 @@ def group_to_json(group, labels):
     temp_dict = {"week": int(group.iloc[0].week)}
 
     for i in range(0, len(group)):
-        temp_dict[group.iloc[i].q_val] = group.iloc[i].proportion
+        temp_dict[str(group.iloc[i].q_val)] = group.iloc[i].proportion
 
     curr_group = list(group.q_val.unique())
     curr_labels = list(labels.keys())
@@ -218,7 +218,7 @@ def run_query(
                 grouped_res_fix = {}
                 for k, v in grouped_results.items():
                     if isinstance(k, np.integer):
-                        k = int(k)
+                        k = str(k)
                     grouped_res_fix[k] = v
                 values.append(grouped_res_fix)
                 values[week - 1]["dateRange"] = dates[
