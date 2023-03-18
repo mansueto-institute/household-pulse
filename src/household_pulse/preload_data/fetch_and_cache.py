@@ -69,7 +69,6 @@ def cache_queries(
                 total=len(question_groupings),
                 desc=f"Working on xtab: {xtab}",
             ):
-
                 var_group = row.variable_group
                 response_labels = label_groupings[var_group]
 
